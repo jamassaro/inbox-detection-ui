@@ -1,8 +1,50 @@
 {
   "status": {
+    "notStarted": "Sin iniciar",
     "starting": "Iniciando investigación…",
     "running": "Revisando tus correos…",
     "complete": "Investigación completada",
-    "failed": "La investigación falló"
+    "failed": "La investigación falló",
+    "partial": "Investigación parcialmente completada"
+  },
+  "progress": {
+    "header": "Investigando tu bandeja…",
+    "emailsReviewed": "correos revisados",
+    "categoriesTitle": "Lo que el Detective está buscando",
+    "categories": {
+      "subscriptions": "Suscripciones",
+      "priceChanges": "Cambios de precio",
+      "credits": "Créditos",
+      "meetings": "Reuniones",
+      "expirations": "Vencimientos"
+    },
+    "triggerFailed": "No pudimos iniciar tu investigación. Inténtalo de nuevo.",
+    "timeoutTitle": "Esto está tardando más de lo esperado",
+    "timeoutDescription": "Tu investigación sigue ejecutándose en segundo plano, pero no ha terminado después de 5 minutos. Puedes seguir esperando o intentarlo de nuevo.",
+    "partialMessage": "Terminamos parte de tu investigación, pero algo la interrumpió. Puedes revisar los hallazgos encontrados hasta ahora.",
+    "continue": "Continuar a los resultados",
+    "retry": "Intentar de nuevo"
+  },
+  "results": {
+    "title": "Tus primeros hallazgos",
+    "summary": {
+      "emailsAnalyzed": "Correos analizados",
+      "discoveriesFound": "Hallazgos",
+      "potentialValue": "Valor potencial"
+    },
+    "unlockCta": "Desbloquear con Pro",
+    "seeAll": "Ver todos los hallazgos",
+    "empty": {
+      "title": "Aún no hay hallazgos",
+      "description": "El Detective no encontró nada accionable en esta pasada. Los nuevos hallazgos aparecerán aquí tras tu próxima investigación."
+    },
+    "typeLabels": {
+      "money": "Dinero",
+      "subscription": "Suscripción",
+      "expiration": "Vencimiento",
+      "meeting_request": "Solicitud de reunión",
+      "change": "Cambio",
+      "unknown": "Hallazgo"
+    }
   }
 }

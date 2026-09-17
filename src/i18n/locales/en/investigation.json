@@ -1,8 +1,50 @@
 {
   "status": {
+    "notStarted": "Not started",
     "starting": "Starting investigation…",
     "running": "Reviewing your emails…",
     "complete": "Investigation complete",
-    "failed": "Investigation failed"
+    "failed": "Investigation failed",
+    "partial": "Investigation partially completed"
+  },
+  "progress": {
+    "header": "Investigating your inbox…",
+    "emailsReviewed": "emails reviewed",
+    "categoriesTitle": "What the Detective is looking for",
+    "categories": {
+      "subscriptions": "Subscriptions",
+      "priceChanges": "Price changes",
+      "credits": "Credits",
+      "meetings": "Meetings",
+      "expirations": "Expirations"
+    },
+    "triggerFailed": "We couldn't start your investigation. Please try again.",
+    "timeoutTitle": "This is taking longer than expected",
+    "timeoutDescription": "Your investigation is still running in the background, but it hasn't finished after 5 minutes. You can keep waiting or try again.",
+    "partialMessage": "We finished part of your investigation, but something interrupted it. You can review the discoveries found so far.",
+    "continue": "Continue to results",
+    "retry": "Try again"
+  },
+  "results": {
+    "title": "Your first discoveries",
+    "summary": {
+      "emailsAnalyzed": "Emails analyzed",
+      "discoveriesFound": "Discoveries found",
+      "potentialValue": "Potential value"
+    },
+    "unlockCta": "Unlock with Pro",
+    "seeAll": "See all discoveries",
+    "empty": {
+      "title": "No discoveries yet",
+      "description": "The Detective didn't find anything actionable in this pass. New discoveries appear here after your next investigation."
+    },
+    "typeLabels": {
+      "money": "Money",
+      "subscription": "Subscription",
+      "expiration": "Expiration",
+      "meeting_request": "Meeting request",
+      "change": "Change",
+      "unknown": "Discovery"
+    }
   }
 }
