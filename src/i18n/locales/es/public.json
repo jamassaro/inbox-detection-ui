@@ -191,5 +191,69 @@
       "terms": "Términos",
       "copyright": "© {{year}} Inbox Detective. Todos los derechos reservados."
     }
+  },
+  "legal": {
+    "back": "Volver al inicio",
+    "lastUpdated": "Última actualización: {{date}}",
+    "lastUpdatedDate": "17 de septiembre de 2026",
+    "placeholderNotice": "Este documento es un contenido provisional. El equipo de producto publicará el texto legal final antes del lanzamiento.",
+    "privacy": {
+      "title": "Política de Privacidad",
+      "sections": {
+        "intro": {
+          "heading": "Introducción",
+          "body": "PROVISIONAL — Esta Política de Privacidad explica cómo trata Inbox Detective tu información cuando usas nuestro sitio web y servicios. Se reemplazará por el texto final proporcionado por el equipo de producto."
+        },
+        "collect": {
+          "heading": "Qué recopilamos",
+          "body": "PROVISIONAL — Cuando conectas tu cuenta de Gmail, accedemos a los correos necesarios para detectar ofertas, cambios de precio, créditos y reuniones. Recopilamos la información mínima necesaria para prestar el servicio."
+        },
+        "use": {
+          "heading": "Cómo la usamos",
+          "body": "PROVISIONAL — Usamos la información recopilada para ejecutar investigaciones, mostrar descubrimientos y enviarte recordatorios. No vendemos tus datos ni los usamos para publicidad."
+        },
+        "gmail": {
+          "heading": "Acceso a Gmail",
+          "body": "PROVISIONAL — El acceso a tu Gmail es de solo lectura y limitado a lo que el servicio necesita. Puedes revocarlo en cualquier momento desde tu cuenta de Google o desde Configuración."
+        },
+        "deletion": {
+          "heading": "Eliminación de datos",
+          "body": "PROVISIONAL — Puedes eliminar tu cuenta y tus datos en cualquier momento. Al hacerlo, los extractos de correo y los resultados de investigaciones se eliminan de nuestros sistemas."
+        },
+        "contact": {
+          "heading": "Contacto",
+          "body": "PROVISIONAL — ¿Preguntas sobre esta política? Escríbenos a privacy@inboxdetective.example y te responderemos lo antes posible."
+        }
+      }
+    },
+    "terms": {
+      "title": "Términos de Servicio",
+      "sections": {
+        "intro": {
+          "heading": "Introducción",
+          "body": "PROVISIONAL — Estos Términos de Servicio regulan el uso de Inbox Detective. Al crear una cuenta o conectar una bandeja, aceptas estos términos. Se reemplazarán por el texto final proporcionado por el equipo de producto."
+        },
+        "collect": {
+          "heading": "Qué recopilamos",
+          "body": "PROVISIONAL — Para crear tu cuenta recopilamos información básica de perfil de Google, como tu nombre y correo electrónico, junto con el contenido de la bandeja que decidas conectar."
+        },
+        "use": {
+          "heading": "Cómo la usamos",
+          "body": "PROVISIONAL — Usamos la información de la cuenta para prestar el servicio, mantener tu cuenta y comunicarte novedades del servicio. No vendemos tus datos ni los usamos para publicidad."
+        },
+        "gmail": {
+          "heading": "Acceso a Gmail",
+          "body": "PROVISIONAL — El servicio lee los correos de la cuenta de Gmail que conectes. El acceso es de solo lectura y se usa únicamente para tus investigaciones y descubrimientos."
+        },
+        "deletion": {
+          "heading": "Eliminación de datos",
+          "body": "PROVISIONAL — Puedes dejar de usar el servicio y solicitar la eliminación de tu cuenta y datos en cualquier momento. Podemos conservar registros mínimos cuando la ley lo exija."
+        },
+        "contact": {
+          "heading": "Contacto",
+          "body": "PROVISIONAL — ¿Preguntas sobre estos términos? Escríbenos a legal@inboxdetective.example y te responderemos lo antes posible."
+        }
+      }
+    }
   }
 }
