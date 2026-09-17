@@ -9,7 +9,7 @@ import { AuthProvider } from '../../contexts/AuthProvider';
 import { EntitlementProvider } from '../../contexts/EntitlementProvider';
 import { apiFetch } from '../../lib/apiClient';
 import { ApiError } from '../../lib/apiError';
-import { stubWindowLocation } from '../../test-utils';
+import { makeTestUser, stubWindowLocation } from '../../test-utils';
 import { readUpgradeContext, saveUpgradeContext } from '../../lib/upgradeContext';
 import UpgradePage from '../UpgradePage';
 import type { BillingStatusWire, User } from '../../types';
@@ -21,7 +21,7 @@ vi.mock('../../lib/apiClient', () => ({
 
 const mockApiFetch = vi.mocked(apiFetch);
 
-const testUser: User = { id: 'u1', name: 'Ada', email: 'ada@example.com', googleId: 'g1' };
+const testUser: User = makeTestUser();;
 
 /** Wire body of GET /billing/status (BE-030) — verified against Inbox-api src. */
 const FREE_STATUS: BillingStatusWire = {
@@ -87,7 +87,7 @@ describe('UpgradePage', () => {
     void i18n.changeLanguage('en');
     mockApiFetch.mockReset();
     mockApiFetch.mockImplementation(async (path: string) => {
-      if (path === '/auth/me') return testUser;
+      if (path === '/account/me') return testUser;
       if (path === '/billing/status') return FREE_STATUS;
       throw new Error(`unexpected apiFetch path: ${path}`);
     });
@@ -147,7 +147,7 @@ describe('UpgradePage', () => {
 
   it('shows a current-plan indicator instead of CTAs for Pro users', async () => {
     mockApiFetch.mockImplementation(async (path: string) => {
-      if (path === '/auth/me') return testUser;
+      if (path === '/account/me') return testUser;
       if (path === '/billing/status') return PRO_STATUS;
       throw new Error(`unexpected apiFetch path: ${path}`);
     });
@@ -171,7 +171,7 @@ describe('UpgradePage', () => {
     vi.stubEnv('VITE_STRIPE_PRICE_MONTHLY_ID', 'price_test_monthly');
     const location = stubWindowLocation();
     mockApiFetch.mockImplementation(async (path: string, options?: RequestInit) => {
-      if (path === '/auth/me') return testUser;
+      if (path === '/account/me') return testUser;
       if (path === '/billing/status') return FREE_STATUS;
       if (path === '/billing/checkout' && options?.method === 'POST') {
         expect(JSON.parse(String(options.body))).toEqual({ priceId: 'price_test_monthly' });
@@ -192,7 +192,7 @@ describe('UpgradePage', () => {
   it('shows the checkout error state when the backend refuses', async () => {
     vi.stubEnv('VITE_STRIPE_PRICE_ANNUAL_ID', 'price_test_annual');
     mockApiFetch.mockImplementation(async (path: string) => {
-      if (path === '/auth/me') return testUser;
+      if (path === '/account/me') return testUser;
       if (path === '/billing/status') return FREE_STATUS;
       if (path === '/billing/checkout') {
         throw new ApiError(400, 'INVALID_PRICE', 'Invalid price');

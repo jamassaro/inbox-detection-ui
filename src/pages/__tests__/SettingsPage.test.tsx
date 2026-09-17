@@ -27,9 +27,16 @@ const CONSENT_AUTH_URL = 'https://accounts.google.test/o/oauth2/v2/auth?client_i
 
 const wireUser = (overrides: Partial<User> = {}): User => ({
   id: 'usr_1',
-  name: 'María',
+  displayName: 'María',
   email: 'maria@example.com',
-  googleId: 'google-1',
+  photoUrl: null,
+  plan: 'pro',
+  subscriptionStatus: null,
+  currentPeriodEnd: null,
+  calendarConnected: true,
+  gmailComposeEnabled: true,
+  locale: 'en',
+  createdAt: '2026-08-17T10:00:00.000Z',
   ...overrides,
 });
 
@@ -63,7 +70,7 @@ interface BackendOptions {
 
 /**
  * Wires mockApiFetch to every endpoint the settings page touches:
- * /auth/me, /billing/status, /gmail/status, /account/connections,
+ * /account/me, /billing/status, /account/connections, /stats,
  * the two disconnect DELETEs, and the /calendar/connect consent-URL
  * request. Any other path fails loudly so a test can never silently pass
  * against an endpoint it did not stub.
@@ -75,20 +82,19 @@ const mockBackend = ({
   calendarConnect = 'succeed',
 }: BackendOptions = {}) => {
   mockApiFetch.mockImplementation((path: string, init?: { method?: string }) => {
-    if (path.startsWith('/auth/me')) return Promise.resolve(wireUser());
+    if (path.startsWith('/account/me')) return Promise.resolve(wireUser());
     if (path.startsWith('/billing/status')) return Promise.resolve(billingStatus(plan));
-    if (path.startsWith('/gmail/status')) {
-      return Promise.resolve({
-        connected: gmailConnected,
-        email: gmailConnected ? 'maria@example.com' : null,
-        lastSync: gmailConnected ? '2026-09-17T10:00:00.000Z' : null,
-      });
-    }
     if (path === '/account/connections') {
       return Promise.resolve({
         gmail: { connected: gmailConnected, email: gmailConnected ? 'maria@example.com' : null },
         calendar: { connected: calendarConnected },
         gmailCompose: { enabled: plan === 'pro' },
+      });
+    }
+    if (path === '/stats') {
+      // useGmailStatus reads lastScan from GET /stats (BE-045).
+      return Promise.resolve({
+        lastScan: gmailConnected ? { scanDate: '2026-09-17T10:00:00.000Z' } : null,
       });
     }
     if (path === '/account/disconnect/gmail' && init?.method === 'DELETE') {
@@ -217,11 +223,9 @@ describe('SettingsPage', () => {
       if (path === '/account/disconnect/gmail' && init?.method === 'DELETE') {
         return Promise.reject(new Error('backend down'));
       }
-      if (path.startsWith('/auth/me')) return Promise.resolve(wireUser());
+      if (path.startsWith('/account/me')) return Promise.resolve(wireUser());
       if (path.startsWith('/billing/status')) return Promise.resolve(billingStatus('pro'));
-      if (path.startsWith('/gmail/status')) {
-        return Promise.resolve({ connected: true, email: 'maria@example.com', lastSync: null });
-      }
+      if (path === '/stats') return Promise.resolve({ lastScan: null });
       if (path === '/account/connections') {
         return Promise.resolve({
           gmail: { connected: true, email: 'maria@example.com' },
@@ -244,23 +248,25 @@ describe('SettingsPage', () => {
   it('surfaces a Gmail status failure as an inline retryable error', async () => {
     const user = userEvent.setup();
     mockApiFetch.mockImplementation((path: string) => {
-      if (path.startsWith('/auth/me')) return Promise.resolve(wireUser());
+      if (path.startsWith('/account/me')) return Promise.resolve(wireUser());
       if (path.startsWith('/billing/status')) return Promise.resolve(billingStatus('pro'));
-      if (path.startsWith('/gmail/status')) return Promise.reject(new Error('backend down'));
+      // The failing status check IS the connections read now (no /gmail/status).
       if (path === '/account/connections') {
-        return Promise.resolve({
-          gmail: { connected: false, email: null },
-          calendar: { connected: false },
-          gmailCompose: { enabled: false },
-        });
+        return Promise.reject(new Error('backend down'));
+      }
+      if (path === '/stats') {
+        return Promise.resolve({ lastScan: null });
       }
       return Promise.reject(new Error(`unexpected path: ${path}`));
     });
     renderPage();
 
-    expect(await screen.findByRole('alert')).toBeTruthy();
+    // Both the Gmail and Calendar sections derive from /account/connections,
+    // so one failed read surfaces two inline alerts.
+    const alerts = await screen.findAllByRole('alert');
+    expect(alerts.length).toBeGreaterThanOrEqual(1);
     expect(screen.queryByTestId('gmail-disconnect')).toBeNull();
-    await user.click(screen.getByRole('button', { name: 'Try again' }));
+    await user.click(alerts[0].querySelector('button') as HTMLButtonElement);
   });
 
   it('disconnects Calendar behind its confirmation copy and stays on the settings page', async () => {

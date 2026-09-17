@@ -11,6 +11,7 @@ import { LocaleProvider } from '../../contexts/LocaleProvider';
 import { ToastProvider } from '../../contexts/ToastProvider';
 import { AuthContext } from '../../contexts/authContext';
 import type { AuthContextValue } from '../../contexts/authContext';
+import { makeTestUser } from '../../test-utils';
 
 const { mockStartGoogleAuth } = vi.hoisted(() => ({ mockStartGoogleAuth: vi.fn() }));
 
@@ -48,7 +49,7 @@ const renderLanding = (auth: AuthContextValue = authValue()) =>
 const signedInAuth = (): AuthContextValue =>
   authValue({
     isAuthenticated: true,
-    user: { id: 'u1', name: 'Ada', email: 'ada@example.com', googleId: 'g1' },
+    user: makeTestUser(),
   });
 
 beforeEach(() => {

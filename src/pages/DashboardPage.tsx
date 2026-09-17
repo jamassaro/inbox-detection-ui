@@ -45,7 +45,7 @@ const DashboardPage = () => {
   const { data, isLoading, isError, refetch, dismiss } = useDashboard();
 
   const greetingPeriod = getGreetingPeriod(new Date());
-  const name = user?.name ?? t('greeting.fallbackName');
+  const name = user?.displayName ?? t('greeting.fallbackName');
   /** Discovery whose ReminderModal (FE-020) is open — both plans land here. */
   const [reminderDiscovery, setReminderDiscovery] = useState<Discovery | null>(null);
 

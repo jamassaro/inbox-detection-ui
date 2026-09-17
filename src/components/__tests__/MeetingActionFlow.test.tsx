@@ -53,8 +53,20 @@ let availability: { busy: { start: string; end: string }[] } | Error;
 let createdEventBody: unknown;
 
 const routeApi = async (url: string, init?: { method?: string; body?: unknown }) => {
-  if (url === '/auth/me') {
-    return { id: 'u1', name: 'Ada', email: 'ada@example.com', googleId: 'g1' };
+  if (url === '/account/me') {
+    return {
+      id: 'u1',
+      email: 'ada@example.com',
+      displayName: 'Ada',
+      photoUrl: null,
+      plan: 'pro',
+      subscriptionStatus: 'active',
+      currentPeriodEnd: '2026-10-17T00:00:00.000Z',
+      calendarConnected: true,
+      gmailComposeEnabled: true,
+      locale: 'en',
+      createdAt: '2026-08-17T10:00:00.000Z',
+    };
   }
   if (url === '/billing/status') {
     return {

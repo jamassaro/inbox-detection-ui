@@ -32,9 +32,16 @@ const mockApiFetch = vi.mocked(apiFetch);
 
 const wireUser = (overrides: Partial<User> = {}): User => ({
   id: 'usr_1',
-  name: 'María',
+  displayName: 'María',
   email: 'maria@example.com',
-  googleId: 'google-1',
+  photoUrl: null,
+  plan: 'pro',
+  subscriptionStatus: null,
+  currentPeriodEnd: null,
+  calendarConnected: true,
+  gmailComposeEnabled: true,
+  locale: 'en',
+  createdAt: '2026-08-17T10:00:00.000Z',
   ...overrides,
 });
 
@@ -101,14 +108,18 @@ const mockBackend = ({
   // the way the backend would behave after a real dismissal.
   const dismissedIds = new Set<string>();
   mockApiFetch.mockImplementation((path: string) => {
-    if (path.startsWith('/auth/me')) return Promise.resolve(wireUser());
+    if (path.startsWith('/account/me')) return Promise.resolve(wireUser());
     if (path.startsWith('/billing/status')) return Promise.resolve(billingStatus(plan));
-    if (path.startsWith('/gmail/status')) {
+    // useGmailStatus composes the two real endpoints (BE-035 + BE-045).
+    if (path === '/account/connections') {
       return Promise.resolve({
-        connected: true,
-        email: 'maria@example.com',
-        lastSync: '2026-09-17T10:00:00.000Z',
+        gmail: { connected: true, email: 'maria@example.com' },
+        calendar: { connected: true },
+        gmailCompose: { enabled: true },
       });
+    }
+    if (path === '/stats') {
+      return Promise.resolve({ lastScan: { scanDate: '2026-09-17T10:00:00.000Z' } });
     }
     if (path === `/discoveries?status=active&limit=${DASHBOARD_WINDOW_LIMIT}`) {
       if (discoveriesPending) return new Promise<DiscoveriesWire>(() => {});

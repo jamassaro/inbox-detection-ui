@@ -21,7 +21,7 @@ const isAuthFailure = (error: unknown): boolean =>
 
 /**
  * Session auth via httpOnly cookie. Session state comes exclusively from
- * `GET /auth/me` — the frontend never reads or stores auth tokens
+ * `GET /account/me` — the frontend never reads or stores auth tokens
  * (AGENTS.md Authentication rules).
  */
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -39,7 +39,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // unbounded reload/request storm where the landing never renders.
         for (let attempt = 1; attempt <= SESSION_CHECK_MAX_ATTEMPTS; attempt += 1) {
           try {
-            const me = await apiFetch<User>('/auth/me', { authExpiredEvent: false });
+            const me = await apiFetch<User>('/account/me', { authExpiredEvent: false });
             if (!cancelled) setUser(me);
             return;
           } catch (error) {

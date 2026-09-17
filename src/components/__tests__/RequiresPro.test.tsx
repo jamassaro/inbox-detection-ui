@@ -9,6 +9,7 @@ import { EntitlementProvider } from '../../contexts/EntitlementProvider';
 import { apiFetch } from '../../lib/apiClient';
 import RequiresPro from '../RequiresPro';
 import type { BillingStatusWire, Entitlements, User } from '../../types';
+import { makeTestUser } from '../../test-utils';
 
 vi.mock('../../lib/apiClient', () => ({
   AUTH_EXPIRED_EVENT: 'auth:expired',
@@ -17,7 +18,7 @@ vi.mock('../../lib/apiClient', () => ({
 
 const mockApiFetch = vi.mocked(apiFetch);
 
-const testUser: User = { id: 'u1', name: 'Ada', email: 'ada@example.com', googleId: 'g1' };
+const testUser: User = makeTestUser();;
 
 /** Wire body of GET /billing/status (BE-030) — verified against Inbox-api src. */
 const PRO_STATUS: BillingStatusWire = {

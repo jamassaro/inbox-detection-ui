@@ -28,6 +28,29 @@ const gmailStatus = (overrides: Partial<GmailStatus> = {}): GmailStatus => ({
   ...overrides,
 });
 
+/**
+ * Serves the TWO real endpoints behind useGmailStatus (verified 2026-09-17 —
+ * there is no GET /gmail/status): /account/connections for connected/email,
+ * /stats for lastScan.
+ */
+const stubGmailStatus = (status: GmailStatus): void => {
+  mockApiFetch.mockImplementation((path: string) => {
+    if (path === '/account/connections') {
+      return Promise.resolve({
+        gmail: { connected: status.connected, email: status.email ?? '' },
+        calendar: { connected: status.connected },
+        gmailCompose: { enabled: status.connected },
+      }) as ReturnType<typeof apiFetch>;
+    }
+    if (path === '/stats') {
+      return Promise.resolve({
+        lastScan: status.lastSync ? { scanDate: status.lastSync } : null,
+      }) as ReturnType<typeof apiFetch>;
+    }
+    return Promise.reject(new Error(`unexpected apiFetch: ${path}`)) as ReturnType<typeof apiFetch>;
+  });
+};
+
 /** Renders the destination pathname — the redirect assertion target. */
 const PathProbe = () => {
   const { pathname } = useLocation();
@@ -40,8 +63,8 @@ const renderPage = ({
 }: { initialEntry?: string; behindProtectedRoute?: boolean } = {}) => {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   // AuthProvider (real, like main.tsx) is only mounted for the protected
-  // test — it fires GET /auth/me on mount and would consume apiFetch mocks
-  // queued for the page's /gmail/status check.
+  // test — it fires GET /account/me on mount and would consume apiFetch mocks
+  // queued for the page's status check.
   const tree = (
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
@@ -81,7 +104,7 @@ describe('ConnectGmailPage', () => {
   });
 
   it('renders the explanation, a single CTA, and the privacy link once status resolves', async () => {
-    mockApiFetch.mockResolvedValueOnce(gmailStatus());
+    stubGmailStatus(gmailStatus());
     renderPage();
 
     expect(await screen.findByRole('heading', { name: 'Connect your inbox' })).toBeTruthy();
@@ -100,7 +123,7 @@ describe('ConnectGmailPage', () => {
   });
 
   it('redirects to /app/dashboard when Gmail is already connected (post-OAuth return)', async () => {
-    mockApiFetch.mockResolvedValueOnce(
+    stubGmailStatus(
       gmailStatus({ connected: true, email: 'ada@example.com', lastSync: '2026-09-17T10:00:00Z' }),
     );
     renderPage();
@@ -121,7 +144,7 @@ describe('ConnectGmailPage', () => {
   });
 
   it('shows the OAuth error state with a retry CTA when the backend returns ?error=', async () => {
-    mockApiFetch.mockResolvedValueOnce(gmailStatus());
+    stubGmailStatus(gmailStatus());
     renderPage({ initialEntry: '/onboarding?error=access_denied' });
 
     const alert = await screen.findByRole('alert');
@@ -133,14 +156,16 @@ describe('ConnectGmailPage', () => {
     const location = stubWindowLocation();
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
     vi.stubEnv('VITE_API_BASE_URL', 'https://api.example.test');
-    mockApiFetch.mockResolvedValueOnce(gmailStatus());
+    stubGmailStatus(gmailStatus());
     renderPage({ initialEntry: '/onboarding?error=access_denied' });
 
     const user = userEvent.setup();
     await screen.findByRole('alert');
     await user.click(screen.getByRole('button', { name: 'Try again' }));
 
-    expect(location.href).toBe('https://api.example.test/gmail/connect');
+    // There is no /gmail/connect — re-connect rides the sign-in OAuth chain
+    // (GET /auth/google already requests gmail.readonly).
+    expect(location.href).toBe('https://api.example.test/auth/google');
     consoleError.mockRestore();
     location.restore();
   });
@@ -149,7 +174,7 @@ describe('ConnectGmailPage', () => {
     const location = stubWindowLocation();
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
     vi.stubEnv('VITE_API_BASE_URL', '');
-    mockApiFetch.mockResolvedValueOnce(gmailStatus());
+    stubGmailStatus(gmailStatus());
     renderPage();
 
     const user = userEvent.setup();
@@ -171,21 +196,21 @@ describe('ConnectGmailPage', () => {
   });
 
   it('redirects unauthenticated visits from /onboarding to / (ProtectedRoute)', async () => {
-    mockApiFetch.mockRejectedValueOnce(new ApiError(401, 'UNAUTHORIZED', 'no session')); // GET /auth/me
+    mockApiFetch.mockRejectedValueOnce(new ApiError(401, 'UNAUTHORIZED', 'no session')); // GET /account/me
     renderPage({ behindProtectedRoute: true });
 
     await waitFor(() => expect(screen.getByText('probe:/')).toBeTruthy());
     // The Gmail status check never even mounts behind the FE-003 guard.
     expect(mockApiFetch).toHaveBeenCalledTimes(1);
-    expect(mockApiFetch).toHaveBeenCalledWith('/auth/me', { authExpiredEvent: false });
-    expect(mockApiFetch).not.toHaveBeenCalledWith('/gmail/status');
+    expect(mockApiFetch).toHaveBeenCalledWith('/account/me', { authExpiredEvent: false });
+    expect(mockApiFetch).not.toHaveBeenCalledWith('/account/connections');
   });
 
   it('renders the connect copy in Spanish across the offer, loading, and error states', async () => {
     await i18n.changeLanguage('es');
 
     // Offer state.
-    mockApiFetch.mockResolvedValueOnce(gmailStatus());
+    stubGmailStatus(gmailStatus());
     const offer = renderPage();
     expect(await offer.findByRole('heading', { name: 'Conecta tu bandeja' })).toBeTruthy();
     expect(offer.getByText(/asunto, el remitente y el cuerpo/)).toBeTruthy();

@@ -122,7 +122,7 @@ const SettingsPage = () => {
           <div className="flex items-center justify-between gap-4">
             <dt className="text-gray-500">{t('accountSection.name')}</dt>
             <dd className="text-gray-900 font-medium" data-testid="account-name">
-              {user?.name}
+              {user?.displayName}
             </dd>
           </div>
           <div className="flex items-center justify-between gap-4">

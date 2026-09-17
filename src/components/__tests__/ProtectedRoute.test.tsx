@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import ProtectedRoute from '../ProtectedRoute';
 import { useAuth } from '../../hooks/useAuth';
 import type { User } from '../../types';
+import { makeTestUser } from '../../test-utils';
 
 vi.mock('../../hooks/useAuth', () => ({
   useAuth: vi.fn(),
@@ -44,7 +45,7 @@ describe('ProtectedRoute', () => {
   });
 
   it('renders the outlet for authenticated users', () => {
-    const user: User = { id: 'u1', name: 'Ada', email: 'ada@example.com', googleId: 'g1' };
+    const user: User = makeTestUser();;
     mockUseAuth.mockReturnValue({ user, isAuthenticated: true, isLoading: false, logout: vi.fn() });
     renderAt('/app/dashboard');
     expect(screen.getByText('app-shell')).toBeTruthy();
