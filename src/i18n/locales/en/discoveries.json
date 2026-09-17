@@ -1,0 +1,27 @@
+{
+  "types": {
+    "subscription": "Subscription",
+    "renewal": "Renewal",
+    "trialExpiration": "Trial ending",
+    "priceChange": "Price change",
+    "billChange": "Bill change",
+    "credit": "Credit",
+    "refund": "Refund",
+    "reward": "Reward",
+    "expiration": "Expiration",
+    "cashback": "Cashback",
+    "meeting": "Meeting request",
+    "actionRequired": "Action required"
+  },
+  "actions": {
+    "remindMe": "Remind me",
+    "dismiss": "Dismiss",
+    "viewSource": "View source email",
+    "openProvider": "Open in provider",
+    "reviewSubscription": "Review subscription",
+    "investigate": "Investigate",
+    "findTime": "Find a time",
+    "trackRefund": "Track refund",
+    "askDetective": "Ask Detective"
+  }
+}

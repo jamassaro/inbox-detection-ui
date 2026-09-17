@@ -1,0 +1,27 @@
+{
+  "types": {
+    "subscription": "Suscripción",
+    "renewal": "Renovación",
+    "trialExpiration": "Fin de prueba",
+    "priceChange": "Cambio de precio",
+    "billChange": "Cambio de factura",
+    "credit": "Crédito",
+    "refund": "Reembolso",
+    "reward": "Recompensa",
+    "expiration": "Vencimiento",
+    "cashback": "Devolución de efectivo",
+    "meeting": "Solicitud de reunión",
+    "actionRequired": "Acción requerida"
+  },
+  "actions": {
+    "remindMe": "Recuérdamelo",
+    "dismiss": "Descartar",
+    "viewSource": "Ver correo original",
+    "openProvider": "Abrir en el proveedor",
+    "reviewSubscription": "Revisar suscripción",
+    "investigate": "Investigar",
+    "findTime": "Buscar un horario",
+    "trackRefund": "Seguir reembolso",
+    "askDetective": "Preguntar al Detective"
+  }
+}
