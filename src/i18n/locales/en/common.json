@@ -3,6 +3,8 @@
     "name": "Inbox Detective"
   },
   "nav": {
+    "dashboard": "Dashboard",
+    "discoveries": "Discoveries",
     "offers": "Offers",
     "companies": "Companies",
     "saved": "Saved",
@@ -10,6 +12,7 @@
     "help": "Help",
     "connected": "Connected"
   },
+  "loading": "Loading…",
   "actions": {
     "scanInbox": "Scan Inbox",
     "copyCodeAndShop": "Copy Code & Shop",

@@ -1,0 +1,12 @@
+import { Outlet } from 'react-router-dom';
+import Sidebar from './Sidebar';
+
+/** Shell for authenticated /app/* routes — owns the Sidebar; pages render in the Outlet. */
+const AppLayout = () => (
+  <div className="flex h-screen bg-gray-50">
+    <Sidebar />
+    <Outlet />
+  </div>
+);
+
+export default AppLayout;
