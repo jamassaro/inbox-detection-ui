@@ -3,6 +3,10 @@
     "title": "Unlock everything with Pro",
     "cta": "Upgrade to Pro"
   },
+  "frequency": {
+    "monthly": "month",
+    "annual": "year"
+  },
   "requiresPro": {
     "message": "{{feature}} requires Pro.",
     "cta": "Unlock with Pro",

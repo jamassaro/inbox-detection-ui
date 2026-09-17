@@ -3,6 +3,10 @@
     "title": "Desbloquea todo con Pro",
     "cta": "Mejorar a Pro"
   },
+  "frequency": {
+    "monthly": "mes",
+    "annual": "año"
+  },
   "requiresPro": {
     "message": "{{feature}} requiere Pro.",
     "cta": "Desbloquear con Pro",
