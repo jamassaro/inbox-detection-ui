@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '../lib/apiClient';
 import { BILLING_STATUS_PATH, mapBillingStatusToEntitlements } from '../lib/entitlementsMapper';
 import { useAuth } from '../hooks/useAuth';
-import { EntitlementContext, ENTITLEMENTS_QUERY_KEY } from './entitlementContext';
+import { EntitlementContext, ENTITLEMENTS_QUERY_KEY, decrementChatQuestionsRemaining } from './entitlementContext';
 import type { BillingStatusWire, Entitlements } from '../types';
 
 /**
@@ -34,14 +34,24 @@ export const EntitlementProvider = ({ children }: { children: ReactNode }) => {
     await queryClient.invalidateQueries({ queryKey: ENTITLEMENTS_QUERY_KEY });
   }, [isAuthenticated, queryClient]);
 
+  const decrementChatQuestions = useCallback(() => {
+    // Display-only decrement after an accepted POST /chat turn. Bail on an
+    // empty cache (unauthenticated or failed status fetch) rather than
+    // fabricating an entitlements record via the updater.
+    const prev = queryClient.getQueryData<Entitlements>(ENTITLEMENTS_QUERY_KEY);
+    if (!prev) return;
+    queryClient.setQueryData(ENTITLEMENTS_QUERY_KEY, decrementChatQuestionsRemaining(prev));
+  }, [queryClient]);
+
   const value = useMemo(
     () => ({
       // Fail closed on auth loss: never surface the previous user's plan.
       entitlements: isAuthenticated ? (data ?? null) : null,
       isLoading,
       refresh,
+      decrementChatQuestions,
     }),
-    [isAuthenticated, data, isLoading, refresh],
+    [isAuthenticated, data, isLoading, refresh, decrementChatQuestions],
   );
 
   return <EntitlementContext.Provider value={value}>{children}</EntitlementContext.Provider>;
