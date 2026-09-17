@@ -63,11 +63,13 @@ export function useCalendarStatus() {
  * @returns `true` when the redirect was started, `false` when the request
  * failed (caller shows the translated fallback).
  */
-export async function startCalendarConnect(returnTo = '/app/settings'): Promise<boolean> {
+export async function startCalendarConnect(returnTo?: string): Promise<boolean> {
   try {
-    const { authUrl } = await apiFetch<{ authUrl: string }>(
-      `/calendar/connect?returnTo=${encodeURIComponent(returnTo)}`,
-    );
+    // No returnTo → the legacy bare `/calendar/connect` (backend redirects
+    // back to Settings by default, the contract FE-023 tests assert). Only
+    // contextual flows pass an explicit returnTo.
+    const query = returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : '';
+    const { authUrl } = await apiFetch<{ authUrl: string }>(`/calendar/connect${query}`);
     window.location.href = authUrl;
     return true;
   } catch (error) {
