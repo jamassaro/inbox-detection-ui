@@ -7,17 +7,15 @@
 
 ---
 
-## Current State Summary
+## Current State Summary (updated 2026-09-17)
 
-The repository is a **prototype UI shell**. It contains:
-- React 19 + TypeScript + Vite + Tailwind CSS + React Router v7
-- 4 components (`Sidebar`, `StatCard`, `FeaturedOfferCard`, `OfferListItem`)
-- 3 pages (`OffersPage` with mock data, `CompaniesPage` stub, `SavedPage` stub)
-- A Chrome extension (popup + Gmail content script injection)
-- Docker + nginx deployment configuration
-- **Zero:** authentication, API layer, real data, state management, i18n, tests
+Audited against merged code on `main` (PRs #2–#13): **11 of 32 tickets implemented.**
 
-All backlog items are `NOT_STARTED`. Nothing in Production V1 is implemented.
+- **DONE (11):** FE-001–008, FE-011, FE-012, FE-027 — foundation (TanStack Query + apiFetch + Vitest), i18n, auth infra, entitlements, shared UI primitives, landing page, OAuth flow, Gmail connect page, discovery type system, discovery cards, DOMPurify sanitization
+- **IN_PROGRESS (2):** FE-009 (investigation flow), FE-010 (app shell) — must rebase onto FE-012 main
+- **NOT_STARTED (19):** discovery list/detail views, offers/companies/saved pages, settings, polish
+
+Per-ticket status lives in each `FE-*.md` file.
 
 ---
 
