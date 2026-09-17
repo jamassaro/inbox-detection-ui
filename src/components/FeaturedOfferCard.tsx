@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Clock, Sparkles } from 'lucide-react';
 import type { Offer } from '../types';
 
@@ -6,6 +7,8 @@ interface FeaturedOfferCardProps {
 }
 
 const FeaturedOfferCard = ({ offer }: FeaturedOfferCardProps) => {
+  const { t } = useTranslation('common');
+
   const getStatusIcon = () => {
     if (offer.status === 'ending-soon') {
       return <Clock className="w-3 h-3" />;
@@ -47,7 +50,7 @@ const FeaturedOfferCard = ({ offer }: FeaturedOfferCardProps) => {
       <p className="text-sm text-gray-600 mb-4">{offer.description}</p>
 
       <button className="w-full bg-gray-900 text-white py-2.5 px-4 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors">
-        Copy Code & Shop
+        {t('actions.copyCodeAndShop')}
       </button>
     </div>
   );

@@ -1,0 +1,10 @@
+{
+  "upgrade": {
+    "title": "Unlock everything with Pro",
+    "cta": "Upgrade to Pro"
+  },
+  "status": {
+    "activating": "Activating your Pro access…",
+    "activated": "Pro activated"
+  }
+}

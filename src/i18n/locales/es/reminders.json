@@ -1,0 +1,9 @@
+{
+  "modal": {
+    "title": "Recordarme",
+    "set": "Crear recordatorio"
+  },
+  "status": {
+    "setFor": "Te recordaré el {{date}}"
+  }
+}

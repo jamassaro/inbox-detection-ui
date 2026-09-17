@@ -1,0 +1,9 @@
+{
+  "modal": {
+    "title": "Remind me",
+    "set": "Set reminder"
+  },
+  "status": {
+    "setFor": "I'll remind you on {{date}}"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "chat": {
+    "emptyState": "Pregúntame lo que sea sobre tu bandeja",
+    "inputPlaceholder": "Pregunta al Detective…",
+    "thinking": "El Detective está pensando…"
+  }
+}

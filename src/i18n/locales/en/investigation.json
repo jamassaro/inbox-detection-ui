@@ -1,0 +1,8 @@
+{
+  "status": {
+    "starting": "Starting investigation…",
+    "running": "Reviewing your emails…",
+    "complete": "Investigation complete",
+    "failed": "Investigation failed"
+  }
+}

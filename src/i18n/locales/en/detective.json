@@ -1,0 +1,7 @@
+{
+  "chat": {
+    "emptyState": "Ask me anything about your inbox",
+    "inputPlaceholder": "Ask the Detective…",
+    "thinking": "Detective is thinking…"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "title": "Subscriptions",
+  "detail": {
+    "renewalDate": "Renews on {{date}}",
+    "annualizedCost": "{{amount}} per year"
+  }
+}
