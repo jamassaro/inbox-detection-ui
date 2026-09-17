@@ -6,6 +6,7 @@ import {
   INVESTIGATION_POLL_INTERVAL_MS,
   INVESTIGATION_TIMEOUT_MS,
   toDiscovery,
+  toInvestigationStatus,
   useInvestigation,
   useInvestigationDiscoveries,
   useTriggerInvestigation,
@@ -204,12 +205,85 @@ describe('useInvestigation', () => {
     });
     expect(result.current.status).toBe('partial');
   });
+
+  it('reports no category chips when the run found no subscriptions', async () => {
+    mockApiFetch.mockResolvedValue(
+      wireInvestigation({ status: 'completed', subscriptionsFound: 0 }),
+    );
+    const { result } = renderInvestigationHook('inv-1');
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    expect(result.current.status).toBe('complete');
+    expect(result.current.categoriesSeen).toEqual({});
+  });
+
+  it('keeps polling on an unrecognized wire status (non-terminal backstop)', async () => {
+    // The status column is a free String on the backend — an unknown value
+    // must stay non-terminal so the 5-minute timeout is what stops the UI,
+    // never a guessed terminal state.
+    mockApiFetch.mockResolvedValue(
+      wireInvestigation({ status: 'some_new_backend_state' }),
+    );
+    const { result } = renderInvestigationHook('inv-1');
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    expect(result.current.status).toBe('running');
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(INVESTIGATION_POLL_INTERVAL_MS * 2);
+    });
+    expect(mockApiFetch).toHaveBeenCalledTimes(3);
+  });
+
+  it('keeps the stale row and keeps polling when a mid-run refetch fails', async () => {
+    mockApiFetch
+      .mockResolvedValueOnce(
+        wireInvestigation({ status: 'running', emailsProcessed: 10 }),
+      )
+      .mockRejectedValue(new Error('network down'));
+    const { result } = renderInvestigationHook('inv-1');
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    expect(result.current.status).toBe('running');
+
+    // Second poll fails: data from the last success is kept, the fetch
+    // error is surfaced, and polling continues — transient failures are
+    // retried on the interval, not treated as terminal.
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(INVESTIGATION_POLL_INTERVAL_MS);
+      // The failed refetch notifies observers on a scheduled tick; flush it
+      // (without crossing the next poll boundary) before reading the result.
+      await vi.advanceTimersByTimeAsync(1);
+    });
+    expect(result.current.emailsReviewed).toBe(10);
+    expect(result.current.error).toBe('network down');
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(INVESTIGATION_POLL_INTERVAL_MS);
+    });
+    expect(mockApiFetch).toHaveBeenCalledTimes(3);
+  });
 });
 
 describe('useTriggerInvestigation', () => {
   beforeEach(() => {
     mockApiFetch.mockReset();
   });
+
+  /** Renders the trigger mutation under a fresh no-retry QueryClient. */
+  const renderTriggerHook = () => {
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    );
+    return renderHook(() => useTriggerInvestigation(), { wrapper });
+  };
 
   it('propagates network errors to the mutation error state', async () => {
     mockApiFetch.mockRejectedValue(new Error('backend down'));
@@ -229,6 +303,52 @@ describe('useTriggerInvestigation', () => {
     // The state transition settles a microtask after the catch — flush it.
     await waitFor(() => expect(result.current.isError).toBe(true));
     expect(result.current.error).toBeTruthy();
+  });
+
+  it('normalizes the wire key investigationId and passes a known status through', async () => {
+    mockApiFetch.mockResolvedValue({ investigationId: 'inv-9', status: 'running' });
+    const { result } = renderTriggerHook();
+
+    await act(async () => {
+      await expect(result.current.mutateAsync()).resolves.toEqual({
+        id: 'inv-9',
+        status: 'running',
+      });
+    });
+    expect(mockApiFetch).toHaveBeenCalledWith('/investigation', { method: 'POST' });
+    await waitFor(() =>
+      expect(result.current.data).toEqual({ id: 'inv-9', status: 'running' }),
+    );
+  });
+
+  it('maps an unrecognized wire status to null so the UI cannot show a fabricated state', async () => {
+    mockApiFetch.mockResolvedValue({ investigationId: 'inv-9', status: 'processing_soon' });
+    const { result } = renderTriggerHook();
+
+    await act(async () => {
+      await expect(result.current.mutateAsync()).resolves.toEqual({
+        id: 'inv-9',
+        status: null,
+      });
+    });
+    await waitFor(() =>
+      expect(result.current.data).toEqual({ id: 'inv-9', status: null }),
+    );
+  });
+
+  it('omits the status when the backend starts a fresh investigation without one', async () => {
+    mockApiFetch.mockResolvedValue({ investigationId: 'inv-9' });
+    const { result } = renderTriggerHook();
+
+    await act(async () => {
+      await expect(result.current.mutateAsync()).resolves.toEqual({
+        id: 'inv-9',
+        status: null,
+      });
+    });
+    await waitFor(() =>
+      expect(result.current.data).toEqual({ id: 'inv-9', status: null }),
+    );
   });
 });
 
@@ -309,6 +429,22 @@ describe('toDiscovery (BE-028 wire → FE-011 domain)', () => {
     expect(domain.currency).toBeUndefined();
     expect(domain.date).toBeUndefined();
     expect(domain.summary).toBe('');
+  });
+});
+
+describe('toInvestigationStatus', () => {
+  it('maps every documented wire status to its FE-009 UI state', () => {
+    expect(toInvestigationStatus('queued')).toBe('starting');
+    expect(toInvestigationStatus('running')).toBe('running');
+    expect(toInvestigationStatus('completed')).toBe('complete');
+    expect(toInvestigationStatus('partial')).toBe('partial');
+    expect(toInvestigationStatus('failed')).toBe('failed');
+    // `cancelled` ended without completing — same recovery path as failure.
+    expect(toInvestigationStatus('cancelled')).toBe('failed');
+  });
+
+  it('keeps an unknown wire status non-terminal so polling continues', () => {
+    expect(toInvestigationStatus('processing_soon')).toBe('running');
   });
 });
 
