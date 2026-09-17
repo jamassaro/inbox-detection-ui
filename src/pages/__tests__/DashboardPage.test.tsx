@@ -1,4 +1,4 @@
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { I18nextProvider } from 'react-i18next';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
@@ -121,6 +121,7 @@ const mockBackend = ({
       dismissedIds.add(path.split('/')[2] ?? '');
       return Promise.resolve({ ...wireDiscovery(), status: 'dismissed' });
     }
+    if (path === '/reminders?status=pending') return Promise.resolve({ reminders: [] });
     return Promise.reject(new Error(`unexpected path: ${path}`));
   });
 };
@@ -260,7 +261,7 @@ describe('DashboardPage', () => {
     expect(screen.getByText('Discovery dismissed.')).toBeTruthy();
   });
 
-  it('gives a Pro user who clicks remind a graceful coming-soon answer', async () => {
+  it('opens the reminder dialog when a Pro user clicks remind', async () => {
     const user = userEvent.setup();
     mockBackend({ discoveries: [wireDiscovery({ availableActions: ['remind'] })] });
     renderPage();
@@ -268,11 +269,12 @@ describe('DashboardPage', () => {
     expect(await screen.findByTestId('discovery-card')).toBeTruthy();
     await user.click(screen.getByTestId('card-primary-action'));
 
-    expect(screen.getByText('Reminders are coming soon.')).toBeTruthy();
+    // FE-020: the real reminder dialog replaces the coming-soon toast.
+    expect(await screen.findByTestId('reminder-form')).toBeTruthy();
     expect(screen.queryByText('probe:/upgrade')).toBeNull();
   });
 
-  it('sends a Free user who clicks remind to the upgrade page', async () => {
+  it('shows the Free user the inline paywall when they click remind', async () => {
     const user = userEvent.setup();
     mockBackend({ plan: 'free', discoveries: [wireDiscovery({ availableActions: ['remind'] })] });
     renderPage();
@@ -280,7 +282,12 @@ describe('DashboardPage', () => {
     expect(await screen.findByTestId('discovery-card')).toBeTruthy();
     await user.click(screen.getByTestId('card-primary-action'));
 
-    expect(screen.getByText('probe:/upgrade')).toBeTruthy();
+    // FE-020: the Free paywall moved inside the reminder dialog — the page
+    // itself no longer navigates to /upgrade. Scope to the dialog: the
+    // dashboard also renders an unrelated daily-briefing upgrade prompt.
+    const dialogs = screen.getAllByRole('dialog');
+    expect(within(dialogs[0] as HTMLElement).getByTestId('upgrade-prompt')).toBeTruthy();
+    expect(screen.queryByText('probe:/upgrade')).toBeNull();
   });
 
   it('renders the dashboard copy in Spanish when the locale is es', async () => {

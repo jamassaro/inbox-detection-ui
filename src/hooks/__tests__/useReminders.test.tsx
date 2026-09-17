@@ -1,15 +1,16 @@
-import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
+import { cleanup, renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ReactNode } from 'react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { apiFetch } from '../../lib/apiClient';
 import {
   REMINDERS_QUERY_KEY,
   useCreateReminder,
   useDeleteReminder,
   useReminders,
   useRescheduleReminder,
+  type ReminderWire,
 } from '../useReminders';
-import { apiFetch } from '../../lib/apiClient';
 
 vi.mock('../../lib/apiClient', () => ({
   AUTH_EXPIRED_EVENT: 'auth:expired',
@@ -18,153 +19,188 @@ vi.mock('../../lib/apiClient', () => ({
 
 const mockApiFetch = vi.mocked(apiFetch);
 
-const wireReminder = (overrides: Partial<{ id: string; discoveryId: string | null }> = {}) => ({
-  id: overrides.id ?? 'rem_1',
+const wireReminder = (overrides: Partial<ReminderWire> = {}): ReminderWire => ({
+  id: 'rem_1',
   userId: 'usr_1',
-  discoveryId: overrides.discoveryId ?? 'disc_1',
-  title: 'Call the vendor',
+  discoveryId: 'disc_1',
+  title: 'Netflix renews at $15.49',
   description: null,
   remindAt: '2026-09-20T09:00:00.000Z',
-  status: 'pending' as const,
-  createdAt: '2026-09-17T00:00:00.000Z',
-  updatedAt: '2026-09-17T00:00:00.000Z',
+  status: 'pending',
+  createdAt: '2026-09-17T10:00:00.000Z',
+  updatedAt: '2026-09-17T10:00:00.000Z',
+  ...overrides,
 });
 
-describe('useReminders', () => {
-  let queryClient: QueryClient;
-
-  const wrapper = ({ children }: { children: ReactNode }) => (
+/** Fresh client per test — no cross-test cache bleed. */
+const makeWrapper = () => {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return ({ children }: { children: ReactNode }) => (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
+};
 
+describe('useReminders', () => {
   beforeEach(() => {
-    queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     mockApiFetch.mockReset();
   });
 
-  afterEach(() => {
-    cleanup();
-    queryClient.clear();
-  });
+  afterEach(cleanup);
 
-  it('fetches pending reminders from the verified list route', async () => {
-    mockApiFetch.mockResolvedValueOnce({ reminders: [wireReminder()] });
+  it('fetches the pending list and filters to one discovery client-side', async () => {
+    const other = wireReminder({ id: 'rem_2', discoveryId: 'disc_2' });
+    mockApiFetch.mockResolvedValue({ reminders: [wireReminder(), other] });
 
-    const { result } = renderHook(() => useReminders(), { wrapper });
+    const { result } = renderHook(() => useReminders('disc_1'), { wrapper: makeWrapper() });
 
-    await waitFor(() => expect(result.current.reminders).toHaveLength(1));
+    await waitFor(() => expect(result.current.isPending).toBe(false));
     expect(mockApiFetch).toHaveBeenCalledWith('/reminders?status=pending');
-    expect(result.current.reminders[0].title).toBe('Call the vendor');
+    expect(result.current.reminders).toEqual([wireReminder()]);
   });
 
-  it('filters client-side by discoveryId (no server param exists)', async () => {
-    mockApiFetch.mockResolvedValueOnce({
-      reminders: [wireReminder({ id: 'a', discoveryId: 'disc_1' }), wireReminder({ id: 'b', discoveryId: 'disc_2' })],
-    });
+  it('returns every pending reminder when no discoveryId is given', async () => {
+    const rows = [wireReminder(), wireReminder({ id: 'rem_2', discoveryId: 'disc_2' })];
+    mockApiFetch.mockResolvedValue({ reminders: rows });
 
-    const { result } = renderHook(() => useReminders('disc_2'), { wrapper });
+    const { result } = renderHook(() => useReminders(), { wrapper: makeWrapper() });
 
-    await waitFor(() => expect(result.current.reminders).toHaveLength(1));
-    expect(result.current.reminders[0].id).toBe('b');
+    await waitFor(() => expect(result.current.isPending).toBe(false));
+    expect(result.current.reminders).toEqual(rows);
   });
 
-  it('surfaces list errors without retrying', async () => {
-    mockApiFetch.mockRejectedValue(new Error('down'));
+  it('surfaces the list error instead of swallowing it', async () => {
+    mockApiFetch.mockRejectedValue(new Error('list unavailable'));
 
-    const { result } = renderHook(() => useReminders(), { wrapper });
+    const { result } = renderHook(() => useReminders('disc_1'), { wrapper: makeWrapper() });
 
     await waitFor(() => expect(result.current.isError).toBe(true));
-    expect(mockApiFetch).toHaveBeenCalledTimes(1);
+    expect(result.current.reminders).toEqual([]);
   });
 });
 
 describe('useCreateReminder', () => {
-  let queryClient: QueryClient;
-
-  const wrapper = ({ children }: { children: ReactNode }) => (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  );
-
   beforeEach(() => {
-    queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     mockApiFetch.mockReset();
-    queryClient.setQueryData(REMINDERS_QUERY_KEY, { reminders: [wireReminder()] });
   });
 
-  afterEach(() => {
-    cleanup();
-    queryClient.clear();
-  });
+  afterEach(cleanup);
 
-  it('POSTs the create body and invalidates the list cache', async () => {
-    mockApiFetch.mockResolvedValueOnce({ id: 'rem_new', title: 'x', remindAt: '2026-09-21T09:00:00.000Z', status: 'pending' });
+  it('POSTs the wire shape and invalidates the reminders list', async () => {
+    // Seed an active list query so the invalidation has something to refetch.
+    mockApiFetch.mockImplementation((path: string) => {
+      if (path === '/reminders?status=pending') {
+        return Promise.resolve({ reminders: [wireReminder()] });
+      }
+      if (path === '/reminders') {
+        return Promise.resolve({
+          id: 'rem_2',
+          title: 'New',
+          remindAt: '2026-09-21T09:00:00.000Z',
+          status: 'pending',
+        });
+      }
+      return Promise.reject(new Error(`unexpected path: ${String(path)}`));
+    });
 
-    const { result } = renderHook(() => useCreateReminder(), { wrapper });
-    await act(() =>
-      result.current.mutateAsync({ discoveryId: 'disc_1', title: 'x', remindAt: '2026-09-21T09:00:00.000Z' }),
-    );
+    const wrapper = makeWrapper();
+    const list = renderHook(() => useReminders('disc_1'), { wrapper });
+    const create = renderHook(() => useCreateReminder(), { wrapper });
 
+    await waitFor(() => expect(list.result.current.isPending).toBe(false));
+    const callsBefore = mockApiFetch.mock.calls.length;
+
+    create.result.current.mutate({
+      discoveryId: 'disc_1',
+      title: 'New',
+      remindAt: '2026-09-21T09:00:00.000Z',
+    });
+
+    await waitFor(() => expect(create.result.current.isSuccess).toBe(true));
     expect(mockApiFetch).toHaveBeenCalledWith('/reminders', {
       method: 'POST',
-      body: JSON.stringify({ discoveryId: 'disc_1', title: 'x', remindAt: '2026-09-21T09:00:00.000Z' }),
+      body: JSON.stringify({
+        discoveryId: 'disc_1',
+        title: 'New',
+        remindAt: '2026-09-21T09:00:00.000Z',
+      }),
     });
-    await waitFor(() => expect(queryClient.getQueryState(REMINDERS_QUERY_KEY)?.isInvalidated).toBe(true));
+    // Invalidation refetches the active list — the new row becomes visible.
+    await waitFor(() => expect(mockApiFetch.mock.calls.length).toBeGreaterThan(callsBefore));
+  });
+
+  it('propagates the backend error (e.g. Free 402) to the mutation', async () => {
+    mockApiFetch.mockRejectedValue(new Error('402'));
+
+    const { result } = renderHook(() => useCreateReminder(), { wrapper: makeWrapper() });
+    result.current.mutate({
+      discoveryId: 'disc_1',
+      title: 'New',
+      remindAt: '2026-09-21T09:00:00.000Z',
+    });
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
   });
 });
 
 describe('useRescheduleReminder', () => {
-  let queryClient: QueryClient;
-
-  const wrapper = ({ children }: { children: ReactNode }) => (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  );
-
   beforeEach(() => {
-    queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     mockApiFetch.mockReset();
   });
 
-  afterEach(() => {
-    cleanup();
-    queryClient.clear();
-  });
+  afterEach(cleanup);
 
-  it('PATCHes only the remindAt field', async () => {
-    mockApiFetch.mockResolvedValueOnce(wireReminder());
+  it('PATCHes the new remindAt on the reminder row', async () => {
+    mockApiFetch.mockResolvedValue(wireReminder({ remindAt: '2026-09-25T09:00:00.000Z' }));
 
-    const { result } = renderHook(() => useRescheduleReminder(), { wrapper });
-    await act(() => result.current.mutateAsync({ id: 'rem_1', remindAt: '2026-09-22T09:00:00.000Z' }));
+    const { result } = renderHook(() => useRescheduleReminder(), { wrapper: makeWrapper() });
+    result.current.mutate({ id: 'rem_1', remindAt: '2026-09-25T09:00:00.000Z' });
 
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(mockApiFetch).toHaveBeenCalledWith('/reminders/rem_1', {
       method: 'PATCH',
-      body: JSON.stringify({ remindAt: '2026-09-22T09:00:00.000Z' }),
+      body: JSON.stringify({ remindAt: '2026-09-25T09:00:00.000Z' }),
     });
   });
 });
 
 describe('useDeleteReminder', () => {
-  let queryClient: QueryClient;
-
-  const wrapper = ({ children }: { children: ReactNode }) => (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  );
-
   beforeEach(() => {
-    queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     mockApiFetch.mockReset();
   });
 
-  afterEach(() => {
-    cleanup();
-    queryClient.clear();
-  });
+  afterEach(cleanup);
 
-  it('DELETEs the reminder row', async () => {
-    mockApiFetch.mockResolvedValueOnce(undefined);
+  it('DELETEs the reminder (204, no body) and invalidates the list', async () => {
+    let cancelled = false;
+    mockApiFetch.mockImplementation((path: string) => {
+      if (path === '/reminders?status=pending') {
+        return Promise.resolve({ reminders: cancelled ? [] : [wireReminder()] });
+      }
+      if (path === '/reminders/rem_1') {
+        cancelled = true;
+        return Promise.resolve(undefined);
+      }
+      return Promise.reject(new Error(`unexpected path: ${String(path)}`));
+    });
 
-    const { result } = renderHook(() => useDeleteReminder(), { wrapper });
-    await act(() => result.current.mutateAsync('rem_1'));
+    const wrapper = makeWrapper();
+    const list = renderHook(() => useReminders(), { wrapper });
+    const del = renderHook(() => useDeleteReminder(), { wrapper });
 
+    await waitFor(() => expect(list.result.current.isPending).toBe(false));
+    const callsBefore = mockApiFetch.mock.calls.length;
+
+    del.result.current.mutate('rem_1');
+
+    await waitFor(() => expect(del.result.current.isSuccess).toBe(true));
     expect(mockApiFetch).toHaveBeenCalledWith('/reminders/rem_1', { method: 'DELETE' });
+    await waitFor(() => expect(mockApiFetch.mock.calls.length).toBeGreaterThan(callsBefore));
+    await waitFor(() => expect(list.result.current.reminders).toEqual([]));
+  });
+});
+
+describe('REMINDERS_QUERY_KEY', () => {
+  it('is the stable list cache key', () => {
+    expect(REMINDERS_QUERY_KEY).toEqual(['reminders']);
   });
 });

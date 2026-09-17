@@ -89,7 +89,6 @@
     "toasts": {
       "dismissed": "Descubrimiento descartado.",
       "dismissFailed": "No se pudo descartar. Inténtalo de nuevo.",
-      "remindComingSoon": "Los recordatorios llegarán pronto.",
       "actionComingSoon": "Esta acción llegará pronto."
     }
   },

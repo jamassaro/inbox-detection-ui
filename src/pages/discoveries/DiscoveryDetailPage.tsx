@@ -1,12 +1,13 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, CalendarClock, ThumbsDown, ThumbsUp } from 'lucide-react';
 import ActionButton from '../../components/ActionButton';
 import ConfirmModal from '../../components/ConfirmModal';
 import EmailDrawer from '../../components/EmailDrawer';
 import ErrorState from '../../components/ErrorState';
 import Modal from '../../components/Modal';
+import ReminderModal from '../../components/ReminderModal';
 import SkeletonCard from '../../components/SkeletonCard';
 import UpgradePrompt from '../../components/UpgradePrompt';
 import { useEntitlements } from '../../hooks/useEntitlements';
@@ -75,6 +76,7 @@ function annualizedCost(amount: number, frequency: NonNullable<Discovery['freque
 const DiscoveryDetailPage = () => {
   const { id = '' } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { t, i18n } = useTranslation('discoveries');
   const { isFree } = useEntitlements();
   const toast = useToast();
@@ -85,13 +87,28 @@ const DiscoveryDetailPage = () => {
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [confirmDismissOpen, setConfirmDismissOpen] = useState(false);
-  const [paywallFeature, setPaywallFeature] = useState<'reminders' | 'calendarActions' | null>(
-    null,
+  const [paywallFeature, setPaywallFeature] = useState<'calendarActions' | null>(null);
+
+  // FE-020 post-upgrade resumption: `/app/discoveries/:id?openReminder=true`
+  // auto-opens the ReminderModal. State is lazily seeded from the param on
+  // mount — no setState inside the effect (cascading-render lint); the
+  // effect only consumes the param so a refresh or back-navigation does not
+  // reopen the modal.
+  const [reminderOpen, setReminderOpen] = useState(
+    searchParams.get('openReminder') === 'true',
   );
 
-  const openPaywallOrToast = (feature: 'reminders' | 'calendarActions', unavailableBody: string) => {
+  useEffect(() => {
+    if (searchParams.get('openReminder') !== 'true') return;
+    const next = new URLSearchParams(searchParams);
+    next.delete('openReminder');
+    setSearchParams(next, { replace: true });
+  }, [searchParams, setSearchParams]);
+
+  const openPaywallOrToast = (feature: 'calendarActions', unavailableBody: string) => {
     // FE-013 parity: Free users get the RequiresPro upgrade path; Pro users
-    // get the honest not-yet state (ReminderModal is FE-020, calendar FE-021).
+    // get the honest not-yet state (ReminderModal shipped in FE-020; the
+    // calendar picker is FE-021).
     if (isFree) {
       setPaywallFeature(feature);
     } else {
@@ -108,7 +125,9 @@ const DiscoveryDetailPage = () => {
         setDrawerOpen(true);
         break;
       case 'remind':
-        openPaywallOrToast('reminders', t('page.remindUnavailable.body'));
+        // FE-020: the ReminderModal owns both plans — Free sees the inline
+        // upgrade prompt inside the dialog, Pro gets the real flow.
+        setReminderOpen(true);
         break;
       case 'find_time':
         openPaywallOrToast('calendarActions', t('detail.findTimeUnavailable.body'));
@@ -309,7 +328,7 @@ const DiscoveryDetailPage = () => {
                   onClick={() => handleAction(action)}
                   data-testid={`detail-action-${action}`}
                 >
-                  {t(getDiscoveryActionKey(action))}
+                  {t(getDiscoveryActionKey(action), { nsSeparator: '.' })}
                 </ActionButton>
               ))}
             </div>
@@ -371,7 +390,16 @@ const DiscoveryDetailPage = () => {
         onCancel={() => setConfirmDismissOpen(false)}
       />
 
-      {/* Pro-gated actions (FE-020/FE-021 not built) — RequiresPro upgrade path */}
+      {/* Reminders (FE-020) — both plans; Free sees the inline upgrade prompt */}
+      <ReminderModal
+        discoveryId={id}
+        discoveryDate={discovery.date}
+        discoveryTitle={discovery.title}
+        isOpen={reminderOpen}
+        onClose={() => setReminderOpen(false)}
+      />
+
+      {/* Pro-gated action without a shipped flow (FE-021 calendar) — RequiresPro upgrade path */}
       <Modal
         isOpen={paywallFeature !== null}
         onClose={() => setPaywallFeature(null)}

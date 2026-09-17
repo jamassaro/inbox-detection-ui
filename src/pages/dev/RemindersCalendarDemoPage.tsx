@@ -83,7 +83,9 @@ const RemindersCalendarDemoPage = () => {
         </button>
         {modalOpen ? (
           <ReminderModal
-            discovery={demoDiscovery}
+            discoveryId={demoDiscovery.id}
+            discoveryTitle={demoDiscovery.title}
+            discoveryDate={demoDiscovery.date}
             isOpen
             onClose={() => setModalOpen(false)}
           />

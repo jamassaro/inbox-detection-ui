@@ -61,7 +61,8 @@ const DiscoveriesPage = () => {
   const [activeFilter, setActiveFilter] = useState<DiscoveryFilter>('all');
   const [searchInput, setSearchInput] = useState('');
   const search = useDebouncedValue(searchInput, SEARCH_DEBOUNCE_MS);
-  const [reminderTarget, setReminderTarget] = useState<Discovery | null>(null);
+  /** Discovery whose ReminderModal (FE-020) is open — both plans land here. */
+  const [reminderDiscovery, setReminderDiscovery] = useState<Discovery | null>(null);
 
   const discoveries = useMemo(() => data?.items ?? [], [data]);
   const visibleDiscoveries = useMemo(
@@ -96,9 +97,10 @@ const DiscoveriesPage = () => {
         dismissDiscovery.mutate(discovery.id);
         break;
       case 'remind':
-        // FE-020: ReminderModal gates Free users (RequiresPro upgrade path)
-        // and Pro users get the full scheduling form in the same dialog.
-        setReminderTarget(discovery);
+        // FE-020: ReminderModal handles both plans — Free sees the Pro
+        // paywall inline in the modal (with the post-upgrade resumption
+        // context), Pro creates reminders directly.
+        setReminderDiscovery(discovery);
         break;
       case 'view_source':
         // EmailDrawer is FE-014 and is not built yet — no clickable no-op.
@@ -258,14 +260,15 @@ const DiscoveriesPage = () => {
         )}
       </section>
 
-      {/* FE-020 reminder scheduling (Free users see the upgrade path inside) */}
-      {reminderTarget !== null ? (
+      {reminderDiscovery !== null && (
         <ReminderModal
-          discovery={reminderTarget}
+          discoveryId={reminderDiscovery.id}
+          discoveryTitle={reminderDiscovery.title}
+          discoveryDate={reminderDiscovery.date}
           isOpen
-          onClose={() => setReminderTarget(null)}
+          onClose={() => setReminderDiscovery(null)}
         />
-      ) : null}
+      )}
     </div>
   );
 };

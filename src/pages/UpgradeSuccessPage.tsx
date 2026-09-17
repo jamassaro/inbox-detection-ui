@@ -78,6 +78,15 @@ const UpgradeSuccessPage = () => {
           const ctx = readUpgradeContext();
           clearUpgradeContext();
           toastRef.current.success(tRef.current('success.toast'));
+          // FE-020: an interrupted reminder resumes the exact flow — the
+          // target discovery auto-opens the ReminderModal via the
+          // ?openReminder=true entry point.
+          if (ctx?.pendingAction === 'remind' && ctx.discoveryId !== undefined) {
+            const base = ctx.returnPath || `/app/discoveries/${ctx.discoveryId}`;
+            const separator = base.includes('?') ? '&' : '?';
+            navigateRef.current(`${base}${separator}openReminder=true`, { replace: true });
+            return;
+          }
           navigateRef.current(ctx?.returnPath ?? DEFAULT_RETURN_PATH, { replace: true });
           return;
         }
