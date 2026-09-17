@@ -5,7 +5,7 @@
  * directly — every user-visible string goes through an i18n key produced here.
  * See AGENTS.md "The Discovery Object" and docs/backlog/frontend/FE-011.md.
  */
-import type { DiscoveryAction, DiscoveryType } from '../types';
+import type { Discovery, DiscoveryAction, DiscoveryType } from '../types';
 import type { LucideIcon } from 'lucide-react';
 import {
   Banknote,
@@ -126,3 +126,30 @@ const TYPE_META: Record<DiscoveryType, DiscoveryTypeMeta> = {
   meeting: { icon: CalendarDays, colorClass: 'text-violet-600 bg-violet-100' },
   action_required: { icon: TriangleAlert, colorClass: 'text-rose-600 bg-rose-100' },
 };
+
+/**
+ * Billing cadence values a Discovery may carry (inline union on `Discovery`).
+ */
+export type DiscoveryFrequency = NonNullable<Discovery['frequency']>;
+
+/**
+ * Maps a Discovery billing frequency to its i18n key. `monthly`/`annual`
+ * reuse the existing `billing.frequency.*` catalog keys; `weekly` is FE-012
+ * card copy in the discoveries namespace; one-time amounts have no repetition
+ * suffix (null — render the bare amount).
+ *
+ * @example getFrequencyLabelKey('monthly') // 'billing:frequency.monthly'
+ * @example getFrequencyLabelKey('one_time') // null
+ */
+export function getFrequencyLabelKey(frequency: DiscoveryFrequency): string | null {
+  switch (frequency) {
+    case 'monthly':
+      return 'billing:frequency.monthly';
+    case 'annual':
+      return 'billing:frequency.annual';
+    case 'weekly':
+      return 'discoveries:card.frequency.weekly';
+    case 'one_time':
+      return null;
+  }
+}
