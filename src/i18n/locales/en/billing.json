@@ -22,6 +22,15 @@
     "activating": "Activating your Pro access…",
     "activated": "Pro activated"
   },
+  "success": {
+    "activatingSubcopy": "This usually takes a few seconds. You'll be returned to where you left off.",
+    "stillActivating": "Still activating… your payment is confirmed and Pro is on its way.",
+    "timeoutSubcopy": "If this still doesn't go through, no worries — your Pro access will appear automatically.",
+    "refreshManually": "Refresh manually",
+    "toast": "Welcome to Pro!",
+    "errorTitle": "We couldn't confirm your upgrade",
+    "errorDescription": "Your payment may still have gone through. Try again in a moment."
+  },
   "upgradePage": {
     "contextual": {
       "default": "Upgrade to Inbox Detective Pro",
@@ -32,6 +41,7 @@
       "investigation_results": "See everything your investigation found."
     },
     "subcopy": "Go Pro for continuous monitoring and every feature, unlocked.",
+    "cancelledNotice": "No charge was made — you can try upgrading again whenever you're ready.",
     "plans": {
       "cta": "Upgrade Now",
       "currentPlan": "Current plan",
@@ -66,6 +76,28 @@
     "manageBilling": "Manage billing",
     "errors": {
       "checkout": "We couldn't start checkout. Please try again."
+    }
+  },
+  "billingPage": {
+    "title": "Billing",
+    "subtitle": "Your plan, renewal date, and subscription management.",
+    "planLabel": "Current plan",
+    "status": {
+      "active": "Active",
+      "cancelling": "Cancelling",
+      "expired": "Expired"
+    },
+    "renewalLabel": "Renewal date",
+    "endsOn": "Ends {{date}}",
+    "monthlyCost": "Monthly",
+    "annualCost": "Annual",
+    "manageSubscription": "Manage subscription",
+    "portalError": "Couldn't open the billing portal. Please try again.",
+    "cancelWarning": "Your subscription ends {{date}}. You keep Pro access until then.",
+    "loadErrorTitle": "We couldn't load your billing details",
+    "loadErrorDescription": "Please try again in a moment.",
+    "freeView": {
+      "featuresHeading": "Not included on Free"
     }
   }
 }
