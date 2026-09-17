@@ -1,0 +1,6 @@
+# Repo policy for obvious agents. Auto-detected from GitHub settings on 2026-09-17.
+repo: jamassaro/inbox-detection-ui
+defaultBranch: main
+# GitHub enables merge commits, squash, and rebase; squash is the preferred policy here.
+mergeMethod: squash
+requireHumanMerge: true
