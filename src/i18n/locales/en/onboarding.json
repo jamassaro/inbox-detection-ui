@@ -14,5 +14,8 @@
   "results": {
     "title": "Investigation complete",
     "seeAll": "See all discoveries"
+  },
+  "auth": {
+    "signingIn": "Signing you in…"
   }
 }

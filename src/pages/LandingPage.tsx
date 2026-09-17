@@ -18,6 +18,8 @@ import {
 } from 'lucide-react';
 import LanguageSelector from '../components/LanguageSelector';
 import { useAuth } from '../hooks/useAuth';
+import { useGoogleAuth } from '../hooks/useGoogleAuth';
+import { useToast } from '../hooks/useToast';
 import { getInitials } from '../lib/discoveryHelpers';
 
 /**
@@ -26,10 +28,12 @@ import { getInitials } from '../lib/discoveryHelpers';
  * namespace; the only other namespace used is `billing` for frequency units
  * ("month" / "mes"), as the ticket directs.
  *
- * CTAs are navigation, not actions, so they render as anchors styled with the
+ * CTAs are navigation, so they render as anchors styled with the
  * design-system primary-button classes — ActionButton (FE-005) is a <button>,
- * and a button inside an anchor is invalid HTML. Unauthenticated CTAs point
- * at the backend's `GET /auth/google` redirect; FE-007 wires the full flow.
+ * and a button inside an anchor is invalid HTML. Since FE-007 the sign-in
+ * anchors start the Google OAuth flow in onClick (full-page redirect through
+ * useGoogleAuth, which stores the returnPath first); the href stays as the
+ * semantic fallback.
  */
 
 const GOOGLE_AUTH_URL = '/auth/google';
@@ -48,6 +52,24 @@ interface PrimaryCtaProps {
 }
 
 /**
+ * Shared sign-in trigger for every landing CTA (FE-007): stores the
+ * post-auth return path and full-page-redirects to the backend's Google
+ * auth endpoint. When the API base URL is unconfigured nothing is navigated
+ * — a translated toast explains instead of a silent dead click.
+ */
+const useSignIn = () => {
+  const { t } = useTranslation('errors');
+  const toast = useToast();
+  const { startGoogleAuth } = useGoogleAuth();
+
+  return () => {
+    if (!startGoogleAuth({ returnPath: APP_DASHBOARD_URL })) {
+      toast.error(t('authUnavailable'));
+    }
+  };
+};
+
+/**
  * The landing's single conversion action. Visitors get the auth entry point;
  * signed-in users get a link into the app — the landing never redirects
  * anyone away.
@@ -55,6 +77,7 @@ interface PrimaryCtaProps {
 const PrimaryCta = ({ size = 'md', inverse = false, className = '' }: PrimaryCtaProps) => {
   const { t } = useTranslation('public');
   const { isAuthenticated } = useAuth();
+  const handleSignIn = useSignIn();
 
   const variant = inverse
     ? 'bg-white text-gray-900 hover:bg-gray-100 focus-visible:ring-white'
@@ -69,7 +92,14 @@ const PrimaryCta = ({ size = 'md', inverse = false, className = '' }: PrimaryCta
     );
   }
   return (
-    <a href={GOOGLE_AUTH_URL} className={classes}>
+    <a
+      href={GOOGLE_AUTH_URL}
+      className={classes}
+      onClick={(event) => {
+        event.preventDefault();
+        handleSignIn();
+      }}
+    >
       {t('landing.cta')}
     </a>
   );
@@ -96,6 +126,7 @@ const SectionHeading = ({
 const NavSection = () => {
   const { t } = useTranslation('public');
   const { isAuthenticated } = useAuth();
+  const handleSignIn = useSignIn();
 
   return (
     <header className="sticky top-0 z-10 border-b border-gray-200 bg-white">
@@ -117,6 +148,10 @@ const NavSection = () => {
             <a
               href={GOOGLE_AUTH_URL}
               className="hidden text-sm font-medium text-gray-700 hover:text-gray-900 sm:inline"
+              onClick={(event) => {
+                event.preventDefault();
+                handleSignIn();
+              }}
             >
               {t('landing.nav.signIn')}
             </a>

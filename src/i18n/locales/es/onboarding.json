@@ -14,5 +14,8 @@
   "results": {
     "title": "Investigación completada",
     "seeAll": "Ver todos los hallazgos"
+  },
+  "auth": {
+    "signingIn": "Iniciando sesión…"
   }
 }

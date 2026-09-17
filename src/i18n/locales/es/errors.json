@@ -1,6 +1,7 @@
 {
   "generic": "Algo salió mal. Inténtalo de nuevo.",
   "oauthFailed": "No pudimos completar el inicio de sesión. Inténtalo de nuevo.",
+  "authUnavailable": "El inicio de sesión no está disponible temporalmente. Inténtalo de nuevo en un momento.",
   "investigationFailed": "La investigación no pudo terminar. Inténtalo de nuevo o contacta a soporte.",
   "retry": "Reintentar"
 }
