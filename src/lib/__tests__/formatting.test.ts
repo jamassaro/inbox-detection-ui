@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   formatCurrency,
   formatDate,
@@ -46,13 +46,29 @@ describe('formatNumber', () => {
 
 describe('formatRelativeDate', () => {
   it('renders same-day offsets in hour units', () => {
-    const inTwoHours = new Date(Date.now() + 2 * 3_600_000);
-    expect(formatRelativeDate(inTwoHours, 'en')).toMatch(/in 2 hours/i);
+    // Pinned clock: at 10:00, +2h stays on the same calendar day. With the
+    // real clock this test failed on CI whenever the run started at or after
+    // 22:00 local — now+2h crosses midnight and renders as "tomorrow".
+    vi.useFakeTimers();
+    try {
+      vi.setSystemTime(new Date('2026-09-17T10:00:00'));
+      const inTwoHours = new Date(Date.now() + 2 * 3_600_000);
+      expect(formatRelativeDate(inTwoHours, 'en')).toMatch(/in 2 hours/i);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('renders same-day past offsets in hour units', () => {
-    const threeHoursAgo = new Date(Date.now() - 3 * 3_600_000);
-    expect(formatRelativeDate(threeHoursAgo, 'en')).toMatch(/3 hours ago/i);
+    // Pinned clock for the same reason: at 12:00, -3h stays same-day.
+    vi.useFakeTimers();
+    try {
+      vi.setSystemTime(new Date('2026-09-17T12:00:00'));
+      const threeHoursAgo = new Date(Date.now() - 3 * 3_600_000);
+      expect(formatRelativeDate(threeHoursAgo, 'en')).toMatch(/3 hours ago/i);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('renders tomorrow', () => {
