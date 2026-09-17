@@ -12,6 +12,7 @@ import { LocaleProvider } from '../../contexts/LocaleProvider';
 import type { BillingStatusWire, User } from '../../types';
 import type { ReminderWire } from '../../hooks/useReminders';
 import { apiFetch } from '../../lib/apiClient';
+import { makeTestUser } from '../../test-utils';
 import i18n from '../../i18n';
 
 vi.mock('../../lib/apiClient', () => ({
@@ -31,13 +32,7 @@ function recordedBody(path: string): Record<string, string> {
   return JSON.parse(String((call[1] as RequestInit).body)) as Record<string, string>;
 }
 
-const wireUser = (overrides: Partial<User> = {}): User => ({
-  id: 'usr_1',
-  name: 'María',
-  email: 'maria@example.com',
-  googleId: 'google-1',
-  ...overrides,
-});
+const wireUser = (overrides: Partial<User> = {}): User => makeTestUser(overrides);
 
 /** Wire body of GET /billing/status (BE-030) — EntitlementProvider's fetch. */
 const billingStatus = (plan: 'free' | 'pro'): BillingStatusWire => ({
@@ -81,7 +76,7 @@ interface BackendOptions {
 /** Wires mockApiFetch to the endpoints the modal touches. */
 const mockBackend = ({ plan = 'pro', reminders = [], createError = false }: BackendOptions = {}) => {
   mockApiFetch.mockImplementation((path: string, init?: RequestInit) => {
-    if (path.startsWith('/auth/me')) return Promise.resolve(wireUser());
+    if (path.startsWith('/account/me')) return Promise.resolve(wireUser());
     if (path.startsWith('/billing/status')) return Promise.resolve(billingStatus(plan));
     if (path === '/reminders?status=pending') return Promise.resolve({ reminders });
     if (path === '/reminders') {
