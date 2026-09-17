@@ -1,8 +1,8 @@
-import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import AgentStatusBadge from '../../components/AgentStatusBadge';
 import Sidebar from '../../components/Sidebar';
 import LanguageSelector from '../../components/LanguageSelector';
+import { LocaleProvider } from '../../contexts/LocaleProvider';
 
 /** Fixed clock so the "Last scan" relative time is stable while capturing. */
 const NOW = Date.parse('2026-09-17T12:00:00Z');
@@ -31,8 +31,8 @@ const VARIANTS = [
  */
 const AppShellStatesDemoPage = () => (
   <div className="flex h-screen bg-gray-50">
-    <MemoryRouter initialEntries={['/app/dashboard']}>
-      <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={queryClient}>
+      <LocaleProvider>
         <div className="flex">
           <Sidebar />
           <main className="flex-1 overflow-auto p-8">
@@ -59,8 +59,8 @@ const AppShellStatesDemoPage = () => (
             </div>
           </main>
         </div>
-      </QueryClientProvider>
-    </MemoryRouter>
+      </LocaleProvider>
+    </QueryClientProvider>
   </div>
 );
 
