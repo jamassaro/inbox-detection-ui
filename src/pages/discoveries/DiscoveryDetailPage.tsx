@@ -328,7 +328,7 @@ const DiscoveryDetailPage = () => {
                   onClick={() => handleAction(action)}
                   data-testid={`detail-action-${action}`}
                 >
-                  {t(getDiscoveryActionKey(action))}
+                  {t(getDiscoveryActionKey(action), { nsSeparator: '.' })}
                 </ActionButton>
               ))}
             </div>

@@ -156,6 +156,10 @@ describe('DiscoveryDetailPage', () => {
     expect(screen.getByTestId('detail-action-dismiss')).toBeTruthy();
     expect(screen.getByTestId('detail-action-view_source')).toBeTruthy();
     expect(screen.getByTestId('detail-action-ask_detective')).toBeTruthy();
+    // Labels resolve through the namespace-prefixed key (nsSeparator: '.') —
+    // a regression here renders the raw 'discoveries.actions.*' key.
+    expect(screen.getByTestId('detail-action-remind').textContent).toBe('Remind me');
+    expect(screen.getByTestId('detail-action-dismiss').textContent).toBe('Dismiss');
   });
 
   it('renders skeletons while the discovery loads', () => {
