@@ -1,7 +1,7 @@
 # Inbox Detective — Frontend Backlog
 
 **Repository:** `inbox-detection-ui`  
-**Current branch:** `extension`  
+**Current branch:** `main`  
 **Plan:** `INBOX_DETECTIVE_FRONTEND_IMPLEMENTATION_PLAN.md`  
 **Generated:** 2026-09-17
 
@@ -9,11 +9,16 @@
 
 ## Current State Summary (updated 2026-09-17)
 
-Audited against merged code on `main` (PRs #2–#13): **11 of 32 tickets implemented.**
+Audited against code on `main` (through PR #35): **26 of 32 tickets implemented.**
 
-- **DONE (11):** FE-001–008, FE-011, FE-012, FE-027 — foundation (TanStack Query + apiFetch + Vitest), i18n, auth infra, entitlements, shared UI primitives, landing page, OAuth flow, Gmail connect page, discovery type system, discovery cards, DOMPurify sanitization
-- **IN_PROGRESS (2):** FE-009 (investigation flow), FE-010 (app shell) — must rebase onto FE-012 main
-- **NOT_STARTED (19):** discovery list/detail views, offers/companies/saved pages, settings, polish
+- **DONE (26):** FE-001–023, FE-026, FE-027, FE-031 — foundation (TanStack Query + apiFetch + Vitest), i18n, auth infra, entitlements (reconciled to `GET /billing/status` in #28), shared UI primitives, landing page, OAuth flow, Gmail connect page, discovery type system, discovery cards, discoveries page, discovery detail + email evidence drawer, dashboard, billing infra + upgrade page, checkout return flows + billing settings, agent action panel, reminder flow, calendar + meeting flow, detective chat, settings, legal pages, DOMPurify sanitization, core unit test suite
+- **NOT_STARTED (6):** FE-024 (account deletion), FE-025 (subscriptions page), FE-028 (responsive audit), FE-029 (accessibility P0 fixes), FE-030 (EN/ES translation catalog), FE-032 (E2E suite)
+
+Provenance notes:
+
+- PRs #2–#6, #8–#10, and #12 show CLOSED (unmerged) in GitHub while their commits sit on `main` — these early tickets landed via direct pushes, with the PR number carried in the commit subject. Per-ticket files cite those numbers as the landing point ("on `main` via #N").
+- **FE-016** was delivered in full as scoped by #23 — upgrade context, contextual `/upgrade` page, checkout hook, and paywall routing through `useUpgradeRedirect`. The items its ticket excludes (checkout return page, billing settings) belong to FE-017/FE-018, merged in #29.
+- Wave 5 is fully merged: FE-014 (#30), FE-020 (#32, #33), FE-021 (#32, #34), plus calendar-connect mock hardening (#35).
 
 Per-ticket status lives in each `FE-*.md` file.
 
