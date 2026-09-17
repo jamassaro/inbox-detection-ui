@@ -11,9 +11,9 @@ import SkeletonCard from '../../components/SkeletonCard';
 import StatCard from '../../components/StatCard';
 import UpgradePrompt from '../../components/UpgradePrompt';
 import { useEntitlements } from '../../hooks/useEntitlements';
+import { useToast } from '../../hooks/useToast';
 import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import {
-  DISCOVERIES_PAGE_SIZE,
   useDiscoveries,
   useDismissDiscovery,
 } from '../../hooks/useDiscoveries';
@@ -56,6 +56,7 @@ const FILTER_LABEL_KEYS: Record<DiscoveryFilter, string> = {
 const DiscoveriesPage = () => {
   const { t } = useTranslation('discoveries');
   const { isFree } = useEntitlements();
+  const toast = useToast();
 
   const { data, isPending, isError, refetch } = useDiscoveries();
   const dismissDiscovery = useDismissDiscovery();
@@ -87,8 +88,6 @@ const DiscoveriesPage = () => {
 
   const lockedCount = data?.lockedCount ?? 0;
   const totalCount = data?.total ?? 0;
-  const isFilteredList =
-    activeFilter !== 'all' || search.trim() !== '';
   const showFeatured =
     activeFilter === 'all' &&
     search.trim() === '' &&
@@ -105,12 +104,13 @@ const DiscoveriesPage = () => {
         if (isFree) {
           setRemindUpgradeOpen(true);
         } else {
+          toast.info(t('page.remindUnavailable.body'));
           // TODO(FE-020): open ReminderModal once it exists.
-          // (Enforced by the Pro test: Pro must NOT see the paywall.)
         }
         break;
       case 'view_source':
-        // EmailDrawer is FE-014 and is not built yet.
+        // EmailDrawer is FE-014 and is not built yet — no clickable no-op.
+        toast.info(t('page.sourceUnavailable.body'));
         // TODO(FE-014): open EmailDrawer with the discovery's evidence.
         break;
       default:
@@ -237,9 +237,7 @@ const DiscoveriesPage = () => {
       {/* Full list */}
       <section className="mt-8">
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
-          {isFilteredList
-            ? t('page.listTitle')
-            : t('page.listTitle')}
+          {t('page.listTitle')}
         </h2>
         {activeFilter === 'saved' ? (
           <EmptyState

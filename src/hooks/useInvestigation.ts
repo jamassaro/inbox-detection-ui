@@ -1,5 +1,6 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { apiFetch } from '../lib/apiClient';
+import type { DiscoveriesWire } from '../lib/discoveryWire';
 
 /**
  * Investigation-flow hooks (FE-009): trigger an investigation, poll its
