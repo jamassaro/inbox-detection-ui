@@ -1,32 +1,43 @@
 {
   "connect": {
     "title": "Conecta Google Calendar para que el Detective encuentre horarios disponibles",
-    "cta": "Conectar calendario"
+    "cta": "Conectar Calendar"
   },
   "meeting": {
+    "findTimeCta": "Buscar horario",
     "proposalHeading": "Elige un horario",
+    "suggested": "Sugerido",
     "approveCreate": "¿Crear la reunión el {{time}}?",
-    "creating": "Creando el evento en el calendario...",
+    "creating": "Creando el evento...",
     "confirming": "Confirmando...",
     "done": "Evento creado: {{time}}",
     "eventCreatedToast": "Evento creado en el calendario",
-    "noProposedTime": "Esta solicitud aún no incluye una hora propuesta.",
-    "slotUnavailable": "Ese horario ya no está libre. Elige otro."
+    "noProposedTime": "Esta solicitud aún no incluye un horario propuesto.",
+    "noFreeSlots": "No hay horarios libres el día propuesto.",
+    "slotUnavailable": "Ese horario ya no está libre. Elige otro.",
+    "defaultEventTitle": "Reunión"
   },
   "email": {
     "draftHeading": "Respuesta sugerida",
     "draftToLabel": "Para",
     "draftSubjectLabel": "Asunto",
     "approveDraft": "¿Crear este borrador de respuesta?",
+    "creatingDraft": "Creando el borrador de respuesta...",
     "draftCreatedToast": "Respuesta en borrador creada",
-    "sending": "Enviando respuesta...",
+    "sending": "Enviando la respuesta...",
     "sendPrompt": "¿Enviar esta respuesta?",
     "sent": "Respuesta enviada",
     "sentToast": "Respuesta enviada",
     "noDraft": "Esta solicitud no referencia ningún borrador que enviar."
   },
+  "detail": {
+    "back": "Volver a hallazgos",
+    "notFound": "Hallazgo no encontrado",
+    "locked": "Este hallazgo está disponible en Pro."
+  },
   "errors": {
-    "availability": "No pudimos cargar tu disponibilidad del calendario.",
+    "actions": "No pudimos cargar la propuesta de reunión.",
+    "availability": "No pudimos cargar la disponibilidad de tu calendario.",
     "event": "No pudimos crear el evento en el calendario. Inténtalo de nuevo.",
     "draft": "No pudimos crear el borrador. Inténtalo de nuevo.",
     "send": "No pudimos enviar la respuesta. Inténtalo de nuevo."

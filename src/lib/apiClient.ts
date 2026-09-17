@@ -25,16 +25,16 @@ function resolveBaseUrl(): string {
   return baseUrl
 }
 
-/** Extracts `{ code, message }` from an error response body, tolerating non-JSON bodies. */
-async function parseErrorBody(response: Response): Promise<{ code?: string; message?: string }> {
+/** Extracts `{ code, message }` plus the raw body from an error response, tolerating non-JSON bodies. */
+async function parseErrorBody(response: Response): Promise<{ code?: string; message?: string; body: unknown }> {
   try {
     const body: unknown = await response.json()
     if (typeof body === 'object' && body !== null) {
-      return body as { code?: string; message?: string }
+      return { ...(body as { code?: string; message?: string }), body }
     }
-    return {}
+    return { body }
   } catch {
-    return {}
+    return { body: undefined }
   }
 }
 
@@ -98,6 +98,7 @@ export async function apiFetch<T = unknown>(
       response.status,
       body.code ?? 'UNKNOWN_ERROR',
       body.message ?? `Request failed with status ${response.status}`,
+      body.body,
     )
   }
 

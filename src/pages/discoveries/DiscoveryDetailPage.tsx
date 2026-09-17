@@ -10,6 +10,8 @@ import Modal from '../../components/Modal';
 import ReminderModal from '../../components/ReminderModal';
 import SkeletonCard from '../../components/SkeletonCard';
 import UpgradePrompt from '../../components/UpgradePrompt';
+import MeetingActionFlow from '../../components/MeetingActionFlow';
+import RequiresPro from '../../components/RequiresPro';
 import { useEntitlements } from '../../hooks/useEntitlements';
 import { useToast } from '../../hooks/useToast';
 import { useDiscoveryFeedback, useDismissDiscovery } from '../../hooks/useDiscoveries';
@@ -22,6 +24,10 @@ import {
 } from '../../lib/discoveryHelpers';
 import { formatCurrency, formatDate } from '../../lib/formatting';
 import { ApiError } from '../../lib/apiError';
+import {
+  clearCalendarReturnContext,
+  readCalendarReturnContext,
+} from '../../lib/calendarReturnContext';
 import type { Discovery, DiscoveryAction } from '../../types';
 
 /** Importance badge treatment — mirrors DiscoveryListItem (FE-012). */
@@ -104,6 +110,19 @@ const DiscoveryDetailPage = () => {
     next.delete('openReminder');
     setSearchParams(next, { replace: true });
   }, [searchParams, setSearchParams]);
+
+  // Consume the OAuth return context exactly once, on mount, and only when
+  // it points at THIS discovery. useState initializer = intentional
+  // once-per-mount semantics. A context for a different discovery is left
+  // alone (its own page consumes it; the next connect click overwrites).
+  const [autoStart] = useState(() => {
+    const context = readCalendarReturnContext();
+    if (context && context.discoveryId === id) {
+      clearCalendarReturnContext();
+      return true;
+    }
+    return false;
+  });
 
   const openPaywallOrToast = (feature: 'calendarActions', unavailableBody: string) => {
     // FE-013 parity: Free users get the RequiresPro upgrade path; Pro users
@@ -201,6 +220,12 @@ const DiscoveryDetailPage = () => {
     ? annualizedCost(discovery.amount, discovery.frequency)
     : null;
   const isDismissed = discovery.status === 'dismissed';
+  // FE-021: meeting_request discoveries get the real booking flow inline; it
+  // replaces the find_time action button instead of duplicating it.
+  const isMeetingDiscovery = discovery.type === 'meeting';
+  const rowActions = isMeetingDiscovery
+    ? discovery.availableActions.filter((action) => action !== 'find_time')
+    : discovery.availableActions;
 
   return (
     <div className="p-6 lg:p-8" data-testid="discovery-detail-page">
@@ -303,6 +328,25 @@ const DiscoveryDetailPage = () => {
           </p>
         </section>
 
+        {/* Meeting flow — approve-then-create booking for meeting_request
+            discoveries (FE-021). RequiresPro gates Free users to the upgrade
+            prompt; Pro users get slot picking, approval, and event creation. */}
+        {isMeetingDiscovery ? (
+          <section
+            className="mt-4"
+            data-testid="detail-meeting-flow"
+            aria-label={t('meeting.proposalHeading', { ns: 'calendar' })}
+          >
+            <RequiresPro feature="calendarActions">
+              <MeetingActionFlow
+                discoveryId={id}
+                discoveryTitle={discovery.title}
+                autoStart={autoStart}
+              />
+            </RequiresPro>
+          </section>
+        ) : null}
+
         {/* Source evidence — opens the drawer (lazy fetch inside) */}
         <section className="mt-4" data-testid="detail-source-section">
           <ActionButton
@@ -314,14 +358,15 @@ const DiscoveryDetailPage = () => {
           </ActionButton>
         </section>
 
-        {/* Actions — every backend-provided action, handlers per ticket */}
-        {discovery.availableActions.length > 0 ? (
+        {/* Actions — every backend-provided action, handlers per ticket
+            (find_time omitted on meetings: the inline flow is the action) */}
+        {rowActions.length > 0 ? (
           <section className="mt-6" data-testid="detail-actions">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
               {t('detail.actionsTitle')}
             </h2>
             <div className="mt-3 flex flex-wrap gap-2">
-              {discovery.availableActions.map((action) => (
+              {rowActions.map((action) => (
                 <ActionButton
                   key={action}
                   variant={action === 'dismiss' ? 'destructive' : 'secondary'}
