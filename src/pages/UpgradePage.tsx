@@ -5,6 +5,12 @@ import { useEntitlements } from '../hooks/useEntitlements';
 import { useCreateCheckout } from '../hooks/useCheckout';
 import type { BillingPlan } from '../hooks/useCheckout';
 import { formatCurrency } from '../lib/formatting';
+import {
+  ANNUAL_PRICE,
+  MONTHLY_PRICE,
+  PLAN_CURRENCY,
+  PRICE_LOCALE,
+} from '../lib/billingConfig';
 
 /**
  * Paywall sources with a contextual headline (FE-016). The `?from=` query
@@ -31,18 +37,11 @@ const FREE_FEATURES = ['investigation', 'discoveries', 'chat', 'refresh'] as con
 const PRO_FEATURES = ['monitoring', 'discoveries', 'reminders', 'calendar', 'chat', 'briefing'] as const;
 
 /**
- * Presentational plan pricing only — Stripe is the source of truth (FE-016
- * agent notes). Never derive entitlement logic from these constants.
+ * Presentational plan pricing only — Stripe is the source of truth; the
+ * shared constants live in src/lib/billingConfig.ts so the billing page
+ * renders the same numbers (FE-018).
  */
-const PLAN_CURRENCY = 'USD';
-/**
- * Plan prices render with en-US number formatting in both locales so EN shows
- * "$5.99/month" and ES "$5.99/mes" (FE-016 acceptance); only the period word
- * is translated.
- */
-const PRICE_LOCALE = 'en-US';
-const MONTHLY_PRICE = 5.99;
-const ANNUAL_PRICE = 49;
+const PRICE_FORMAT_OPTIONS = { maximumFractionDigits: 0 } as const;
 
 /** Plan card metadata for the comparison grid. */
 const PLAN_CARDS: { plan: 'free' | BillingPlan; headingId: string }[] = [
@@ -62,6 +61,10 @@ const UpgradePage = () => {
   const { t } = useTranslation('billing');
   const [searchParams] = useSearchParams();
   const from = searchParams.get('from');
+  // FE-017: Stripe returns here via /billing/cancelled after a cancelled
+  // checkout. Reassure, and keep the saved upgrade context so a retry still
+  // returns the user to their original context.
+  const cancelled = searchParams.get('cancelled') === 'true';
   const { isPro, isFree } = useEntitlements();
   const checkout = useCreateCheckout();
 
@@ -70,10 +73,8 @@ const UpgradePage = () => {
     : t('upgradePage.contextual.default');
 
   const monthlyPrice = formatCurrency(MONTHLY_PRICE, PLAN_CURRENCY, PRICE_LOCALE);
-  const annualPrice = formatCurrency(ANNUAL_PRICE, PLAN_CURRENCY, PRICE_LOCALE, {
-    maximumFractionDigits: 0,
-  });
-  const freePrice = formatCurrency(0, PLAN_CURRENCY, PRICE_LOCALE, { maximumFractionDigits: 0 });
+  const annualPrice = formatCurrency(ANNUAL_PRICE, PLAN_CURRENCY, PRICE_LOCALE, PRICE_FORMAT_OPTIONS);
+  const freePrice = formatCurrency(0, PLAN_CURRENCY, PRICE_LOCALE, PRICE_FORMAT_OPTIONS);
 
   const handleUpgrade = (plan: BillingPlan) => {
     checkout.mutate(plan, {
@@ -143,6 +144,16 @@ const UpgradePage = () => {
           {headline}
         </h1>
         <p className="mt-2 text-gray-600">{t('upgradePage.subcopy')}</p>
+
+        {cancelled && (
+          <p
+            role="status"
+            data-testid="cancelled-notice"
+            className="mt-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700"
+          >
+            {t('upgradePage.cancelledNotice')}
+          </p>
+        )}
 
         {checkout.isError && (
           <p

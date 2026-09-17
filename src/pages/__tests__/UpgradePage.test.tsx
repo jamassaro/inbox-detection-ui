@@ -10,6 +10,7 @@ import { EntitlementProvider } from '../../contexts/EntitlementProvider';
 import { apiFetch } from '../../lib/apiClient';
 import { ApiError } from '../../lib/apiError';
 import { stubWindowLocation } from '../../test-utils';
+import { readUpgradeContext, saveUpgradeContext } from '../../lib/upgradeContext';
 import UpgradePage from '../UpgradePage';
 import type { BillingStatusWire, User } from '../../types';
 
@@ -203,5 +204,21 @@ describe('UpgradePage', () => {
     await userEvent.click(await screen.findByTestId('upgrade-cta-annual'));
 
     expect(await screen.findByTestId('checkout-error')).toBeTruthy();
+  });
+
+  it('shows the cancelled notice and keeps the upgrade context after ?cancelled=true', async () => {
+    // BE-030 redirects to /billing/cancelled, which routes to /upgrade?cancelled=true.
+    // The context is intentionally preserved so a retry still returns the user.
+    saveUpgradeContext({ source: 'locked_discovery', returnPath: '/app/discoveries' });
+    renderPage('/upgrade?cancelled=true');
+    const notice = await screen.findByTestId('cancelled-notice');
+    expect(notice.textContent).toContain('No charge was made');
+    expect(readUpgradeContext()).not.toBeNull();
+  });
+
+  it('shows no cancelled notice without the query flag', async () => {
+    renderPage('/upgrade');
+    await screen.findByTestId('upgrade-headline');
+    expect(screen.queryByTestId('cancelled-notice')).toBeNull();
   });
 });

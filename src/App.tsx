@@ -1,5 +1,5 @@
 import { Suspense, lazy } from 'react';
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -57,6 +57,21 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/auth/callback" element={<AuthCallbackPage />} />
           <Route path="/upgrade" element={<UpgradePage />} />
+          {/* FE-017: BE-030's cancel_url lands here after a cancelled Stripe
+              checkout. Redirect to the upgrade page with the notice flag; the
+              saved upgrade context is intentionally kept so a retry still
+              returns to the original context. */}
+          <Route
+            path="/billing/cancelled"
+            element={<Navigate to="/upgrade?cancelled=true" replace />}
+          />
+          {/* FE-018: BE-030's portal return_url is /settings/billing — absorb
+              it on the app's actual route and flag the return so the billing
+              page refreshes entitlement data. */}
+          <Route
+            path="/settings/billing"
+            element={<Navigate to="/app/settings/billing?portal_return=true" replace />}
+          />
           <Route path="/privacy" element={<PrivacyPolicyPage />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/dev/primitives" element={<PrimitivesDemoPage />} />
@@ -72,7 +87,11 @@ function App() {
             <Route path="/onboarding" element={<ConnectGmailPage />} />
             <Route path="/onboarding/investigating" element={<InvestigationProgressPage />} />
             <Route path="/onboarding/results" element={<InvestigationResultsPage />} />
-            <Route path="/upgrade/success" element={<UpgradeSuccessPage />} />
+            {/* FE-017: canonical checkout-success route — BE-030's success_url
+                returns to /billing/success. The FE-003 placeholder path
+                /upgrade/success stays as a redirect. */}
+            <Route path="/billing/success" element={<UpgradeSuccessPage />} />
+            <Route path="/upgrade/success" element={<Navigate to="/billing/success" replace />} />
           </Route>
 
           {/* Protected app shell */}

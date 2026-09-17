@@ -22,6 +22,15 @@
     "activating": "Activando tu acceso Pro…",
     "activated": "Pro activado"
   },
+  "success": {
+    "activatingSubcopy": "Esto suele tardar unos segundos. Te llevaremos de vuelta a donde estabas.",
+    "stillActivating": "Aún activando… tu pago está confirmado y Pro está en camino.",
+    "timeoutSubcopy": "Si aún no se refleja, no te preocupes: tu acceso Pro aparecerá automáticamente.",
+    "refreshManually": "Actualizar manualmente",
+    "toast": "¡Bienvenido a Pro!",
+    "errorTitle": "No pudimos confirmar tu mejora",
+    "errorDescription": "Es posible que tu pago sí se haya procesado. Inténtalo de nuevo en un momento."
+  },
   "upgradePage": {
     "contextual": {
       "default": "Mejora a Inbox Detective Pro",
@@ -32,6 +41,7 @@
       "investigation_results": "Ve todo lo que encontró tu investigación."
     },
     "subcopy": "Pasa a Pro para monitoreo continuo y todas las funciones desbloqueadas.",
+    "cancelledNotice": "No se realizó ningún cargo: puedes intentar mejorar de nuevo cuando quieras.",
     "plans": {
       "cta": "Mejorar ahora",
       "currentPlan": "Plan actual",
@@ -66,6 +76,28 @@
     "manageBilling": "Administrar suscripción",
     "errors": {
       "checkout": "No pudimos iniciar el pago. Inténtalo de nuevo."
+    }
+  },
+  "billingPage": {
+    "title": "Facturación",
+    "subtitle": "Tu plan, fecha de renovación y gestión de la suscripción.",
+    "planLabel": "Plan actual",
+    "status": {
+      "active": "Activa",
+      "cancelling": "Cancelando",
+      "expired": "Expirada"
+    },
+    "renewalLabel": "Fecha de renovación",
+    "endsOn": "Termina el {{date}}",
+    "monthlyCost": "Mensual",
+    "annualCost": "Anual",
+    "manageSubscription": "Administrar suscripción",
+    "portalError": "No pudimos abrir el portal de facturación. Inténtalo de nuevo.",
+    "cancelWarning": "Tu suscripción termina el {{date}}. Mantendrás Pro hasta entonces.",
+    "loadErrorTitle": "No pudimos cargar tus datos de facturación",
+    "loadErrorDescription": "Inténtalo de nuevo en un momento.",
+    "freeView": {
+      "featuresHeading": "No incluido en Gratis"
     }
   }
 }
