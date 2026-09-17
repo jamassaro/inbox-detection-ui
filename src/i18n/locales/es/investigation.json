@@ -1,0 +1,8 @@
+{
+  "status": {
+    "starting": "Iniciando investigación…",
+    "running": "Revisando tus correos…",
+    "complete": "Investigación completada",
+    "failed": "La investigación falló"
+  }
+}

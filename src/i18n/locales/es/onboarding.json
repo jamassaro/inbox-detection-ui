@@ -1,0 +1,18 @@
+{
+  "welcome": {
+    "title": "Bienvenido a Inbox Detective",
+    "description": "Conecta tu correo y el Detective encontrará suscripciones, reembolsos, vencimientos y más.",
+    "connectGmail": "Conectar Gmail"
+  },
+  "interests": {
+    "title": "¿Qué debe buscar el Detective?",
+    "startInvestigation": "Iniciar investigación"
+  },
+  "investigating": {
+    "title": "Investigando tu bandeja"
+  },
+  "results": {
+    "title": "Investigación completada",
+    "seeAll": "Ver todos los hallazgos"
+  }
+}

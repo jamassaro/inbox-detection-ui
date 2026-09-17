@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Search, Bookmark, AlertCircle } from 'lucide-react';
 import StatCard from '../components/StatCard';
 import FeaturedOfferCard from '../components/FeaturedOfferCard';
@@ -7,6 +8,7 @@ import { mockOffers } from '../data/mockOffers';
 import type { FilterType } from '../types';
 
 const OffersPage = () => {
+  const { t } = useTranslation('common');
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -14,10 +16,10 @@ const OffersPage = () => {
   const allOffers = mockOffers.filter((offer) => !offer.featured);
 
   const filters: { id: FilterType; label: string; icon?: any }[] = [
-    { id: 'all', label: 'All' },
-    { id: 'ending-soon', label: 'Ending Soon' },
-    { id: 'new', label: 'New' },
-    { id: 'saved', label: 'Saved', icon: Bookmark },
+    { id: 'all', label: t('filters.all') },
+    { id: 'ending-soon', label: t('filters.endingSoon') },
+    { id: 'new', label: t('filters.new') },
+    { id: 'saved', label: t('nav.saved'), icon: Bookmark },
   ];
 
   return (
@@ -25,15 +27,15 @@ const OffersPage = () => {
       <div className="max-w-5xl mx-auto px-8 py-8">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-2xl font-semibold text-gray-900 mb-1">Your Offers</h1>
-          <p className="text-gray-600">Offers found in your inbox that you might have missed.</p>
+          <h1 className="text-2xl font-semibold text-gray-900 mb-1">{t('pages.offers.title')}</h1>
+          <p className="text-gray-600">{t('pages.offers.subtitle')}</p>
         </div>
 
         {/* Stats */}
         <div className="flex gap-12 mb-8">
-          <StatCard value={18} label="Offers found" />
-          <StatCard value={3} label="Ending soon" color="red" />
-          <StatCard value={8} label="New this week" color="green" />
+          <StatCard value={18} label={t('stats.offersFound')} />
+          <StatCard value={3} label={t('stats.endingSoon')} color="red" />
+          <StatCard value={8} label={t('stats.newThisWeek')} color="green" />
         </div>
 
         {/* Filters and Search */}
@@ -62,7 +64,7 @@ const OffersPage = () => {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
-              placeholder="Search companies or offers"
+              placeholder={t('search.placeholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
@@ -74,7 +76,7 @@ const OffersPage = () => {
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-4">
             <AlertCircle className="w-5 h-5 text-red-600" />
-            <h2 className="text-lg font-semibold text-gray-900">Don't miss these</h2>
+            <h2 className="text-lg font-semibold text-gray-900">{t('pages.offers.dontMiss')}</h2>
           </div>
           <div className="grid grid-cols-2 gap-4">
             {featuredOffers.map((offer) => (
@@ -85,7 +87,7 @@ const OffersPage = () => {
 
         {/* All Offers section */}
         <div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">All Offers</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('pages.offers.allOffers')}</h2>
           <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
             {allOffers.map((offer, index) => (
               <div key={offer.id}>

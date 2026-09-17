@@ -1,0 +1,49 @@
+{
+  "app": {
+    "name": "Inbox Detective"
+  },
+  "nav": {
+    "offers": "Offers",
+    "companies": "Companies",
+    "saved": "Saved",
+    "settings": "Settings",
+    "help": "Help",
+    "connected": "Connected"
+  },
+  "actions": {
+    "scanInbox": "Scan Inbox",
+    "copyCodeAndShop": "Copy Code & Shop",
+    "search": "Search"
+  },
+  "search": {
+    "placeholder": "Search companies or offers"
+  },
+  "filters": {
+    "all": "All",
+    "endingSoon": "Ending Soon",
+    "new": "New"
+  },
+  "stats": {
+    "offersFound": "Offers found",
+    "endingSoon": "Ending soon",
+    "newThisWeek": "New this week"
+  },
+  "pages": {
+    "offers": {
+      "title": "Your Offers",
+      "subtitle": "Offers found in your inbox that you might have missed.",
+      "dontMiss": "Don't miss these",
+      "allOffers": "All Offers"
+    },
+    "companies": {
+      "title": "Companies",
+      "subtitle": "Manage companies you're tracking.",
+      "comingSoon": "Companies page coming soon..."
+    },
+    "saved": {
+      "title": "Saved Offers",
+      "subtitle": "Your bookmarked offers.",
+      "empty": "No saved offers yet..."
+    }
+  }
+}

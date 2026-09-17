@@ -1,0 +1,6 @@
+{
+  "generic": "Something went wrong. Please try again.",
+  "oauthFailed": "We couldn't complete sign-in. Please try again.",
+  "investigationFailed": "The investigation couldn't finish. Try again or contact support.",
+  "retry": "Try again"
+}

@@ -1,13 +1,16 @@
 import { Link, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Tag, Building2, Bookmark, Settings, HelpCircle, Mail } from 'lucide-react';
+import LanguageSelector from './LanguageSelector';
 
 const Sidebar = () => {
+  const { t } = useTranslation('common');
   const location = useLocation();
 
   const navItems = [
-    { icon: Tag, label: 'Offers', path: '/offers' },
-    { icon: Building2, label: 'Companies', path: '/companies' },
-    { icon: Bookmark, label: 'Saved', path: '/saved' },
+    { icon: Tag, label: t('nav.offers'), path: '/offers' },
+    { icon: Building2, label: t('nav.companies'), path: '/companies' },
+    { icon: Bookmark, label: t('nav.saved'), path: '/saved' },
   ];
 
   return (
@@ -19,10 +22,13 @@ const Sidebar = () => {
             <Mail className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 className="font-semibold text-sm">Inbox Detective</h1>
+            <h1 className="font-semibold text-sm">{t('app.name')}</h1>
           </div>
         </div>
-        <p className="text-xs text-gray-500 ml-10">Connected</p>
+        <p className="text-xs text-gray-500 ml-10">{t('nav.connected')}</p>
+        <div className="ml-10 mt-2">
+          <LanguageSelector />
+        </div>
       </div>
 
       {/* Navigation */}
@@ -50,7 +56,7 @@ const Sidebar = () => {
       {/* Scan Inbox Button */}
       <div className="p-2">
         <button className="w-full bg-gray-900 text-white py-2.5 px-4 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors">
-          Scan Inbox
+          {t('actions.scanInbox')}
         </button>
       </div>
 
@@ -61,14 +67,14 @@ const Sidebar = () => {
           className="flex items-center gap-3 px-3 py-2 rounded-lg mb-1 text-sm text-gray-600 hover:bg-white hover:text-gray-900 transition-colors"
         >
           <Settings className="w-4 h-4" />
-          <span>Settings</span>
+          <span>{t('nav.settings')}</span>
         </Link>
         <Link
           to="/help"
           className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-white hover:text-gray-900 transition-colors"
         >
           <HelpCircle className="w-4 h-4" />
-          <span>Help</span>
+          <span>{t('nav.help')}</span>
         </Link>
       </div>
     </div>
