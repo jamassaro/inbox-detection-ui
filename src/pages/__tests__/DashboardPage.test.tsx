@@ -11,7 +11,7 @@ import { ToastProvider } from '../../contexts/ToastProvider';
 import { LocaleProvider } from '../../contexts/LocaleProvider';
 import { DASHBOARD_WINDOW_LIMIT } from '../../hooks/useDashboard';
 import type { DiscoveriesWire, DiscoveryWire } from '../../hooks/useInvestigation';
-import type { Entitlements, User } from '../../types';
+import type { BillingStatusWire, User } from '../../types';
 import { apiFetch } from '../../lib/apiClient';
 import i18n from '../../i18n';
 
@@ -38,15 +38,24 @@ const wireUser = (overrides: Partial<User> = {}): User => ({
   ...overrides,
 });
 
-const entitlements = (plan: 'free' | 'pro'): Entitlements => ({
+/** Wire body of GET /billing/status (BE-030) — verified against Inbox-api src. */
+const billingStatus = (plan: 'free' | 'pro'): BillingStatusWire => ({
   plan,
-  visibleDiscoveries: 3,
-  continuousMonitoring: plan === 'pro',
-  reminders: plan === 'pro',
-  calendarActions: plan === 'pro',
-  emailActions: plan === 'pro',
-  dailyBriefing: plan === 'pro',
-  chatQuestionsRemaining: plan === 'pro' ? null : 5,
+  subscriptionStatus: plan === 'pro' ? 'active' : null,
+  currentPeriodEnd: null,
+  cancelAtPeriodEnd: false,
+  entitlements: {
+    investigationEmailLimit: plan === 'pro' ? 2000 : 500,
+    visibleDiscoveryLimit: plan === 'pro' ? null : 3, // Infinity → null over JSON
+    continuousMonitoring: plan === 'pro',
+    reminders: plan === 'pro',
+    calendarActions: plan === 'pro',
+    emailActions: plan === 'pro',
+    detectiveChatLimit: plan === 'pro' ? null : 5,
+    historicalComparison: plan === 'pro',
+    dailyBriefing: plan === 'pro',
+    fullDiscoveryHistory: plan === 'pro',
+  },
 });
 
 /** Builds a realistic BE-028 wire row for GET /discoveries. */
@@ -93,7 +102,7 @@ const mockBackend = ({
   const dismissedIds = new Set<string>();
   mockApiFetch.mockImplementation((path: string) => {
     if (path.startsWith('/auth/me')) return Promise.resolve(wireUser());
-    if (path.startsWith('/user/entitlements')) return Promise.resolve(entitlements(plan));
+    if (path.startsWith('/billing/status')) return Promise.resolve(billingStatus(plan));
     if (path.startsWith('/gmail/status')) {
       return Promise.resolve({
         connected: true,

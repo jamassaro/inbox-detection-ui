@@ -22,7 +22,9 @@ import ActionButton from '../components/ActionButton';
  */
 /**
  * Backend free-plan daily chat limit (Inbox-api free tier). The entitlements
- * payload exposes only the remaining count, not the total.
+ * payload exposes that static daily limit (`detectiveChatLimit`), not a
+ * server-decremented remaining count — the counter seeds from it and actual
+ * exhaustion arrives as the 402 pro_required error.
  */
 const FREE_CHAT_DAILY_LIMIT = 3;
 
