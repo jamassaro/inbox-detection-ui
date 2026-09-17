@@ -129,3 +129,17 @@ export interface Offer {
 }
 
 export type FilterType = 'all' | 'ending-soon' | 'new' | 'saved';
+
+/**
+ * Authenticated user, as returned by `GET /auth/me`. Mirrors the backend
+ * session user — see Inbox-api. Never stored in localStorage; the session
+ * lives in an httpOnly cookie.
+ */
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  googleId: string;
+  /** Set when the user has completed Gmail OAuth (drives AuthCallbackPage routing). */
+  gmailConnected?: boolean;
+}

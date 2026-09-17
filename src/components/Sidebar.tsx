@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Tag, Building2, Bookmark, Settings, HelpCircle, Mail } from 'lucide-react';
+import { Tag, Building2, Bookmark, Settings, Mail } from 'lucide-react';
 import LanguageSelector from './LanguageSelector';
 
 const Sidebar = () => {
@@ -8,9 +8,9 @@ const Sidebar = () => {
   const location = useLocation();
 
   const navItems = [
-    { icon: Tag, label: t('nav.offers'), path: '/offers' },
-    { icon: Building2, label: t('nav.companies'), path: '/companies' },
-    { icon: Bookmark, label: t('nav.saved'), path: '/saved' },
+    { icon: Tag, label: t('nav.dashboard'), path: '/app/dashboard' },
+    { icon: Building2, label: t('nav.discoveries'), path: '/app/discoveries' },
+    { icon: Bookmark, label: t('nav.saved'), path: '/app/discoveries' },
   ];
 
   return (
@@ -63,18 +63,11 @@ const Sidebar = () => {
       {/* Bottom Navigation */}
       <div className="p-2 border-t border-gray-200">
         <Link
-          to="/settings"
+          to="/app/settings"
           className="flex items-center gap-3 px-3 py-2 rounded-lg mb-1 text-sm text-gray-600 hover:bg-white hover:text-gray-900 transition-colors"
         >
           <Settings className="w-4 h-4" />
           <span>{t('nav.settings')}</span>
-        </Link>
-        <Link
-          to="/help"
-          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-white hover:text-gray-900 transition-colors"
-        >
-          <HelpCircle className="w-4 h-4" />
-          <span>{t('nav.help')}</span>
         </Link>
       </div>
     </div>
