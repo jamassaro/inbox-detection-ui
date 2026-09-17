@@ -3,6 +3,17 @@
     "title": "Desbloquea todo con Pro",
     "cta": "Mejorar a Pro"
   },
+  "requiresPro": {
+    "message": "{{feature}} requiere Pro.",
+    "cta": "Desbloquear con Pro",
+    "feature": {
+      "continuousMonitoring": "Monitoreo continuo",
+      "reminders": "Recordatorios",
+      "calendarActions": "Acciones de calendario",
+      "emailActions": "Acciones de correo",
+      "dailyBriefing": "Briefing diario"
+    }
+  },
   "status": {
     "activating": "Activando tu acceso Pro…",
     "activated": "Pro activado"
