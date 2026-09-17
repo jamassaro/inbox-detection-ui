@@ -13,6 +13,14 @@
     "connected": "Conectado"
   },
   "loading": "Loading…",
+  "buttons": {
+    "confirm": "Confirmar",
+    "cancel": "Cancelar",
+    "close": "Cerrar"
+  },
+  "labels": {
+    "loading": "Cargando"
+  },
   "actions": {
     "scanInbox": "Escanear bandeja",
     "copyCodeAndShop": "Copiar código y comprar",

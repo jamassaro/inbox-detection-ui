@@ -7,6 +7,7 @@ import i18n from './i18n'
 import { LocaleProvider } from './contexts/LocaleContext'
 import { AuthProvider } from './contexts/AuthContext'
 import { EntitlementProvider } from './contexts/EntitlementContext'
+import { ToastProvider } from './contexts/ToastContext'
 import './index.css'
 import App from './App.tsx'
 
@@ -19,9 +20,11 @@ createRoot(document.getElementById('root')!).render(
       <AuthProvider>
         <QueryClientProvider client={queryClient}>
           <EntitlementProvider>
-            <LocaleProvider>
-              <App />
-            </LocaleProvider>
+            <ToastProvider>
+              <LocaleProvider>
+                <App />
+              </LocaleProvider>
+            </ToastProvider>
           </EntitlementProvider>
         </QueryClientProvider>
       </AuthProvider>

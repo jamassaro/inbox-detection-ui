@@ -22,6 +22,8 @@ const SubscriptionsPage = lazy(() => import('./pages/SubscriptionsPage'));
 const ChatPage = lazy(() => import('./pages/ChatPage'));
 const SettingsPage = lazy(() => import('./pages/settings/SettingsPage'));
 const BillingPage = lazy(() => import('./pages/settings/BillingPage'));
+// Dev-only primitives gallery (FE-005 evidence tooling).
+const PrimitivesDemoPage = lazy(() => import('./pages/dev/PrimitivesDemoPage'));
 
 /** Route-slot fallback until FE-005 ships the shared spinner. */
 const RouteFallback = () => {
@@ -45,6 +47,7 @@ function App() {
           <Route path="/upgrade" element={<UpgradePage />} />
           <Route path="/privacy" element={<PrivacyPolicyPage />} />
           <Route path="/terms" element={<TermsPage />} />
+          <Route path="/dev/primitives" element={<PrimitivesDemoPage />} />
 
           {/* Protected onboarding */}
           <Route element={<ProtectedRoute />}>
