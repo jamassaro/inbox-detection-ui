@@ -64,6 +64,35 @@
     "endingSoon": "Ending soon",
     "newThisWeek": "New this week"
   },
+  "greeting": {
+    "morning": "Good morning, {{name}}.",
+    "afternoon": "Good afternoon, {{name}}.",
+    "evening": "Good evening, {{name}}.",
+    "fallbackName": "detective"
+  },
+  "dashboard": {
+    "stats": {
+      "moneyFound": "Money found",
+      "subscriptions": "Subscriptions",
+      "needsAttention": "Needs attention"
+    },
+    "priorityTitle": "Needs your attention",
+    "seeAll": "See all discoveries",
+    "empty": {
+      "title": "Nothing needs your attention right now",
+      "description": "Your agent keeps monitoring your inbox and will surface anything that needs a decision."
+    },
+    "briefing": {
+      "title": "Daily Briefing",
+      "placeholder": "Your personalized briefing will appear here — a daily summary of what changed and what deserves your attention."
+    },
+    "toasts": {
+      "dismissed": "Discovery dismissed.",
+      "dismissFailed": "Could not dismiss. Try again.",
+      "remindComingSoon": "Reminders are coming soon.",
+      "actionComingSoon": "This action is coming soon."
+    }
+  },
   "pages": {
     "offers": {
       "title": "Your Offers",

@@ -64,6 +64,35 @@
     "endingSoon": "Terminan pronto",
     "newThisWeek": "Nuevas esta semana"
   },
+  "greeting": {
+    "morning": "Buenos días, {{name}}.",
+    "afternoon": "Buenas tardes, {{name}}.",
+    "evening": "Buenas noches, {{name}}.",
+    "fallbackName": "detective"
+  },
+  "dashboard": {
+    "stats": {
+      "moneyFound": "Dinero encontrado",
+      "subscriptions": "Suscripciones",
+      "needsAttention": "Requieren atención"
+    },
+    "priorityTitle": "Requieren tu atención",
+    "seeAll": "Ver todos los descubrimientos",
+    "empty": {
+      "title": "Nada requiere tu atención ahora mismo",
+      "description": "Tu agente sigue monitoreando tu bandeja y te avisará cuando algo necesite una decisión."
+    },
+    "briefing": {
+      "title": "Informe diario",
+      "placeholder": "Tu informe personalizado aparecerá aquí: un resumen diario de lo que cambió y de lo que merece tu atención."
+    },
+    "toasts": {
+      "dismissed": "Descubrimiento descartado.",
+      "dismissFailed": "No se pudo descartar. Inténtalo de nuevo.",
+      "remindComingSoon": "Los recordatorios llegarán pronto.",
+      "actionComingSoon": "Esta acción llegará pronto."
+    }
+  },
   "pages": {
     "offers": {
       "title": "Tus ofertas",
