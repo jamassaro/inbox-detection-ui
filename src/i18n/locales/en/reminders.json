@@ -1,9 +1,39 @@
 {
   "modal": {
     "title": "Remind me",
-    "set": "Set reminder"
+    "set": "Set reminder",
+    "update": "Update reminder",
+    "titleLabel": "Title",
+    "titlePlaceholder": "What should we remind you about?",
+    "optionsHeading": "When should we remind you?",
+    "optionsHeadingEdit": "Pick a new time"
   },
-  "status": {
-    "setFor": "I'll remind you on {{date}}"
+  "options": {
+    "tomorrow": "Tomorrow",
+    "daysBefore_one": "{{count}} day before",
+    "daysBefore_other": "{{count}} days before",
+    "custom": "Pick a date and time",
+    "dateLabel": "Date",
+    "timeLabel": "Time"
+  },
+  "existing": {
+    "setFor": "Reminder set: {{date}}",
+    "edit": "Edit",
+    "cancel": "Cancel reminder",
+    "confirmCancelTitle": "Cancel this reminder?",
+    "confirmCancelMessage": "You won't get a reminder for this. This can't be undone.",
+    "keep": "Keep reminder"
+  },
+  "confirmation": {
+    "set": "Reminder set for {{date}}",
+    "updated": "Reminder updated to {{date}}",
+    "cancelled": "Reminder cancelled"
+  },
+  "errors": {
+    "create": "We couldn't set the reminder. Please try again.",
+    "update": "We couldn't update the reminder. Please try again.",
+    "cancel": "We couldn't cancel the reminder. Please try again.",
+    "invalidDate": "Pick a valid date and time.",
+    "titleRequired": "Give the reminder a title."
   }
 }

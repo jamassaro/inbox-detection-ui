@@ -56,16 +56,20 @@ export function useCalendarStatus() {
  * (`GET /calendar/connect` — full-page redirect, never XHR, so the browser
  * follows the Google consent → backend callback chain and the httpOnly
  * session cookie survives) and lands the user back in Settings afterwards
- * via the backend-sanitized `returnTo` param.
+ * via the backend-sanitized `returnTo` param. Contextual flows (FE-021
+ * meeting scheduling) pass their own `returnTo` so the user lands back on
+ * the discovery that triggered the connect.
  *
  * @returns `true` when the redirect was started, `false` when the request
  * failed (caller shows the translated fallback).
  */
-export async function startCalendarConnect(): Promise<boolean> {
+export async function startCalendarConnect(returnTo?: string): Promise<boolean> {
   try {
-    const { authUrl } = await apiFetch<{ authUrl: string }>(
-      '/calendar/connect?returnTo=%2Fapp%2Fsettings',
-    );
+    // No returnTo → the legacy bare `/calendar/connect` (backend redirects
+    // back to Settings by default, the contract FE-023 tests assert). Only
+    // contextual flows pass an explicit returnTo.
+    const query = returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : '';
+    const { authUrl } = await apiFetch<{ authUrl: string }>(`/calendar/connect${query}`);
     window.location.href = authUrl;
     return true;
   } catch (error) {

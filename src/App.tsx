@@ -36,6 +36,8 @@ const InvestigationStatesDemoPage = lazy(() => import('./pages/dev/Investigation
 const DiscoveryCardsDemoPage = lazy(() => import('./pages/dev/DiscoveryCardsDemoPage'));
 // Dev-only agent action panel gallery (FE-019 evidence tooling).
 const AgentActionPanelDemoPage = lazy(() => import('./pages/dev/AgentActionPanelDemoPage'));
+// Dev-only reminders + calendar flows gallery (FE-020/021 evidence tooling).
+const RemindersCalendarDemoPage = lazy(() => import('./pages/dev/RemindersCalendarDemoPage'));
 
 /** Route-slot fallback until FE-005 ships the shared spinner. */
 const RouteFallback = () => {
@@ -81,6 +83,7 @@ function App() {
           <Route path="/dev/investigation-states" element={<InvestigationStatesDemoPage />} />
           <Route path="/dev/discovery-cards" element={<DiscoveryCardsDemoPage />} />
           <Route path="/dev/agent-action-panel" element={<AgentActionPanelDemoPage />} />
+          <Route path="/dev/reminder-calendar" element={<RemindersCalendarDemoPage />} />
 
           {/* Protected onboarding */}
           <Route element={<ProtectedRoute />}>

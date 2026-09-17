@@ -2,5 +2,33 @@
   "connect": {
     "title": "Connect Google Calendar so the Detective can find available times",
     "cta": "Connect Calendar"
+  },
+  "meeting": {
+    "proposalHeading": "Choose a time",
+    "approveCreate": "Create meeting on {{time}}?",
+    "creating": "Creating calendar event...",
+    "confirming": "Confirming...",
+    "done": "Event created: {{time}}",
+    "eventCreatedToast": "Calendar event created",
+    "noProposedTime": "This request doesn't include a proposed time yet.",
+    "slotUnavailable": "That time is no longer free. Pick another slot."
+  },
+  "email": {
+    "draftHeading": "Suggested reply",
+    "draftToLabel": "To",
+    "draftSubjectLabel": "Subject",
+    "approveDraft": "Create this draft reply?",
+    "draftCreatedToast": "Reply drafted",
+    "sending": "Sending response...",
+    "sendPrompt": "Send this response?",
+    "sent": "Response sent",
+    "sentToast": "Response sent",
+    "noDraft": "This request doesn't reference a draft to send."
+  },
+  "errors": {
+    "availability": "We couldn't load your calendar availability.",
+    "event": "We couldn't create the calendar event. Please try again.",
+    "draft": "We couldn't create the draft. Please try again.",
+    "send": "We couldn't send the response. Please try again."
   }
 }

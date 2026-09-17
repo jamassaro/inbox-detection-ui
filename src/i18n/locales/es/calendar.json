@@ -2,5 +2,33 @@
   "connect": {
     "title": "Conecta Google Calendar para que el Detective encuentre horarios disponibles",
     "cta": "Conectar calendario"
+  },
+  "meeting": {
+    "proposalHeading": "Elige un horario",
+    "approveCreate": "¿Crear la reunión el {{time}}?",
+    "creating": "Creando el evento en el calendario...",
+    "confirming": "Confirmando...",
+    "done": "Evento creado: {{time}}",
+    "eventCreatedToast": "Evento creado en el calendario",
+    "noProposedTime": "Esta solicitud aún no incluye una hora propuesta.",
+    "slotUnavailable": "Ese horario ya no está libre. Elige otro."
+  },
+  "email": {
+    "draftHeading": "Respuesta sugerida",
+    "draftToLabel": "Para",
+    "draftSubjectLabel": "Asunto",
+    "approveDraft": "¿Crear este borrador de respuesta?",
+    "draftCreatedToast": "Respuesta en borrador creada",
+    "sending": "Enviando respuesta...",
+    "sendPrompt": "¿Enviar esta respuesta?",
+    "sent": "Respuesta enviada",
+    "sentToast": "Respuesta enviada",
+    "noDraft": "Esta solicitud no referencia ningún borrador que enviar."
+  },
+  "errors": {
+    "availability": "No pudimos cargar tu disponibilidad del calendario.",
+    "event": "No pudimos crear el evento en el calendario. Inténtalo de nuevo.",
+    "draft": "No pudimos crear el borrador. Inténtalo de nuevo.",
+    "send": "No pudimos enviar la respuesta. Inténtalo de nuevo."
   }
 }

@@ -279,7 +279,7 @@ describe('DiscoveriesPage', () => {
     expect(await screen.findByTestId('upgrade-prompt')).toBeTruthy();
   });
 
-  it('does not open the paywall for a Pro user; shows the not-yet toast instead', async () => {
+  it('opens the reminder scheduling modal for a Pro user', async () => {
     mockApiFetch.mockResolvedValue(
       wireResponse([wireRow({ availableActions: ['remind', 'dismiss'] })]),
     );
@@ -288,7 +288,8 @@ describe('DiscoveriesPage', () => {
     await screen.findByTestId('discoveries-list');
     await userEvent.click(screen.getAllByRole('button', { name: /remind me/i })[0]);
 
+    // FE-020: the modal replaces the old "not yet" toast; no paywall for Pro.
     expect(screen.queryByTestId('upgrade-prompt')).toBeFalsy();
-    expect(await screen.findByTestId('toast-info')).toBeTruthy();
+    expect(await screen.findByTestId('reminder-modal')).toBeTruthy();
   });
 });
