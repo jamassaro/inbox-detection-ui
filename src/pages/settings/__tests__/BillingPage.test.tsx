@@ -12,7 +12,7 @@ import { ToastProvider } from '../../../contexts/ToastProvider';
 import { apiFetch } from '../../../lib/apiClient';
 import { ApiError } from '../../../lib/apiError';
 import { readUpgradeContext } from '../../../lib/upgradeContext';
-import { stubWindowLocation } from '../../../test-utils';
+import { makeTestUser, stubWindowLocation } from '../../../test-utils';
 import BillingPage from '../BillingPage';
 import type { BillingStatusWire } from '../../../hooks/useBillingStatus';
 import type { Entitlements, User } from '../../../types';
@@ -24,7 +24,7 @@ vi.mock('../../../lib/apiClient', () => ({
 
 const mockApiFetch = vi.mocked(apiFetch);
 
-const testUser: User = { id: 'u1', name: 'Ada', email: 'ada@example.com', googleId: 'g1' };
+const testUser: User = makeTestUser();;
 
 const FREE_ENTITLEMENTS: Entitlements = {
   plan: 'free',

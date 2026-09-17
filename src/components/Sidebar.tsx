@@ -1,11 +1,10 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useMutation } from '@tanstack/react-query';
 import { LayoutDashboard, Sparkles, CreditCard, MessageCircle, Settings, Mail } from 'lucide-react';
 import LanguageSelector from './LanguageSelector';
 import AgentStatusBadge from './AgentStatusBadge';
 import { useGmailStatus } from '../hooks/useGmailStatus';
-import { apiFetch } from '../lib/apiClient';
+import { useTriggerInvestigation } from '../hooks/useInvestigation';
 
 const navItems = [
   { icon: LayoutDashboard, label: 'nav.dashboard', path: '/app/dashboard' },
@@ -13,12 +12,6 @@ const navItems = [
   { icon: CreditCard, label: 'nav.subscriptions', path: '/app/subscriptions' },
   { icon: MessageCircle, label: 'nav.askDetective', path: '/app/chat' },
 ];
-
-/** Shape of `POST /investigations` (backend contract, see FE-009). */
-interface Investigation {
-  id: string;
-  status: string;
-}
 
 /**
  * Persistent chrome for every authenticated screen: V1 navigation, the real
@@ -33,13 +26,11 @@ const Sidebar = () => {
 
   const connected = data?.connected ?? false;
 
-  // Inline mutation (FE-010): FE-009 is building the shared investigation
-  // hooks and will consolidate — no separate hook file is created here to
-  // avoid colliding with that work.
-  const triggerInvestigation = useMutation({
-    mutationFn: () => apiFetch<Investigation>('/investigations', { method: 'POST' }),
-    onSuccess: () => navigate('/onboarding/investigating'),
-  });
+  // Integration cleanup: FE-009 shipped the shared investigation hooks, so
+  // the inline mutation is gone. The old copy hit `POST /investigations`
+  // (plural) — a route the backend has never served; the real surface is
+  // `POST /investigation` (BE-025), which useTriggerInvestigation owns.
+  const triggerInvestigation = useTriggerInvestigation();
   const isInvestigating = triggerInvestigation.isPending;
 
   return (
@@ -106,7 +97,7 @@ const Sidebar = () => {
       <div className="p-2">
         <button
           type="button"
-          onClick={() => triggerInvestigation.mutate()}
+          onClick={() => triggerInvestigation.mutate(undefined, { onSuccess: () => navigate('/onboarding/investigating') })}
           disabled={isInvestigating}
           className="w-full bg-gray-900 text-white py-2.5 px-4 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:bg-gray-900"
         >

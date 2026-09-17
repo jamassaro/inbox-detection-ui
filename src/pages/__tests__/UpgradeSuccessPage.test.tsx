@@ -18,7 +18,8 @@ import {
   ENTITLEMENT_POLL_INTERVAL_MS,
 } from '../UpgradeSuccessPage';
 import UpgradeSuccessPage from '../UpgradeSuccessPage';
-import type { Entitlements, User } from '../../types';
+import { makeTestUser } from '../../test-utils';
+import type { BillingStatusWire, User } from '../../types';
 
 vi.mock('../../lib/apiClient', () => ({
   AUTH_EXPIRED_EVENT: 'auth:expired',
@@ -27,29 +28,28 @@ vi.mock('../../lib/apiClient', () => ({
 
 const mockApiFetch = vi.mocked(apiFetch);
 
-const testUser: User = { id: 'u1', name: 'Ada', email: 'ada@example.com', googleId: 'g1' };
+const testUser: User = makeTestUser();
 
-const FREE_ENTITLEMENTS: Entitlements = {
-  plan: 'free',
-  visibleDiscoveries: 5,
-  continuousMonitoring: false,
-  reminders: false,
-  calendarActions: false,
-  emailActions: false,
-  dailyBriefing: false,
-  chatQuestionsRemaining: 3,
-};
-
-const PRO_ENTITLEMENTS: Entitlements = {
-  plan: 'pro',
-  visibleDiscoveries: 100,
-  continuousMonitoring: true,
-  reminders: true,
-  calendarActions: true,
-  emailActions: true,
-  dailyBriefing: true,
-  chatQuestionsRemaining: null,
-};
+/** Wire body of GET /billing/status (BE-030) for the given plan — the real
+ * entitlements surface (there is no /user/entitlements on the backend). */
+const billingStatus = (plan: 'free' | 'pro'): BillingStatusWire => ({
+  plan,
+  subscriptionStatus: plan === 'pro' ? 'active' : null,
+  currentPeriodEnd: null,
+  cancelAtPeriodEnd: false,
+  entitlements: {
+    investigationEmailLimit: plan === 'pro' ? 2000 : 500,
+    visibleDiscoveryLimit: plan === 'pro' ? null : 3, // Infinity → null over JSON
+    continuousMonitoring: plan === 'pro',
+    reminders: plan === 'pro',
+    calendarActions: plan === 'pro',
+    emailActions: plan === 'pro',
+    detectiveChatLimit: plan === 'pro' ? null : 5,
+    historicalComparison: plan === 'pro',
+    dailyBriefing: plan === 'pro',
+    fullDiscoveryHistory: plan === 'pro',
+  },
+});
 
 /** Destination route for a specific discovery — also reports its query string. */
 const DiscoveryDestinationProbe = () => {
@@ -87,8 +87,8 @@ const renderPage = (initialEntry = '/billing/success') => {
 
 const mockPro = () => {
   mockApiFetch.mockImplementation(async (path: string) => {
-    if (path === '/auth/me') return testUser;
-    if (path === '/user/entitlements') return PRO_ENTITLEMENTS;
+    if (path === '/account/me') return testUser;
+    if (path === '/billing/status') return billingStatus('pro');
     throw new Error(`unexpected apiFetch path: ${path}`);
   });
 };
@@ -154,8 +154,8 @@ describe('UpgradeSuccessPage', () => {
 
   it('surfaces the manual-refresh state after the polling cap on a stuck webhook', async () => {
     mockApiFetch.mockImplementation(async (path: string) => {
-      if (path === '/auth/me') return testUser;
-      if (path === '/user/entitlements') return FREE_ENTITLEMENTS;
+      if (path === '/account/me') return testUser;
+      if (path === '/billing/status') return billingStatus('free');
       throw new Error(`unexpected apiFetch path: ${path}`);
     });
     vi.useFakeTimers();
@@ -180,10 +180,10 @@ describe('UpgradeSuccessPage', () => {
   it('shows the error state when entitlements fail and recovers via retry', async () => {
     let fail = true;
     mockApiFetch.mockImplementation(async (path: string) => {
-      if (path === '/auth/me') return testUser;
-      if (path === '/user/entitlements') {
+      if (path === '/account/me') return testUser;
+      if (path === '/billing/status') {
         if (fail) throw new Error('entitlements unavailable');
-        return PRO_ENTITLEMENTS;
+        return billingStatus('pro');
       }
       throw new Error(`unexpected apiFetch path: ${path}`);
     });

@@ -59,7 +59,7 @@ const renderSidebar = ({ initialEntry = '/app/dashboard' } = {}) => {
   );
 };
 
-/** Mocks apiFetch routing by path: gmail status + investigation POST. */
+/** Mocks apiFetch routing by path: connections/stats + investigation POST. */
 const stubApi = ({
   status = gmailStatus(),
   investigations,
@@ -68,9 +68,20 @@ const stubApi = ({
   investigations?: () => Promise<unknown>;
 } = {}) => {
   mockApiFetch.mockImplementation(async (path: string, options?: RequestInit) => {
-    if (path === '/gmail/status') return status;
-    if (path === '/investigations') {
-      if (!investigations) throw new Error('unexpected POST /investigations');
+    // useGmailStatus composes the two REAL endpoints (BE-035 + BE-045):
+    // connections for connected/email, stats for lastScan.
+    if (path === '/account/connections') {
+      return {
+        gmail: { connected: status.connected, email: status.email ?? '' },
+        calendar: { connected: status.connected },
+        gmailCompose: { enabled: status.connected },
+      };
+    }
+    if (path === '/stats') {
+      return { lastScan: status.lastSync ? { scanDate: status.lastSync } : null };
+    }
+    if (path === '/investigation') {
+      if (!investigations) throw new Error('unexpected POST /investigation');
       return investigations();
     }
     throw new Error(`unexpected apiFetch: ${path} ${options?.method ?? 'GET'}`);
@@ -179,7 +190,7 @@ describe('Sidebar', () => {
   });
 
   describe('Scan Inbox', () => {
-    it('POSTs /investigations on click and navigates to the progress page', async () => {
+    it('POSTs /investigation on click and navigates to the progress page', async () => {
       stubApi({
         status: gmailStatus({ connected: true, email: 'jose@example.com' }),
         investigations: async () => ({ id: 'inv-1', status: 'running' }),
@@ -190,7 +201,7 @@ describe('Sidebar', () => {
       await user.click(screen.getByRole('button', { name: 'Scan Inbox' }));
 
       await waitFor(() => expect(screen.getByText('probe:/onboarding/investigating')).toBeTruthy());
-      expect(mockApiFetch).toHaveBeenCalledWith('/investigations', { method: 'POST' });
+      expect(mockApiFetch).toHaveBeenCalledWith('/investigation', { method: 'POST' });
     });
 
     it('shows "Investigating..." disabled while the POST is in flight', async () => {
@@ -213,7 +224,7 @@ describe('Sidebar', () => {
       stubApi({
         status: gmailStatus({ connected: true }),
         investigations: async () => {
-          throw new Error('POST /investigations failed');
+          throw new Error('POST /investigation failed');
         },
       });
       const user = userEvent.setup();

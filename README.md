@@ -2,6 +2,22 @@
 
 A React application for detecting and managing offers from your inbox. Built with TypeScript, Vite, Tailwind CSS, and Docker.
 
+## Live API vs mock mode
+
+By default the app talks to the Inbox-api backend: every page reads through
+`apiFetch` + TanStack Query (`src/hooks/`), pointed at `VITE_API_BASE_URL`.
+
+Set `VITE_USE_MOCKS=true` to develop without a backend: `src/mocks/mockApi.ts`
+installs a contract-faithful, in-memory `window.fetch` layer (signed in as a
+Pro user with sample discoveries) before React mounts. Mock mode mirrors the
+real routes (`/account/me`, `/account/connections`, `/billing/status`,
+`/discoveries`, `/investigation`, …) and is covered by its own test suite —
+it is a dev convenience, never a second source of truth.
+
+```bash
+cp .env.example .env   # then adjust; VITE_USE_MOCKS=false means live API
+```
+
 ## 🎨 Features
 
 - **Offers Dashboard**: View all offers found in your inbox

@@ -9,9 +9,9 @@ import { apiFetch } from '../../lib/apiClient';
 import { ApiError } from '../../lib/apiError';
 import { AuthProvider } from '../../contexts/AuthProvider';
 import { RETURN_PATH_STORAGE_KEY } from '../../hooks/useGoogleAuth';
-import { stubWindowLocation } from '../../test-utils';
+import { makeTestUser, stubWindowLocation } from '../../test-utils';
 import i18n from '../../i18n';
-import type { User } from '../../types';
+import type { AccountConnectionsWire, User } from '../../types';
 
 vi.mock('../../lib/apiClient', () => ({
   AUTH_EXPIRED_EVENT: 'auth:expired',
@@ -20,8 +20,29 @@ vi.mock('../../lib/apiClient', () => ({
 
 const mockApiFetch = vi.mocked(apiFetch);
 
-const userWithoutGmail: User = { id: 'u1', name: 'Ada', email: 'ada@example.com', googleId: 'g1' };
-const userWithGmail: User = { ...userWithoutGmail, gmailConnected: true };
+// The page composes TWO real endpoints (verified 2026-09-17): the session is
+// GET /account/me (there is no /auth/me) and the Gmail-connected answer —
+// which decides dashboard vs onboarding — is GET /account/connections (BE-035).
+const sessionUser: User = makeTestUser();
+
+const connectionsWire = (gmailConnected: boolean): AccountConnectionsWire => ({
+  gmail: { connected: gmailConnected, email: sessionUser.email },
+  calendar: { connected: gmailConnected },
+  gmailCompose: { enabled: gmailConnected },
+});
+
+/** Serves the happy-path session + connections answers for `gmailConnected`. */
+const mockSession = (gmailConnected: boolean): void => {
+  mockApiFetch.mockImplementation((path: string) => {
+    if (path === '/account/me') {
+      return Promise.resolve(sessionUser) as ReturnType<typeof apiFetch>;
+    }
+    if (path === '/account/connections') {
+      return Promise.resolve(connectionsWire(gmailConnected)) as ReturnType<typeof apiFetch>;
+    }
+    return Promise.reject(new Error(`unexpected path: ${path}`)) as ReturnType<typeof apiFetch>;
+  });
+};
 
 /** Renders the destination pathname — the redirect assertion target. */
 const PathProbe = () => {
@@ -31,7 +52,7 @@ const PathProbe = () => {
 
 // Wrapper mirrors main.tsx provider order. AuthProvider is real (it composes
 // with the page's session resolution — see AuthCallbackPage) while apiFetch
-// is mocked, so the /auth/me call count is assertable.
+// is mocked, so the /account/me call count is assertable.
 const renderPage = () => {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
@@ -76,21 +97,23 @@ describe('AuthCallbackPage', () => {
     expect(screen.getByText('Signing you in…')).toBeTruthy();
   });
 
-  it('lands on /onboarding after auth without Gmail connected — one /auth/me fetch total', async () => {
+  it('lands on /onboarding when Gmail is not connected — one session check, one connections check', async () => {
     window.location.search = '?code=abc';
-    mockApiFetch.mockResolvedValueOnce(userWithoutGmail);
+    mockSession(false);
     renderPage();
 
     await waitFor(() => expect(screen.getByText('probe:/onboarding')).toBeTruthy());
-    // Composition: AuthProvider's mount-time session check resolved the user,
-    // so the page must NOT fire a second GET /auth/me.
-    expect(mockApiFetch).toHaveBeenCalledTimes(1);
-    expect(mockApiFetch).toHaveBeenCalledWith('/auth/me', { authExpiredEvent: false });
+    // Composition: AuthProvider's mount-time session check resolved the user
+    // and the page fetched connections for the destination — no second
+    // session check, no /gmail/status.
+    const meCalls = mockApiFetch.mock.calls.filter(([p]) => p === '/account/me');
+    expect(meCalls).toHaveLength(1);
+    expect(mockApiFetch).toHaveBeenCalledWith('/account/connections');
   });
 
   it('lands on /app/dashboard when Gmail is already connected', async () => {
     window.location.search = '?code=abc';
-    mockApiFetch.mockResolvedValueOnce(userWithGmail);
+    mockSession(true);
     renderPage();
 
     await waitFor(() => expect(screen.getByText('probe:/app/dashboard')).toBeTruthy());
@@ -99,7 +122,7 @@ describe('AuthCallbackPage', () => {
   it('honors the sessionStorage returnPath over the Gmail-based destination and consumes it', async () => {
     window.location.search = '?code=abc';
     sessionStorage.setItem(RETURN_PATH_STORAGE_KEY, '/app/discoveries/d1');
-    mockApiFetch.mockResolvedValueOnce(userWithGmail);
+    mockSession(true);
     renderPage();
 
     await waitFor(() => expect(screen.getByText('probe:/app/discoveries/d1')).toBeTruthy());
@@ -109,7 +132,7 @@ describe('AuthCallbackPage', () => {
   it('ignores an off-site returnPath and falls back to the Gmail-based destination', async () => {
     window.location.search = '?code=abc';
     sessionStorage.setItem(RETURN_PATH_STORAGE_KEY, 'https://evil.example');
-    mockApiFetch.mockResolvedValueOnce(userWithGmail);
+    mockSession(true);
     renderPage();
 
     await waitFor(() => expect(screen.getByText('probe:/app/dashboard')).toBeTruthy());
@@ -117,13 +140,23 @@ describe('AuthCallbackPage', () => {
 
   it('resolves the session via the page Query when AuthProvider missed it', async () => {
     window.location.search = '?code=abc';
-    mockApiFetch
-      .mockRejectedValueOnce(new ApiError(401, 'UNAUTHORIZED', 'no session')) // AuthProvider's check settles unauthenticated
-      .mockResolvedValueOnce(userWithGmail); // the page Query retries and wins
+    mockApiFetch.mockImplementation((path: string) => {
+      if (path === '/account/connections') {
+        return Promise.resolve(connectionsWire(true)) as ReturnType<typeof apiFetch>;
+      }
+      const call = mockApiFetch.mock.calls.filter(([p]) => p === '/account/me').length;
+      if (call === 1) {
+        // AuthProvider's check settles unauthenticated…
+        return Promise.reject(new ApiError(401, 'UNAUTHORIZED', 'no session')) as ReturnType<typeof apiFetch>;
+      }
+      // …the page Query retries and wins.
+      return Promise.resolve(sessionUser) as ReturnType<typeof apiFetch>;
+    });
     renderPage();
 
     await waitFor(() => expect(screen.getByText('probe:/app/dashboard')).toBeTruthy());
-    expect(mockApiFetch).toHaveBeenCalledTimes(2);
+    const meCalls = mockApiFetch.mock.calls.filter(([p]) => p === '/account/me');
+    expect(meCalls).toHaveLength(2);
   });
 
   it('shows the error state with a retry CTA when the session check fails — history untouched', async () => {
@@ -144,7 +177,7 @@ describe('AuthCallbackPage', () => {
 
   it('fails fast on a missing code param without a session check', async () => {
     // stub default: window.location.search === ''
-    mockApiFetch.mockResolvedValueOnce(userWithGmail); // only AuthProvider's own check
+    mockSession(true); // only AuthProvider's own check fires
     renderPage();
 
     const alert = await screen.findByRole('alert');

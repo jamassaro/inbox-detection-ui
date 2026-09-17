@@ -196,15 +196,36 @@ export type ProFeature = {
 }[keyof Entitlements];
 
 /**
- * Authenticated user, as returned by `GET /auth/me`. Mirrors the backend
- * session user — see Inbox-api. Never stored in localStorage; the session
- * lives in an httpOnly cookie.
+ * Authenticated user, as returned by `GET /account/me` (Inbox-api
+ * account.routes.ts select — verified against the backend 2026-09-17).
+ * Never stored in localStorage; the session lives in an httpOnly cookie.
  */
 export interface User {
   id: string;
-  name: string;
   email: string;
-  googleId: string;
-  /** Set when the user has completed Gmail OAuth (drives AuthCallbackPage routing). */
-  gmailConnected?: boolean;
+  /** Backend `displayName` — nullable in the schema. */
+  displayName: string | null;
+  photoUrl: string | null;
+  /** `"free" | "pro"` — the backend coerces unknown values to free. */
+  plan: 'free' | 'pro';
+  subscriptionStatus: string | null;
+  currentPeriodEnd: string | null;
+  calendarConnected: boolean;
+  gmailComposeEnabled: boolean;
+  /** AI-prompt language of record (BE-043/BE-059). */
+  locale: string;
+  createdAt: string;
+}
+
+/**
+ * Wire shape of `GET /account/connections` (Inbox-api BE-035) — Google
+ * connection state for the signed-in user. Booleans only; tokens are never
+ * echoed back. This is the only connection-state surface the backend
+ * exposes (there is no `GET /gmail/status`), so both Gmail and Calendar
+ * status hooks read it.
+ */
+export interface AccountConnectionsWire {
+  gmail: { connected: boolean; email: string };
+  calendar: { connected: boolean };
+  gmailCompose: { enabled: boolean };
 }

@@ -1,16 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { apiFetch } from '../lib/apiClient';
-
-/**
- * Wire shape of `GET /account/connections` (Inbox-api BE-035) — Google
- * connection state for the signed-in user. Booleans only; tokens are never
- * echoed back.
- */
-interface AccountConnections {
-  gmail: { connected: boolean; email: string };
-  calendar: { connected: boolean };
-  gmailCompose: { enabled: boolean };
-}
+import type { AccountConnectionsWire } from '../types';
 
 /**
  * Calendar connection status for the signed-in user.
@@ -41,7 +31,7 @@ export function useCalendarStatus() {
   return useQuery({
     queryKey: CALENDAR_STATUS_QUERY_KEY,
     queryFn: async () => {
-      const connections = await apiFetch<AccountConnections>('/account/connections');
+      const connections = await apiFetch<AccountConnectionsWire>('/account/connections');
       const status: CalendarStatus = { connected: connections.calendar.connected };
       return status;
     },

@@ -9,6 +9,7 @@ import { EntitlementProvider } from '../../contexts/EntitlementProvider';
 import { ENTITLEMENTS_QUERY_KEY } from '../../contexts/entitlementContext';
 import type { ChatAnswerWire } from '../useChat';
 import type { BillingStatusWire, Entitlements, User } from '../../types';
+import { makeTestUser } from '../../test-utils';
 
 vi.mock('../../lib/apiClient', () => ({
   // AUTH_EXPIRED_EVENT: consumed by AuthProvider, which the entitlement-decrement
@@ -160,7 +161,7 @@ describe('useChat', () => {
 });
 
 describe('useChat — entitlement decrement (PR #28 follow-up)', () => {
-  const testUser: User = { id: 'u1', name: 'Ada', email: 'ada@example.com', googleId: 'g1' };
+  const testUser: User = makeTestUser();;
 
   /** Wire body of GET /billing/status (BE-030) for the given plan. */
   const billingStatus = (plan: 'free' | 'pro'): BillingStatusWire => ({

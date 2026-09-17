@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { BILLING_STATUS_PATH, mapBillingStatusToEntitlements } from '../lib/entitlementsMapper';
 import { apiFetch } from '../lib/apiClient';
 import { clearUpgradeContext, readUpgradeContext } from '../lib/upgradeContext';
 import { useEntitlements } from '../hooks/useEntitlements';
 import { useToast } from '../hooks/useToast';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorState from '../components/ErrorState';
-import type { Entitlements } from '../types';
+import type { BillingStatusWire, Entitlements } from '../types';
 
 /** Where BE-030's checkout `success_url` returns after payment. */
 export const CHECKOUT_SUCCESS_PATH = '/billing/success';
@@ -66,7 +67,12 @@ const UpgradeSuccessPage = () => {
     const poll = async (): Promise<void> => {
       attempts += 1;
       try {
-        const entitlements = await apiFetch<Entitlements>('/user/entitlements');
+        // The backend has no /user/entitlements — the plan surface is
+        // GET /billing/status (BE-030), mapped through the same pure
+        // adapter the EntitlementProvider uses so this poll and the shared
+        // cache can never disagree about what the wire body means.
+        const status = await apiFetch<BillingStatusWire>(BILLING_STATUS_PATH);
+        const entitlements: Entitlements = mapBillingStatusToEntitlements(status);
         if (cancelled) return;
         if (entitlements?.plan === 'pro') {
           // FE-017 order: refresh the shared cache, consume the saved

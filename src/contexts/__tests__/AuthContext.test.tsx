@@ -4,7 +4,7 @@ import { AuthProvider, SESSION_CHECK_MAX_ATTEMPTS } from '../AuthProvider';
 import { useAuth } from '../../hooks/useAuth';
 import { AUTH_EXPIRED_EVENT, apiFetch } from '../../lib/apiClient';
 import { ApiError } from '../../lib/apiError';
-import { stubWindowLocation } from '../../test-utils';
+import { makeTestUser, stubWindowLocation } from '../../test-utils';
 import type { User } from '../../types';
 
 vi.mock('../../lib/apiClient', () => ({
@@ -14,7 +14,7 @@ vi.mock('../../lib/apiClient', () => ({
 
 const mockApiFetch = vi.mocked(apiFetch);
 
-const testUser: User = { id: 'u1', name: 'Ada', email: 'ada@example.com', googleId: 'g1' };
+const testUser: User = makeTestUser();
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (
   <AuthProvider>{children}</AuthProvider>
@@ -46,7 +46,7 @@ describe('AuthContext', () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.isAuthenticated).toBe(true);
     expect(result.current.user?.email).toBe('ada@example.com');
-    expect(mockApiFetch).toHaveBeenCalledWith('/auth/me', { authExpiredEvent: false });
+    expect(mockApiFetch).toHaveBeenCalledWith('/account/me', { authExpiredEvent: false });
   });
 
   it('a definitive 401 settles unauthenticated after exactly one check call', async () => {
@@ -58,7 +58,7 @@ describe('AuthContext', () => {
     expect(result.current.isAuthenticated).toBe(false);
     expect(result.current.user).toBeNull();
     expect(mockApiFetch).toHaveBeenCalledTimes(1);
-    expect(mockApiFetch).toHaveBeenCalledWith('/auth/me', { authExpiredEvent: false });
+    expect(mockApiFetch).toHaveBeenCalledWith('/account/me', { authExpiredEvent: false });
     expect(location.replace).not.toHaveBeenCalled();
   });
 
