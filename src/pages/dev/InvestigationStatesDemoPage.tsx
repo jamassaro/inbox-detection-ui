@@ -1,4 +1,3 @@
-import { MemoryRouter } from 'react-router-dom';
 import {
   InvestigationPartialState,
   InvestigationProgressContent,
@@ -72,8 +71,9 @@ const section = 'flex min-h-60 items-center justify-center rounded-xl border bor
 
 const InvestigationStatesDemoPage = () => {
   return (
-    <MemoryRouter>
-      <div className="mx-auto max-w-4xl space-y-10 p-8">
+    // No router wrapper: this route renders inside the app's own router
+    // (the results section's Links need that context anyway).
+    <div className="mx-auto max-w-4xl space-y-10 p-8">
         <header>
           <h1 className="text-2xl font-bold text-gray-900">FE-009 investigation states</h1>
           <p className="text-sm text-gray-500">Dev-only route — not part of the product UI.</p>
@@ -155,8 +155,7 @@ const InvestigationStatesDemoPage = () => {
             />
           </div>
         </section>
-      </div>
-    </MemoryRouter>
+    </div>
   );
 };
 
