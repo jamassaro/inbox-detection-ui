@@ -1,5 +1,10 @@
 import type { Offer } from '../types';
 
+/**
+ * @deprecated Superseded by DiscoveryListItem.tsx (FE-012). Kept intact so the
+ * offers dashboard keeps compiling until FE-013/014/015 redesign those pages;
+ * they should switch to DiscoveryListItem and delete this file.
+ */
 interface OfferListItemProps {
   offer: Offer;
 }

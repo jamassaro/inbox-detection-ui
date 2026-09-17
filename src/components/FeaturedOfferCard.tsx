@@ -2,6 +2,11 @@ import { useTranslation } from 'react-i18next';
 import { Clock, Sparkles } from 'lucide-react';
 import type { Offer } from '../types';
 
+/**
+ * @deprecated Superseded by DiscoveryCard.tsx (FE-012). Kept intact so the
+ * offers dashboard keeps compiling until FE-013/014/015 redesign those pages;
+ * they should switch to DiscoveryCard and delete this file.
+ */
 interface FeaturedOfferCardProps {
   offer: Offer;
 }

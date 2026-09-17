@@ -23,5 +23,23 @@
     "findTime": "Find a time",
     "trackRefund": "Track refund",
     "askDetective": "Ask Detective"
+  },
+  "card": {
+    "was": "Was",
+    "now": "Now",
+    "frequency": {
+      "weekly": "week"
+    },
+    "importance": {
+      "high": "High priority",
+      "medium": "Medium priority",
+      "low": "Low priority"
+    },
+    "locked": {
+      "count_one": "{{count}} more discovery 🔒",
+      "count_other": "{{count}} more discoveries 🔒",
+      "categoryHint": "Subscriptions, credits, and more",
+      "cta": "Unlock with Pro"
+    }
   }
 }

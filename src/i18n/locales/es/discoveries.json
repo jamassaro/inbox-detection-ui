@@ -23,5 +23,24 @@
     "findTime": "Buscar un horario",
     "trackRefund": "Seguir reembolso",
     "askDetective": "Preguntar al Detective"
+  },
+  "card": {
+    "was": "Antes",
+    "now": "Ahora",
+    "frequency": {
+      "weekly": "semana"
+    },
+    "importance": {
+      "high": "Prioridad alta",
+      "medium": "Prioridad media",
+      "low": "Prioridad baja"
+    },
+    "locked": {
+      "count_one": "{{count}} descubrimiento más 🔒",
+      "count_many": "{{count}} descubrimientos más 🔒",
+      "count_other": "{{count}} descubrimientos más 🔒",
+      "categoryHint": "Suscripciones, créditos y más",
+      "cta": "Desbloquear con Pro"
+    }
   }
 }
