@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "Inbox Detective",
+  "version": "0.1.0",
+  "description": "Surfaces promotional offers detected from your Gmail inbox.",
+  "action": {
+    "default_popup": "popup/index.html",
+    "default_title": "Inbox Detective"
+  },
+  "permissions": ["storage"],
+  "host_permissions": ["https://mail.google.com/*"],
+  "content_scripts": [
+    {
+      "matches": ["https://mail.google.com/*"],
+      "js": ["content/content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["popup/*", "assets/*"],
+      "matches": ["https://mail.google.com/*"]
+    }
+  ]
+}
