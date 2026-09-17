@@ -191,5 +191,69 @@
       "terms": "Terms",
       "copyright": "© {{year}} Inbox Detective. All rights reserved."
     }
+  },
+  "legal": {
+    "back": "Back to home",
+    "lastUpdated": "Last updated: {{date}}",
+    "lastUpdatedDate": "September 17, 2026",
+    "placeholderNotice": "This document is placeholder content. The final legal text will be published by the product team before launch.",
+    "privacy": {
+      "title": "Privacy Policy",
+      "sections": {
+        "intro": {
+          "heading": "Introduction",
+          "body": "PLACEHOLDER — This Privacy Policy explains how Inbox Detective handles your information when you use our website and services. It will be replaced with the final text provided by the product team."
+        },
+        "collect": {
+          "heading": "What we collect",
+          "body": "PLACEHOLDER — When you connect your Gmail account, we access the emails needed to detect offers, price changes, credits, and meetings. We collect the minimum information required to provide the service."
+        },
+        "use": {
+          "heading": "How we use it",
+          "body": "PLACEHOLDER — We use the information we collect to run investigations, surface discoveries, and send you reminders. We do not sell your data or use it for advertising."
+        },
+        "gmail": {
+          "heading": "Gmail access",
+          "body": "PLACEHOLDER — Access to your Gmail is read-only and scoped to what the service needs. You can revoke access at any time from your Google account or from Settings."
+        },
+        "deletion": {
+          "heading": "Data deletion",
+          "body": "PLACEHOLDER — You can delete your account and your data at any time. When you do, stored email excerpts and investigation results are removed from our systems."
+        },
+        "contact": {
+          "heading": "Contact",
+          "body": "PLACEHOLDER — Questions about this policy? Contact us at privacy@inboxdetective.example and we will respond as soon as we can."
+        }
+      }
+    },
+    "terms": {
+      "title": "Terms of Service",
+      "sections": {
+        "intro": {
+          "heading": "Introduction",
+          "body": "PLACEHOLDER — These Terms of Service govern your use of Inbox Detective. By creating an account or connecting an inbox, you agree to these terms. They will be replaced with the final text provided by the product team."
+        },
+        "collect": {
+          "heading": "What we collect",
+          "body": "PLACEHOLDER — To create your account we collect basic profile information from Google, such as your name and email address, along with the inbox content you choose to connect."
+        },
+        "use": {
+          "heading": "How we use it",
+          "body": "PLACEHOLDER — We use account information to provide the service, maintain your account, and communicate service updates. We do not sell your data or use it for advertising."
+        },
+        "gmail": {
+          "heading": "Gmail access",
+          "body": "PLACEHOLDER — The service reads emails from the Gmail account you connect. Access is read-only and used solely to power your investigations and discoveries."
+        },
+        "deletion": {
+          "heading": "Data deletion",
+          "body": "PLACEHOLDER — You may stop using the service and request deletion of your account and data at any time. We may retain minimal records where the law requires it."
+        },
+        "contact": {
+          "heading": "Contact",
+          "body": "PLACEHOLDER — Questions about these terms? Contact us at legal@inboxdetective.example and we will respond as soon as we can."
+        }
+      }
+    }
   }
 }
