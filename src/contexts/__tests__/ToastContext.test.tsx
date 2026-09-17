@@ -1,7 +1,7 @@
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { useState } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ToastProvider } from '../ToastContext';
+import { ToastProvider } from '../ToastProvider';
 import { TOAST_AUTO_DISMISS_MS, TOAST_MAX_VISIBLE } from '../toastContext';
 import { useToast } from '../../hooks/useToast';
 

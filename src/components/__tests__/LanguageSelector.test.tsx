@@ -2,7 +2,7 @@ import { cleanup, render, screen } from '@testing-library/react';
 import { I18nextProvider } from 'react-i18next';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import i18n from '../../i18n';
-import { LocaleProvider } from '../../contexts/LocaleContext';
+import { LocaleProvider } from '../../contexts/LocaleProvider';
 import LanguageSelector from '../LanguageSelector';
 
 const renderSelector = () =>

@@ -1,8 +1,8 @@
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { AuthProvider } from '../AuthContext';
-import { EntitlementProvider } from '../EntitlementContext';
+import { AuthProvider } from '../AuthProvider';
+import { EntitlementProvider } from '../EntitlementProvider';
 import { ENTITLEMENTS_QUERY_KEY } from '../entitlementContext';
 import { useAuth } from '../../hooks/useAuth';
 import { useEntitlements } from '../../hooks/useEntitlements';

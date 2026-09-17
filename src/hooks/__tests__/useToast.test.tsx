@@ -1,6 +1,6 @@
 import { cleanup, renderHook } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { ToastProvider } from '../../contexts/ToastContext';
+import { ToastProvider } from '../../contexts/ToastProvider';
 import { useToast } from '../useToast';
 
 afterEach(cleanup);

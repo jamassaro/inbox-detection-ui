@@ -2,7 +2,7 @@ import { useContext } from 'react';
 import { ToastContext } from '../contexts/toastContext';
 import type { ToastContextValue } from '../contexts/toastContext';
 
-/** Toast accessor — must be used within a ToastProvider (see src/contexts/ToastContext.tsx). */
+/** Toast accessor — must be used within a ToastProvider (see src/contexts/ToastProvider.tsx). */
 export const useToast = (): ToastContextValue => {
   const ctx = useContext(ToastContext);
   if (!ctx) {
