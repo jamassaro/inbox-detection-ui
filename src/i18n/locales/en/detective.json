@@ -3,5 +3,19 @@
     "emptyState": "Ask me anything about your inbox",
     "inputPlaceholder": "Ask the Detective…",
     "thinking": "Detective is thinking…"
+  },
+  "agentStates": {
+    "thinking": "Detective is thinking…",
+    "proposing": "The Detective has a suggestion",
+    "proposalEmpty": "No suggestion to show",
+    "approving": "Confirm this action",
+    "destructiveWarning": "This sends information outside Inbox Detective. Please double-check before confirming.",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "executing": "Working on it…",
+    "verifying": "Verifying the result…",
+    "done": "Done",
+    "failed": "Something went wrong",
+    "retry": "Try again"
   }
 }

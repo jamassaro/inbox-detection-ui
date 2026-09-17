@@ -34,6 +34,8 @@ const AppShellStatesDemoPage = lazy(() => import('./pages/dev/AppShellStatesDemo
 const InvestigationStatesDemoPage = lazy(() => import('./pages/dev/InvestigationStatesDemoPage'));
 // Dev-only discovery cards gallery (FE-012 evidence tooling).
 const DiscoveryCardsDemoPage = lazy(() => import('./pages/dev/DiscoveryCardsDemoPage'));
+// Dev-only agent action panel gallery (FE-019 evidence tooling).
+const AgentActionPanelDemoPage = lazy(() => import('./pages/dev/AgentActionPanelDemoPage'));
 
 /** Route-slot fallback until FE-005 ships the shared spinner. */
 const RouteFallback = () => {
@@ -63,6 +65,7 @@ function App() {
           <Route path="/dev/app-shell" element={<AppShellStatesDemoPage />} />
           <Route path="/dev/investigation-states" element={<InvestigationStatesDemoPage />} />
           <Route path="/dev/discovery-cards" element={<DiscoveryCardsDemoPage />} />
+          <Route path="/dev/agent-action-panel" element={<AgentActionPanelDemoPage />} />
 
           {/* Protected onboarding */}
           <Route element={<ProtectedRoute />}>
