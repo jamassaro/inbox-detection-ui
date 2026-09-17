@@ -17,15 +17,23 @@ vi.mock('../../../lib/apiClient', () => ({
 
 const mockApiFetch = vi.mocked(apiFetch);
 
-const PRO_ENTITLEMENTS = {
+const PRO_BILLING_STATUS: import('../../../types').BillingStatusWire = {
   plan: 'pro',
-  visibleDiscoveries: 100,
-  continuousMonitoring: true,
-  reminders: true,
-  calendarActions: true,
-  emailActions: true,
-  dailyBriefing: true,
-  chatQuestionsRemaining: null,
+  subscriptionStatus: 'active',
+  currentPeriodEnd: '2026-10-01T00:00:00.000Z',
+  cancelAtPeriodEnd: false,
+  entitlements: {
+    investigationEmailLimit: 0,
+    visibleDiscoveryLimit: null,
+    continuousMonitoring: true,
+    reminders: true,
+    calendarActions: true,
+    emailActions: true,
+    detectiveChatLimit: null,
+    historicalComparison: true,
+    dailyBriefing: true,
+    fullDiscoveryHistory: true,
+  },
 };
 
 const HOUR = 3_600_000;
@@ -70,7 +78,7 @@ const renderFlow = (action: AgentActionWire) =>
 
 const mockConnectedBackend = () => {
   mockApiFetch.mockImplementation(((path: string, init?: { method?: string }) => {
-    if (path === '/user/entitlements') return Promise.resolve(PRO_ENTITLEMENTS);
+    if (path === '/billing/status') return Promise.resolve(PRO_BILLING_STATUS);
     if (path.includes('/account/connections')) {
       return Promise.resolve({ gmail: { connected: true, email: 'a@b.c' }, calendar: { connected: true }, gmailCompose: { enabled: true } });
     }
