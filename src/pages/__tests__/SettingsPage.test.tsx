@@ -10,7 +10,9 @@ import { EntitlementProvider } from '../../contexts/EntitlementProvider';
 import { ToastProvider } from '../../contexts/ToastProvider';
 import { LocaleProvider } from '../../contexts/LocaleProvider';
 import type { BillingStatusWire, User } from '../../types';
+import { startCalendarConnect } from '../../hooks/useCalendarStatus';
 import { apiFetch } from '../../lib/apiClient';
+import { stubWindowLocation } from '../../test-utils';
 import i18n from '../../i18n';
 
 vi.mock('../../lib/apiClient', () => ({
@@ -19,6 +21,9 @@ vi.mock('../../lib/apiClient', () => ({
 }));
 
 const mockApiFetch = vi.mocked(apiFetch);
+
+/** Consent URL the mocked GET /calendar/connect hands back (FE-021/FE-023). */
+const CONSENT_AUTH_URL = 'https://accounts.google.test/o/oauth2/v2/auth?client_id=test-client';
 
 const wireUser = (overrides: Partial<User> = {}): User => ({
   id: 'usr_1',
@@ -52,18 +57,22 @@ interface BackendOptions {
   plan?: 'free' | 'pro';
   gmailConnected?: boolean;
   calendarConnected?: boolean;
+  /** Behavior of the GET /calendar/connect consent-URL request — default 'succeed'. */
+  calendarConnect?: 'succeed' | 'fail';
 }
 
 /**
  * Wires mockApiFetch to every endpoint the settings page touches:
- * /auth/me, /billing/status, /gmail/status, /account/connections, and
- * the two disconnect DELETEs. Any other path fails loudly so a test can
- * never silently pass against an endpoint it did not stub.
+ * /auth/me, /billing/status, /gmail/status, /account/connections,
+ * the two disconnect DELETEs, and the /calendar/connect consent-URL
+ * request. Any other path fails loudly so a test can never silently pass
+ * against an endpoint it did not stub.
  */
 const mockBackend = ({
   plan = 'pro',
   gmailConnected = true,
   calendarConnected = true,
+  calendarConnect = 'succeed',
 }: BackendOptions = {}) => {
   mockApiFetch.mockImplementation((path: string, init?: { method?: string }) => {
     if (path.startsWith('/auth/me')) return Promise.resolve(wireUser());
@@ -87,6 +96,17 @@ const mockBackend = ({
     }
     if (path === '/account/disconnect/calendar' && init?.method === 'DELETE') {
       return Promise.resolve({ disconnected: true });
+    }
+    // GET /calendar/connect — the OAuth consent-URL request. Matched with
+    // ANY query string via URL parsing: contextual flows (FE-021) append a
+    // returnTo param, and letting this path fall through to the 'unexpected
+    // path' catch-all was the flake observed during PR #31 verification
+    // (the hook then hardcoded ?returnTo=%2Fapp%2Fsettings).
+    if (new URL(path, 'http://inbox.test').pathname === '/calendar/connect') {
+      if (calendarConnect === 'succeed') {
+        return Promise.resolve({ authUrl: CONSENT_AUTH_URL });
+      }
+      return Promise.reject(new Error('calendar consent endpoint unavailable'));
     }
     return Promise.reject(new Error(`unexpected path: ${path}`));
   });
@@ -125,8 +145,12 @@ describe('SettingsPage', () => {
     mockApiFetch.mockReset();
   });
 
+  let locationStub: ReturnType<typeof stubWindowLocation> | null = null;
+
   afterEach(async () => {
     cleanup();
+    locationStub?.restore();
+    locationStub = null;
     await i18n.changeLanguage('en');
   });
 
@@ -268,16 +292,49 @@ describe('SettingsPage', () => {
 
   it('offers Connect Calendar to a connected-status Pro user without a calendar', async () => {
     const user = userEvent.setup();
+    locationStub = stubWindowLocation();
     mockBackend({ plan: 'pro', calendarConnected: false });
     renderPage();
 
     expect(await screen.findByTestId('calendar-connect')).toBeTruthy();
     expect(screen.queryByTestId('upgrade-prompt')).toBeNull();
 
-    // The connect button starts the consent flow — a full-page redirect to
-    // the backend's /calendar/connect. With no API base URL configured in
-    // tests, startCalendarConnect refuses and the page shows an error toast.
+    // The connect button starts the consent flow: GET /calendar/connect
+    // (bare — the settings page relies on the backend's default redirect
+    // back to Settings), then a full-page redirect to the returned authUrl.
     await user.click(screen.getByTestId('calendar-connect'));
+    await waitFor(() =>
+      expect(mockApiFetch).toHaveBeenCalledWith('/calendar/connect'),
+    );
+    expect(locationStub.href).toBe(CONSENT_AUTH_URL);
+    expect(screen.queryByTestId('toast-error')).toBeNull();
+  });
+
+  it('starts the connect flow when the consent-URL request carries a returnTo param', async () => {
+    locationStub = stubWindowLocation();
+    mockBackend({ plan: 'pro', calendarConnected: false });
+
+    // Regression (flake observed during PR #31 verification at eb8c8f7):
+    // contextual flows request /calendar/connect?returnTo=... and the mock
+    // must match it regardless of the query string instead of rejecting
+    // with 'unexpected path: /calendar/connect?returnTo=%2Fapp%2Fsettings'.
+    await expect(startCalendarConnect('/app/settings')).resolves.toBe(true);
+    expect(mockApiFetch).toHaveBeenCalledWith(
+      '/calendar/connect?returnTo=%2Fapp%2Fsettings',
+    );
+    expect(locationStub.href).toBe(CONSENT_AUTH_URL);
+  });
+
+  it('still surfaces the connect error toast when the consent-URL request genuinely fails', async () => {
+    const user = userEvent.setup();
+    mockBackend({ plan: 'pro', calendarConnected: false, calendarConnect: 'fail' });
+    renderPage();
+
+    await user.click(await screen.findByTestId('calendar-connect'));
+
+    // The hardened matcher recognizes the consent-URL path, but a genuine
+    // backend failure must still reach the user — never masked as a
+    // successful redirect.
     expect(await screen.findByTestId('toast-error')).toBeTruthy();
   });
 
