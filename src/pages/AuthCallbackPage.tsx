@@ -74,7 +74,11 @@ const AuthCallbackPage = () => {
 
   const { data: queriedUser, isError } = useQuery({
     queryKey: ['auth', 'me'],
-    queryFn: () => apiFetch<User>('/auth/me'),
+    // Suppress the auth:expired broadcast: a 401 here means the OAuth
+    // exchange did not produce a session, which this page surfaces in place
+    // (the listener's redirect to / would discard the failure UI the page
+    // is documented to show).
+    queryFn: () => apiFetch<User>('/auth/me', { authExpiredEvent: false }),
     enabled: !failedEarly && !sessionLoading && sessionUser === null,
     retry: false,
   });

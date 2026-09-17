@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import AuthCallbackPage from '../AuthCallbackPage';
 import { apiFetch } from '../../lib/apiClient';
+import { ApiError } from '../../lib/apiError';
 import { AuthProvider } from '../../contexts/AuthProvider';
 import { RETURN_PATH_STORAGE_KEY } from '../../hooks/useGoogleAuth';
 import { stubWindowLocation } from '../../test-utils';
@@ -84,7 +85,7 @@ describe('AuthCallbackPage', () => {
     // Composition: AuthProvider's mount-time session check resolved the user,
     // so the page must NOT fire a second GET /auth/me.
     expect(mockApiFetch).toHaveBeenCalledTimes(1);
-    expect(mockApiFetch).toHaveBeenCalledWith('/auth/me');
+    expect(mockApiFetch).toHaveBeenCalledWith('/auth/me', { authExpiredEvent: false });
   });
 
   it('lands on /app/dashboard when Gmail is already connected', async () => {
@@ -117,7 +118,7 @@ describe('AuthCallbackPage', () => {
   it('resolves the session via the page Query when AuthProvider missed it', async () => {
     window.location.search = '?code=abc';
     mockApiFetch
-      .mockRejectedValueOnce(new Error('transient')) // AuthProvider's check fails
+      .mockRejectedValueOnce(new ApiError(401, 'UNAUTHORIZED', 'no session')) // AuthProvider's check settles unauthenticated
       .mockResolvedValueOnce(userWithGmail); // the page Query retries and wins
     renderPage();
 
@@ -127,7 +128,7 @@ describe('AuthCallbackPage', () => {
 
   it('shows the error state with a retry CTA when the session check fails — history untouched', async () => {
     window.location.search = '?code=abc';
-    mockApiFetch.mockRejectedValue(new Error('no session'));
+    mockApiFetch.mockRejectedValue(new ApiError(401, 'UNAUTHORIZED', 'no session'));
     renderPage();
 
     const alert = await screen.findByRole('alert');

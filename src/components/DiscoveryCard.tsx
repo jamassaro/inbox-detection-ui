@@ -67,11 +67,14 @@ const DiscoveryCard = ({ discovery, onAction, compact = false }: DiscoveryCardPr
   const frequencySuffix = frequencyKey ? t(frequencyKey) : '';
 
   // Actions come from the backend via availableActions; labels map through
-  // getDiscoveryActionKey so raw enum values never reach the UI.
-  const [primaryAction, ...secondaryActions] = discovery.availableActions.slice(
+  // getDiscoveryActionKey so raw enum values never reach the UI. Dedupe so a
+  // duplicated action in the wire payload cannot produce duplicate React
+  // keys in the secondary-action row (primary keeps its first occurrence).
+  const [primaryAction, ...secondaryActionsRaw] = discovery.availableActions.slice(
     0,
     MAX_VISIBLE_ACTIONS,
   );
+  const secondaryActions = [...new Set(secondaryActionsRaw)];
 
   const priceChange =
     amount != null && previousAmount != null

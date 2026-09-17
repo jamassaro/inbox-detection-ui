@@ -38,6 +38,18 @@ async function parseErrorBody(response: Response): Promise<{ code?: string; mess
   }
 }
 
+/** RequestInit plus fetch-layer controls for {@link apiFetch}. */
+export interface ApiFetchOptions extends RequestInit {
+  /**
+   * Emit the `auth:expired` window event on a 401 response (default true).
+   * Supplied as false by consumers whose 401 is an expected answer rather
+   * than a mid-use expiry — the bootstrap session check and the callback
+   * page's own session read. Emitting there would bounce an already-logged-
+   * out visitor into an app reload loop (each reload re-running the check).
+   */
+  authExpiredEvent?: boolean
+}
+
 /**
  * Centralized fetch wrapper — the only way components and hooks talk to the backend.
  *
@@ -46,12 +58,13 @@ async function parseErrorBody(response: Response): Promise<{ code?: string; mess
  * - `Accept-Language` is attached from the active locale so AI-generated
  *   content comes back in the user's language
  * - 401 responses dispatch the `auth:expired` window event (decoupling the API
- *   layer from AuthContext to avoid circular imports)
+ *   layer from AuthContext to avoid circular imports) unless suppressed via
+ *   `authExpiredEvent: false`
  * - Non-2xx responses throw a typed {@link ApiError} with `{ status, code, message }`
  */
 export async function apiFetch<T = unknown>(
   path: string,
-  options: RequestInit = {},
+  { authExpiredEvent = true, ...options }: ApiFetchOptions = {},
 ): Promise<T> {
   const url = `${resolveBaseUrl()}${path}`
 
@@ -75,7 +88,7 @@ export async function apiFetch<T = unknown>(
     throw new ApiError(0, 'NETWORK_ERROR', `Network request failed: ${detail}`)
   }
 
-  if (response.status === 401) {
+  if (response.status === 401 && authExpiredEvent) {
     window.dispatchEvent(new CustomEvent(AUTH_EXPIRED_EVENT))
   }
 
