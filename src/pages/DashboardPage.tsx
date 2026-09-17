@@ -1,4 +1,5 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ArrowRight, ShieldCheck } from 'lucide-react';
 import type { ReactNode } from 'react';
@@ -6,12 +7,12 @@ import AgentStatusBadge from '../components/AgentStatusBadge';
 import DiscoveryCard from '../components/DiscoveryCard';
 import EmptyState from '../components/EmptyState';
 import ErrorState from '../components/ErrorState';
+import ReminderModal from '../components/ReminderModal';
 import RequiresPro from '../components/RequiresPro';
 import SkeletonCard from '../components/SkeletonCard';
 import StatCard from '../components/StatCard';
 import { useAuth } from '../hooks/useAuth';
 import { useDashboard } from '../hooks/useDashboard';
-import { useEntitlements } from '../hooks/useEntitlements';
 import { useGmailStatus } from '../hooks/useGmailStatus';
 import { useLocale } from '../hooks/useLocale';
 import { useToast } from '../hooks/useToast';
@@ -38,16 +39,15 @@ const DashboardPage = () => {
   const { user } = useAuth();
   const { t } = useTranslation('common');
   const { locale } = useLocale();
-  const navigate = useNavigate();
-  const location = useLocation();
   const toast = useToast();
-  const { canUseReminders } = useEntitlements();
 
   const gmailStatus = useGmailStatus();
   const { data, isLoading, isError, refetch, dismiss } = useDashboard();
 
   const greetingPeriod = getGreetingPeriod(new Date());
   const name = user?.name ?? t('greeting.fallbackName');
+  /** Discovery whose ReminderModal (FE-020) is open — both plans land here. */
+  const [reminderDiscovery, setReminderDiscovery] = useState<Discovery | null>(null);
 
   const handleAction = (discovery: Discovery, action: DiscoveryAction) => {
     if (action === 'dismiss') {
@@ -58,15 +58,10 @@ const DashboardPage = () => {
       return;
     }
     if (action === 'remind') {
-      // Same gate RequiresPro applies, used imperatively because this is an
-      // action handler. The reminders UI itself ships with FE-020 — even Pro
-      // users get the "coming soon" answer for now.
-      if (canUseReminders) {
-        toast.info(t('dashboard.toasts.remindComingSoon'));
-      } else {
-        const returnPath = encodeURIComponent(`${location.pathname}${location.search}`);
-        navigate(`/upgrade?from=reminders&returnPath=${returnPath}`);
-      }
+      // FE-020: the real reminder flow for both plans — Free sees the Pro
+      // paywall inline in the modal (with the post-upgrade resumption
+      // context), Pro creates reminders directly.
+      setReminderDiscovery(discovery);
       return;
     }
     // Remaining card actions belong to the full discoveries surface (FE-013).
@@ -184,6 +179,16 @@ const DashboardPage = () => {
           </section>
         </RequiresPro>
       </div>
+
+      {reminderDiscovery !== null && (
+        <ReminderModal
+          discoveryId={reminderDiscovery.id}
+          discoveryTitle={reminderDiscovery.title}
+          discoveryDate={reminderDiscovery.date}
+          isOpen
+          onClose={() => setReminderDiscovery(null)}
+        />
+      )}
     </div>
   );
 };

@@ -1,305 +1,372 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { Discovery } from '../types';
-import Modal from './Modal';
-import RequiresPro from './RequiresPro';
+import { useLocale } from '../hooks/useLocale';
 import { useToast } from '../hooks/useToast';
+import { useUpgradeRedirect } from '../hooks/useUpgradeRedirect';
 import {
   useCreateReminder,
   useDeleteReminder,
   useReminders,
   useRescheduleReminder,
+  type ReminderWire,
 } from '../hooks/useReminders';
+import { formatDate } from '../lib/formatting';
 import {
-  computeRemindAt,
-  defaultCustomInputs,
-  minCustomDate,
-  type ReminderSelection,
-} from '../lib/reminderSchedule';
-import { formatMeetingTime } from '../lib/formatting';
+  buildCustomReminderIso,
+  buildReminderOptions,
+  toLocalInputValues,
+  type ReminderOption,
+  type ReminderOptionKind,
+} from '../lib/reminderOptions';
+import ConfirmModal from './ConfirmModal';
+import Modal from './Modal';
+import RequiresPro from './RequiresPro';
 
-/** Days-before options offered when the Discovery has a known event date. */
-const DAYS_BEFORE_CHOICES = [1, 2, 3];
-
-interface ReminderModalProps {
-  discovery: Discovery;
+export interface ReminderModalProps {
+  discoveryId: string;
+  /** ISO event date of the discovery — anchors the "N days before" options. */
+  discoveryDate?: string;
+  /**
+   * Discovery title — prefills the reminder title. The backend REQUIRES a
+   * title (1–200 chars); the FE-020 ticket's prop list omits it, so surfaces
+   * pass the discovery's own title through (documented delta).
+   */
+  discoveryTitle?: string;
   isOpen: boolean;
   onClose: () => void;
 }
 
+/** Default time-of-day for the custom date input (FE-020: native inputs, V1). */
+const DEFAULT_CUSTOM_TIME = '09:00';
+
 /**
- * Reminder create/update/cancel for a Discovery (FE-020).
- *
- * Pro users get the scheduling form (shortcuts + custom date/time); Free
- * users see RequiresPro's upgrade path inside the same dialog. The reminder
- * is matched to the Discovery client-side — BE-031 has no discoveryId
- * filter, so the list is fetched and filtered here.
+ * Inline paywall shown to Free users inside the modal. Same look and copy as
+ * <UpgradePrompt>, but the CTA persists the richer resumption context
+ * (discoveryId + pendingAction: 'remind') the post-upgrade flow needs to drop
+ * the user back into THIS modal — the shared component's CTA carries neither.
  */
-const ReminderModal = ({ discovery, isOpen, onClose }: ReminderModalProps) => {
-  const { t, i18n } = useTranslation('reminders');
+const ReminderUpgradeFallback = ({ discoveryId }: { discoveryId: string }) => {
+  const { t } = useTranslation('billing');
+  const { redirectToUpgrade } = useUpgradeRedirect();
+
+  return (
+    <div
+      className="flex items-center justify-between gap-3 bg-white border border-gray-200 rounded-xl p-4"
+      data-testid="upgrade-prompt"
+    >
+      <p className="text-sm text-gray-600">
+        {t('requiresPro.message', { feature: t('requiresPro.feature.reminders') })}
+      </p>
+      <button
+        type="button"
+        onClick={() =>
+          redirectToUpgrade({
+            source: 'reminder',
+            returnPath: `/app/discoveries/${discoveryId}`,
+            discoveryId,
+            pendingAction: 'remind',
+          })
+        }
+        className="px-3 py-1.5 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition-colors"
+      >
+        {t('requiresPro.cta')}
+      </button>
+    </div>
+  );
+};
+
+interface ReminderFormProps {
+  discoveryId: string;
+  discoveryTitle?: string;
+  discoveryDate?: string;
+  /** Soonest pending reminder for this discovery, when one exists. */
+  existing: ReminderWire | undefined;
+  onClose: () => void;
+}
+
+/**
+ * The Pro half of the modal: reminder options, create/reschedule/cancel.
+ * Rendered only for entitled users (via <RequiresPro>).
+ */
+const ReminderForm = ({
+  discoveryId,
+  discoveryTitle,
+  discoveryDate,
+  existing,
+  onClose,
+}: ReminderFormProps) => {
+  const { t } = useTranslation('reminders');
+  const { locale } = useLocale();
   const toast = useToast();
 
-  const { reminders } = useReminders(discovery.id);
-  const createReminder = useCreateReminder();
-  const rescheduleReminder = useRescheduleReminder();
-  const deleteReminder = useDeleteReminder();
-
-  const existing = reminders[0];
-
-  const [selection, setSelection] = useState<ReminderSelection | null>(null);
-  const [title, setTitle] = useState(discovery.title);
+  const [title, setTitle] = useState(existing?.title ?? discoveryTitle ?? '');
+  const [selected, setSelected] = useState<ReminderOptionKind>('tomorrow');
+  const [customDate, setCustomDate] = useState('');
+  const [customTime, setCustomTime] = useState(DEFAULT_CUSTOM_TIME);
+  /** Edit mode: prefilled from the existing reminder; submit reschedules. */
   const [editing, setEditing] = useState(false);
-  const [confirmingCancel, setConfirmingCancel] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
-  const [custom, setCustom] = useState(() => defaultCustomInputs(discovery.date));
+  const [inlineError, setInlineError] = useState<string | null>(null);
+  const [cancelOpen, setCancelOpen] = useState(false);
 
-  const busy =
-    createReminder.isPending || rescheduleReminder.isPending || deleteReminder.isPending;
+  const create = useCreateReminder();
+  const reschedule = useRescheduleReminder();
+  const cancelReminder = useDeleteReminder();
+  const mutating = create.isPending || reschedule.isPending || cancelReminder.isPending;
 
-  const schedule = (at: Date) => {
-    const remindAt = at.toISOString();
-    if (existing) {
-      // PATCH takes remindAt only (BE-031) — the title is immutable after
-      // creation, so don't pretend to send it.
-      rescheduleReminder.mutate(
+  const options = buildReminderOptions(discoveryDate, new Date());
+
+  const startEdit = () => {
+    if (!existing) return;
+    const inputs = toLocalInputValues(existing.remindAt);
+    setCustomDate(inputs.date);
+    setCustomTime(inputs.time || DEFAULT_CUSTOM_TIME);
+    setSelected('custom');
+    setEditing(true);
+    setInlineError(null);
+  };
+
+  /** Resolves the selected option to an ISO timestamp, or null when invalid. */
+  const resolveRemindAt = (): string | null => {
+    if (selected === 'custom') {
+      return buildCustomReminderIso(customDate, customTime);
+    }
+    return options.find((option) => option.kind === selected)?.remindAt ?? null;
+  };
+
+  const submit = () => {
+    setInlineError(null);
+    const remindAt = resolveRemindAt();
+    if (remindAt === null) {
+      setInlineError(t('errors.invalidDate'));
+      return;
+    }
+    if (!editing && title.trim() === '') {
+      setInlineError(t('errors.titleRequired'));
+      return;
+    }
+    if (editing && existing) {
+      reschedule.mutate(
         { id: existing.id, remindAt },
         {
           onSuccess: () => {
-            toast.success(
-              t('confirmation.updated', { date: formatMeetingTime(at, i18n.language) }),
-            );
+            toast.success(t('confirmation.updated', { date: formatDate(remindAt, locale) }));
             onClose();
           },
-          onError: (error) => {
-            console.error('[ReminderModal] reschedule failed', error);
-            toast.error(t('errors.update'));
-          },
+          onError: () => setInlineError(t('errors.update')),
         },
       );
       return;
     }
-    createReminder.mutate(
-      { discoveryId: discovery.id, title, remindAt },
+    create.mutate(
+      { discoveryId, title: title.trim(), remindAt },
       {
         onSuccess: () => {
-          toast.success(t('confirmation.set', { date: formatMeetingTime(at, i18n.language) }));
+          toast.success(t('confirmation.set', { date: formatDate(remindAt, locale) }));
           onClose();
         },
-        onError: (error) => {
-          console.error('[ReminderModal] create failed', error);
-          toast.error(t('errors.create'));
-        },
+        onError: () => setInlineError(t('errors.create')),
       },
     );
   };
 
-  const submit = () => {
-    if (title.trim() === '') {
-      setFormError(t('errors.titleRequired'));
-      return;
-    }
-    if (selection === null) {
-      setFormError(t('errors.invalidDate'));
-      return;
-    }
-    const at = computeRemindAt(selection, discovery.date);
-    if (at === null) {
-      setFormError(t('errors.invalidDate'));
-      return;
-    }
-    setFormError(null);
-    schedule(at);
-  };
-
-  const cancelReminder = () => {
+  const cancelExisting = () => {
     if (!existing) return;
-    deleteReminder.mutate(existing.id, {
+    cancelReminder.mutate(existing.id, {
       onSuccess: () => {
+        setCancelOpen(false);
+        setEditing(false);
         toast.success(t('confirmation.cancelled'));
-        onClose();
       },
-      onError: (error) => {
-        console.error('[ReminderModal] cancel failed', error);
+      onError: () => {
+        setCancelOpen(false);
         toast.error(t('errors.cancel'));
-        setConfirmingCancel(false);
       },
     });
   };
 
-  const customSelection: ReminderSelection = {
-    kind: 'custom',
-    date: custom.date,
-    time: custom.time,
-  };
+  const optionLabel = (option: ReminderOption): string =>
+    option.count === undefined ? t(option.labelKey) : t(option.labelKey, { count: option.count });
+
+  return (
+    <div data-testid="reminder-form">
+      {existing !== undefined && !editing && (
+        <div
+          className="mb-4 flex items-center justify-between gap-3 rounded-lg bg-gray-50 border border-gray-200 p-3"
+          data-testid="existing-reminder"
+        >
+          <p className="text-sm text-gray-700">
+            {t('existing.setFor', { date: formatDate(existing.remindAt, locale) })} ✓
+          </p>
+          <span className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={startEdit}
+              className="text-sm font-medium text-gray-700 hover:text-gray-900"
+            >
+              {t('existing.edit')}
+            </button>
+            <button
+              type="button"
+              onClick={() => setCancelOpen(true)}
+              className="text-sm font-medium text-red-600 hover:text-red-700"
+            >
+              {t('existing.cancel')}
+            </button>
+          </span>
+        </div>
+      )}
+
+      {!editing && (
+        <div className="mb-4">
+          <label htmlFor="reminder-title" className="block text-sm font-medium text-gray-700">
+            {t('modal.titleLabel')}
+          </label>
+          <input
+            id="reminder-title"
+            type="text"
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            placeholder={t('modal.titlePlaceholder')}
+            maxLength={200}
+            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+          />
+        </div>
+      )}
+
+      <p className="text-sm font-medium text-gray-700">
+        {editing ? t('modal.optionsHeadingEdit') : t('modal.optionsHeading')}
+      </p>
+      <div className="mt-2 space-y-2" role="radiogroup" aria-label={t('modal.optionsHeading')}>
+        {options.map((option) => (
+          <button
+            key={option.kind}
+            type="button"
+            role="radio"
+            aria-checked={selected === option.kind}
+            disabled={option.disabled}
+            data-testid="reminder-option"
+            onClick={() => setSelected(option.kind)}
+            className={`w-full rounded-lg border px-3 py-2 text-left text-sm transition-colors ${
+              selected === option.kind
+                ? 'border-gray-900 bg-gray-50 font-medium'
+                : 'border-gray-200 hover:bg-gray-50'
+            } ${option.disabled ? 'opacity-40 cursor-not-allowed' : ''}`}
+          >
+            <span className="block">{optionLabel(option)}</span>
+            <span className="block text-xs text-gray-500">{formatDate(option.remindAt, locale)}</span>
+          </button>
+        ))}
+        <button
+          type="button"
+          role="radio"
+          aria-checked={selected === 'custom'}
+          data-testid="reminder-option"
+          onClick={() => setSelected('custom')}
+          className={`w-full rounded-lg border px-3 py-2 text-left text-sm transition-colors ${
+            selected === 'custom'
+              ? 'border-gray-900 bg-gray-50 font-medium'
+              : 'border-gray-200 hover:bg-gray-50'
+          }`}
+        >
+          <span className="block">{t('options.custom')}</span>
+        </button>
+      </div>
+
+      {selected === 'custom' && (
+        <div className="mt-3 grid grid-cols-2 gap-3" data-testid="custom-date-inputs">
+          <div>
+            <label htmlFor="reminder-date" className="block text-xs text-gray-500">
+              {t('options.dateLabel')}
+            </label>
+            <input
+              id="reminder-date"
+              type="date"
+              value={customDate}
+              onChange={(event) => setCustomDate(event.target.value)}
+              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+            />
+          </div>
+          <div>
+            <label htmlFor="reminder-time" className="block text-xs text-gray-500">
+              {t('options.timeLabel')}
+            </label>
+            <input
+              id="reminder-time"
+              type="time"
+              value={customTime}
+              onChange={(event) => setCustomTime(event.target.value)}
+              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+            />
+          </div>
+        </div>
+      )}
+
+      {inlineError !== null && (
+        <p className="mt-3 text-sm text-red-600" data-testid="reminder-error" role="alert">
+          {inlineError}
+        </p>
+      )}
+
+      <div className="mt-5 flex justify-end">
+        <button
+          type="button"
+          onClick={submit}
+          disabled={mutating}
+          data-testid="reminder-submit"
+          className="px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+        >
+          {editing ? t('modal.update') : t('modal.set')}
+        </button>
+      </div>
+
+      <ConfirmModal
+        isOpen={cancelOpen}
+        title={t('existing.confirmCancelTitle')}
+        message={t('existing.confirmCancelMessage')}
+        confirmLabel={t('existing.cancel')}
+        onCancel={() => setCancelOpen(false)}
+        onConfirm={cancelExisting}
+        variant="destructive"
+      />
+    </div>
+  );
+};
+
+/**
+ * "Remind me" dialog for a discovery (FE-020). Free users see the upgrade
+ * prompt inline (with full post-upgrade resumption context); Pro users see
+ * reminder options and create/edit/cancel reminders against `/reminders`.
+ * Must be rendered inside ToastProvider and EntitlementProvider.
+ */
+const ReminderModal = ({
+  discoveryId,
+  discoveryDate,
+  discoveryTitle,
+  isOpen,
+  onClose,
+}: ReminderModalProps) => {
+  const { t } = useTranslation('reminders');
+
+  // GET /reminders?status=pending, filtered to this discovery client-side
+  // (BE-031 has no discoveryId param). The list is remindAt-asc, so [0] is
+  // the soonest pending reminder for the discovery.
+  const { reminders } = useReminders(discoveryId);
+  const existing = reminders[0];
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={t('modal.title')}>
-      <div data-testid="reminder-modal">
-        <RequiresPro feature="reminders">
-          <p className="text-sm text-gray-600">{discovery.title}</p>
-
-          {existing !== undefined && !editing && !confirmingCancel ? (
-            <div className="mt-4">
-              <p className="text-sm font-medium text-gray-900" data-testid="reminder-existing">
-                {t('existing.setFor', {
-                  date: formatMeetingTime(new Date(existing.remindAt), i18n.language),
-                })}
-              </p>
-              <div className="mt-4 flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setEditing(true)}
-                  className="rounded-lg bg-gray-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-700 transition-colors"
-                >
-                  {t('existing.edit')}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setConfirmingCancel(true)}
-                  className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                >
-                  {t('existing.cancel')}
-                </button>
-              </div>
-            </div>
-          ) : confirmingCancel ? (
-            <div className="mt-4" data-testid="reminder-cancel-confirm">
-              <p className="text-sm font-medium text-gray-900">
-                {t('existing.confirmCancelTitle')}
-              </p>
-              <p className="mt-1 text-sm text-gray-600">{t('existing.confirmCancelMessage')}</p>
-              <div className="mt-4 flex gap-2">
-                <button
-                  type="button"
-                  onClick={cancelReminder}
-                  disabled={busy}
-                  className="rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-500 transition-colors disabled:opacity-50"
-                >
-                  {t('existing.cancel')}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setConfirmingCancel(false)}
-                  disabled={busy}
-                  className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
-                >
-                  {t('existing.keep')}
-                </button>
-              </div>
-            </div>
-          ) : (
-            <form
-              className="mt-4"
-              onSubmit={(event) => {
-                event.preventDefault();
-                submit();
-              }}
-            >
-              <label className="block text-sm font-medium text-gray-900" htmlFor="reminder-title">
-                {t('modal.titleLabel')}
-              </label>
-              <input
-                id="reminder-title"
-                type="text"
-                value={title}
-                disabled={editing}
-                onChange={(event) => setTitle(event.target.value)}
-                placeholder={t('modal.titlePlaceholder')}
-                className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none"
-              />
-
-              <p className="mt-4 text-sm font-medium text-gray-900">
-                {existing !== undefined && editing
-                  ? t('modal.optionsHeadingEdit')
-                  : t('modal.optionsHeading')}
-              </p>
-              <div className="mt-2 space-y-2">
-                <label className="flex items-center gap-2 text-sm text-gray-700">
-                  <input
-                    type="radio"
-                    name="reminder-option"
-                    checked={selection?.kind === 'tomorrow'}
-                    onChange={() => setSelection({ kind: 'tomorrow' })}
-                  />
-                  {t('options.tomorrow')}
-                </label>
-                {discovery.date !== undefined &&
-                  DAYS_BEFORE_CHOICES.map((days) => (
-                    <label key={days} className="flex items-center gap-2 text-sm text-gray-700">
-                      <input
-                        type="radio"
-                        name="reminder-option"
-                        checked={selection?.kind === 'days_before' && selection.days === days}
-                        onChange={() => setSelection({ kind: 'days_before', days })}
-                      />
-                      {t('options.daysBefore', { count: days })}
-                    </label>
-                  ))}
-                <label className="flex items-center gap-2 text-sm text-gray-700">
-                  <input
-                    type="radio"
-                    name="reminder-option"
-                    checked={selection?.kind === 'custom'}
-                    onChange={() => setSelection(customSelection)}
-                  />
-                  {t('options.custom')}
-                </label>
-                {selection?.kind === 'custom' ? (
-                  <div className="ml-6 flex gap-2">
-                    <label className="text-sm text-gray-700">
-                      <span className="block">{t('options.dateLabel')}</span>
-                      <input
-                        type="date"
-                        value={custom.date}
-                        min={minCustomDate()}
-                        onChange={(event) => {
-                          setCustom({ ...custom, date: event.target.value });
-                          setSelection({
-                            kind: 'custom',
-                            date: event.target.value,
-                            time: custom.time,
-                          });
-                        }}
-                        className="mt-1 rounded-lg border border-gray-200 px-2 py-1 text-sm"
-                      />
-                    </label>
-                    <label className="text-sm text-gray-700">
-                      <span className="block">{t('options.timeLabel')}</span>
-                      <input
-                        type="time"
-                        value={custom.time}
-                        onChange={(event) => {
-                          setCustom({ ...custom, time: event.target.value });
-                          setSelection({
-                            kind: 'custom',
-                            date: custom.date,
-                            time: event.target.value,
-                          });
-                        }}
-                        className="mt-1 rounded-lg border border-gray-200 px-2 py-1 text-sm"
-                      />
-                    </label>
-                  </div>
-                ) : null}
-              </div>
-
-              {formError !== null ? (
-                <p className="mt-3 text-sm text-red-600" role="alert" data-testid="reminder-error">
-                  {formError}
-                </p>
-              ) : null}
-
-              <button
-                type="submit"
-                disabled={busy}
-                className="mt-4 rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700 transition-colors disabled:opacity-50"
-              >
-                {existing !== undefined && editing ? t('modal.update') : t('modal.set')}
-              </button>
-            </form>
-          )}
-        </RequiresPro>
-      </div>
+      <RequiresPro
+        feature="reminders"
+        fallback={<ReminderUpgradeFallback discoveryId={discoveryId} />}
+      >
+        <ReminderForm
+          discoveryId={discoveryId}
+          discoveryTitle={discoveryTitle}
+          discoveryDate={discoveryDate}
+          existing={existing}
+          onClose={onClose}
+        />
+      </RequiresPro>
     </Modal>
   );
 };

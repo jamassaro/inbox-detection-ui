@@ -76,10 +76,6 @@
       "title": "Locked discoveries",
       "body": "{{count}} more findings are waiting behind the Pro plan."
     },
-    "remindUnavailable": {
-      "title": "Reminders aren't available yet",
-      "body": "We're building reminders right now — you'll be able to schedule them here soon."
-    },
     "sourceUnavailable": {
       "title": "Source email isn't available yet",
       "body": "Viewing the original email will arrive with the evidence drawer."

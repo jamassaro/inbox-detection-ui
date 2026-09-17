@@ -77,10 +77,6 @@
       "title": "Descubrimientos bloqueados",
       "body": "{{count}} hallazgos más esperan detrás del plan Pro."
     },
-    "remindUnavailable": {
-      "title": "Los recordatorios aún no están disponibles",
-      "body": "Estamos construyendo los recordatorios ahora mismo; pronto podrás programarlos aquí."
-    },
     "sourceUnavailable": {
       "title": "El correo original aún no está disponible",
       "body": "Ver el correo original llegará junto con el cajón de evidencia."

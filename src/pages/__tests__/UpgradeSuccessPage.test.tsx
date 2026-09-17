@@ -1,6 +1,6 @@
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { I18nextProvider } from 'react-i18next';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import i18n from '../../i18n';
@@ -51,6 +51,12 @@ const PRO_ENTITLEMENTS: Entitlements = {
   chatQuestionsRemaining: null,
 };
 
+/** Destination route for a specific discovery — also reports its query string. */
+const DiscoveryDestinationProbe = () => {
+  const location = useLocation();
+  return <div data-testid="discovery-detail-destination" data-search={location.search} />;
+};
+
 /** Destination routes registered so navigation assertions can observe them. */
 const renderPage = (initialEntry = '/billing/success') => {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -67,6 +73,7 @@ const renderPage = (initialEntry = '/billing/success') => {
                     path="/app/discoveries"
                     element={<div data-testid="discoveries-destination" />}
                   />
+                  <Route path="/app/discoveries/:id" element={<DiscoveryDestinationProbe />} />
                   <Route path="/app/chat" element={<div data-testid="chat-destination" />} />
                 </Routes>
               </ToastProvider>
@@ -114,6 +121,26 @@ describe('UpgradeSuccessPage', () => {
     expect(readUpgradeContext()).toBeNull();
     // Success toast fires before navigation so it survives the route change.
     expect(await screen.findByText('Welcome to Pro!')).toBeTruthy();
+  });
+
+  it('resumes a pending reminder on the discovery it was interrupted on (FE-020)', async () => {
+    saveUpgradeContext({
+      source: 'reminder',
+      returnPath: '/app/discoveries/disc-1',
+      discoveryId: 'disc-1',
+      pendingAction: 'remind',
+    });
+    mockPro();
+    renderPage();
+    expect(
+      await screen.findByTestId('discovery-detail-destination', {}, { timeout: 6000 }),
+    ).toBeTruthy();
+    // The entry point rides along: DiscoveryDetailPage auto-opens the
+    // ReminderModal when it sees openReminder=true, then clears the param.
+    expect(
+      screen.getByTestId('discovery-detail-destination').getAttribute('data-search'),
+    ).toBe('?openReminder=true');
+    expect(readUpgradeContext()).toBeNull();
   });
 
   it('falls back to the discoveries path when no context was saved', async () => {

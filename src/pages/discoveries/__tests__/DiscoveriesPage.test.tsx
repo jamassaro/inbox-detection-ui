@@ -66,7 +66,6 @@ const entitlementValue = (plan: 'free' | 'pro'): EntitlementContextValue => ({
   entitlements: entitlements(plan),
   isLoading: false,
   refresh: vi.fn(),
-  decrementChatQuestions: vi.fn(),
 });
 
 const renderPage = ({ plan = 'pro' }: { plan?: 'free' | 'pro' } = {}) => {
@@ -279,7 +278,7 @@ describe('DiscoveriesPage', () => {
     expect(await screen.findByTestId('upgrade-prompt')).toBeTruthy();
   });
 
-  it('opens the reminder scheduling modal for a Pro user', async () => {
+  it('opens the reminder dialog for a Pro user without the paywall', async () => {
     mockApiFetch.mockResolvedValue(
       wireResponse([wireRow({ availableActions: ['remind', 'dismiss'] })]),
     );
@@ -288,8 +287,7 @@ describe('DiscoveriesPage', () => {
     await screen.findByTestId('discoveries-list');
     await userEvent.click(screen.getAllByRole('button', { name: /remind me/i })[0]);
 
-    // FE-020: the modal replaces the old "not yet" toast; no paywall for Pro.
     expect(screen.queryByTestId('upgrade-prompt')).toBeFalsy();
-    expect(await screen.findByTestId('reminder-modal')).toBeTruthy();
+    expect(await screen.findByTestId('reminder-form')).toBeTruthy();
   });
 });

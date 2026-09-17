@@ -1,4 +1,4 @@
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { I18nextProvider } from 'react-i18next';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
@@ -81,7 +81,15 @@ const ChatProbe = () => {
   return <div>{`probe:chat${location.search}`}</div>;
 };
 
-const renderPage = ({ plan = 'pro' }: { plan?: 'free' | 'pro' } = {}) => {
+/** Query-string probe for the detail route — asserts param cleanup on it. */
+const LocationProbe = () => {
+  const location = useLocation();
+  return (
+    <div data-testid="location" data-search={location.search} data-pathname={location.pathname} />
+  );
+};
+
+const renderPage = ({ plan = 'pro', initialEntry = '/app/discoveries/disc-1' }: { plan?: 'free' | 'pro'; initialEntry?: string } = {}) => {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <I18nextProvider i18n={i18n}>
@@ -89,10 +97,18 @@ const renderPage = ({ plan = 'pro' }: { plan?: 'free' | 'pro' } = {}) => {
         <QueryClientProvider client={queryClient}>
           <EntitlementContext.Provider value={entitlementValue(plan)}>
             <ToastProvider>
-              <MemoryRouter initialEntries={['/app/discoveries/disc-1']}>
+              <MemoryRouter initialEntries={[initialEntry]}>
                 <Routes>
                   <Route path="/app/discoveries" element={<div>probe:discoveries-list</div>} />
-                  <Route path="/app/discoveries/:id" element={<DiscoveryDetailPage />} />
+                  <Route
+                    path="/app/discoveries/:id"
+                    element={
+                      <>
+                        <LocationProbe />
+                        <DiscoveryDetailPage />
+                      </>
+                    }
+                  />
                   <Route path="/app/chat" element={<ChatProbe />} />
                   <Route path="/upgrade" element={<div>probe:/upgrade</div>} />
                 </Routes>
@@ -241,12 +257,50 @@ describe('DiscoveryDetailPage', () => {
     expect(await screen.findByTestId('detail-feedback-thanks')).toBeTruthy();
   });
 
-  it('gates remind behind the Pro paywall for Free users', async () => {
-    mockApiFetch.mockResolvedValue(detailWire());
+  it('opens the ReminderModal with its inline upgrade prompt for Free users (FE-020)', async () => {
+    mockApiFetch.mockImplementation(async (path: string) => {
+      if (path.startsWith('/discoveries/disc-1')) return detailWire();
+      // Listing is not entitlement-gated; only creation is.
+      if (path.startsWith('/reminders')) return [];
+      throw new Error(`unexpected apiFetch path: ${path}`);
+    });
     renderPage({ plan: 'free' });
 
     await userEvent.click(await screen.findByTestId('detail-action-remind'));
-    // RequiresPro path: the upgrade prompt renders, and no reminder API exists yet.
-    expect(await screen.findByTestId('upgrade-prompt')).toBeTruthy();
+    // FE-020: the modal itself owns the Free paywall — the inline upgrade
+    // prompt renders inside the reminder dialog, carrying the resumption
+    // context for the post-upgrade return trip.
+    expect(await screen.findByRole('dialog')).toBeTruthy();
+    expect(within(screen.getByRole('dialog')).getByTestId('upgrade-prompt')).toBeTruthy();
+  });
+
+  it('auto-opens the ReminderModal when openReminder=true and clears the param', async () => {
+    mockApiFetch.mockImplementation(async (path: string) => {
+      if (path.startsWith('/discoveries/disc-1')) return detailWire();
+      if (path.startsWith('/reminders')) return [];
+      throw new Error(`unexpected apiFetch path: ${path}`);
+    });
+    renderPage({ initialEntry: '/app/discoveries/disc-1?openReminder=true' });
+
+    // FE-020 post-upgrade resumption: the modal opens without a click.
+    expect(await screen.findByRole('dialog')).toBeTruthy();
+    expect(within(screen.getByRole('dialog')).getByTestId('reminder-form')).toBeTruthy();
+    // The param is consumed with replacement navigation so a refresh or
+    // back-navigation does not reopen it.
+    await waitFor(() =>
+      expect(screen.getByTestId('location').getAttribute('data-search')).toBe(''),
+    );
+  });
+
+  it('does not open the ReminderModal without the query param', async () => {
+    mockApiFetch.mockImplementation(async (path: string) => {
+      if (path.startsWith('/discoveries/disc-1')) return detailWire();
+      if (path.startsWith('/reminders')) return [];
+      throw new Error(`unexpected apiFetch path: ${path}`);
+    });
+    renderPage();
+
+    expect(await screen.findByTestId('discovery-detail-page')).toBeTruthy();
+    expect(screen.queryByRole('dialog')).toBeNull();
   });
 });

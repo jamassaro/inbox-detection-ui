@@ -89,7 +89,6 @@
     "toasts": {
       "dismissed": "Discovery dismissed.",
       "dismissFailed": "Could not dismiss. Try again.",
-      "remindComingSoon": "Reminders are coming soon.",
       "actionComingSoon": "This action is coming soon."
     }
   },
