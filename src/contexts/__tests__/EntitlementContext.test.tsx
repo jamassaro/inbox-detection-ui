@@ -1,0 +1,153 @@
+import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { AuthProvider } from '../AuthContext';
+import { EntitlementProvider } from '../EntitlementContext';
+import { ENTITLEMENTS_QUERY_KEY } from '../entitlementContext';
+import { useAuth } from '../../hooks/useAuth';
+import { useEntitlements } from '../../hooks/useEntitlements';
+import { apiFetch } from '../../lib/apiClient';
+import type { Entitlements, User } from '../../types';
+
+vi.mock('../../lib/apiClient', () => ({
+  AUTH_EXPIRED_EVENT: 'auth:expired',
+  apiFetch: vi.fn(),
+}));
+
+const mockApiFetch = vi.mocked(apiFetch);
+
+const testUser: User = { id: 'u1', name: 'Ada', email: 'ada@example.com', googleId: 'g1' };
+
+const FREE_ENTITLEMENTS: Entitlements = {
+  plan: 'free',
+  visibleDiscoveries: 5,
+  continuousMonitoring: false,
+  reminders: false,
+  calendarActions: false,
+  emailActions: false,
+  dailyBriefing: false,
+  chatQuestionsRemaining: 3,
+};
+
+const PRO_ENTITLEMENTS: Entitlements = {
+  plan: 'pro',
+  visibleDiscoveries: 100,
+  continuousMonitoring: true,
+  reminders: true,
+  calendarActions: true,
+  emailActions: true,
+  dailyBriefing: true,
+  chatQuestionsRemaining: null,
+};
+
+describe('EntitlementContext', () => {
+  let queryClient: QueryClient;
+
+  const wrapper = ({ children }: { children: React.ReactNode }) => (
+    <AuthProvider>
+      <QueryClientProvider client={queryClient}>
+        <EntitlementProvider>{children}</EntitlementProvider>
+      </QueryClientProvider>
+    </AuthProvider>
+  );
+
+  beforeEach(() => {
+    queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    mockApiFetch.mockReset();
+  });
+
+  afterEach(() => {
+    cleanup();
+    queryClient.clear();
+  });
+
+  it('fetches entitlements once authenticated and exposes the Free plan', async () => {
+    mockApiFetch.mockResolvedValueOnce(testUser); // /auth/me
+    mockApiFetch.mockResolvedValueOnce(FREE_ENTITLEMENTS); // /user/entitlements
+
+    const { result } = renderHook(() => useEntitlements(), { wrapper });
+    await waitFor(() => expect(result.current.entitlements).toEqual(FREE_ENTITLEMENTS));
+
+    expect(mockApiFetch).toHaveBeenCalledWith('/user/entitlements');
+    expect(result.current.plan).toBe('free');
+    expect(result.current.isLoading).toBe(false);
+  });
+
+  it('exposes the Pro plan when the backend returns Pro entitlements', async () => {
+    mockApiFetch.mockResolvedValueOnce(testUser); // /auth/me
+    mockApiFetch.mockResolvedValueOnce(PRO_ENTITLEMENTS); // /user/entitlements
+
+    const { result } = renderHook(() => useEntitlements(), { wrapper });
+    await waitFor(() => expect(result.current.entitlements).toEqual(PRO_ENTITLEMENTS));
+
+    expect(result.current.plan).toBe('pro');
+    expect(result.current.isPro).toBe(true);
+  });
+
+  it('isLoading until the fetch resolves, entitlements null meanwhile', async () => {
+    mockApiFetch.mockResolvedValueOnce(testUser); // /auth/me
+    let resolveEntitlements: (e: Entitlements) => void = () => {};
+    mockApiFetch.mockImplementationOnce(
+      () => new Promise<Entitlements>((res) => { resolveEntitlements = res; }),
+    );
+
+    const { result } = renderHook(() => useEntitlements(), { wrapper });
+    await waitFor(() => expect(result.current.isLoading).toBe(true));
+    expect(result.current.entitlements).toBeNull();
+
+    await act(async () => { resolveEntitlements(FREE_ENTITLEMENTS); });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.entitlements).toEqual(FREE_ENTITLEMENTS);
+  });
+
+  it('backend error leaves entitlements null without throwing', async () => {
+    mockApiFetch.mockResolvedValueOnce(testUser); // /auth/me
+    mockApiFetch.mockRejectedValueOnce(new Error('500')); // /user/entitlements
+
+    const { result } = renderHook(() => useEntitlements(), { wrapper });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.entitlements).toBeNull();
+  });
+
+  it('unauthenticated session: entitlements null and no entitlement fetch fires', async () => {
+    mockApiFetch.mockRejectedValueOnce(new Error('401')); // /auth/me fails
+
+    const { result } = renderHook(
+      () => ({ auth: useAuth(), entitlements: useEntitlements() }),
+      { wrapper },
+    );
+    await waitFor(() => expect(result.current.auth.isLoading).toBe(false));
+
+    expect(result.current.auth.isAuthenticated).toBe(false);
+    expect(result.current.entitlements.entitlements).toBeNull();
+    expect(result.current.entitlements.isLoading).toBe(false);
+    expect(mockApiFetch).not.toHaveBeenCalledWith('/user/entitlements');
+  });
+
+  it('refresh() re-fetches and updates the TanStack Query cache', async () => {
+    mockApiFetch.mockResolvedValueOnce(testUser); // /auth/me
+    mockApiFetch.mockResolvedValueOnce(FREE_ENTITLEMENTS); // initial fetch
+    mockApiFetch.mockResolvedValueOnce(PRO_ENTITLEMENTS); // refresh fetch
+
+    const { result } = renderHook(() => useEntitlements(), { wrapper });
+    await waitFor(() => expect(result.current.entitlements?.plan).toBe('free'));
+
+    await act(async () => { await result.current.refresh(); });
+
+    await waitFor(() => expect(result.current.entitlements).toEqual(PRO_ENTITLEMENTS));
+    expect(mockApiFetch).toHaveBeenCalledTimes(3);
+    expect(queryClient.getQueryData(ENTITLEMENTS_QUERY_KEY)).toEqual(PRO_ENTITLEMENTS);
+  });
+
+  it('refresh() does not fetch while unauthenticated', async () => {
+    mockApiFetch.mockRejectedValueOnce(new Error('401')); // /auth/me fails
+
+    const { result } = renderHook(() => useEntitlements(), { wrapper });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    await act(async () => { await result.current.refresh(); });
+
+    expect(mockApiFetch).toHaveBeenCalledTimes(1); // only /auth/me
+  });
+});

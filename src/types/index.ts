@@ -131,6 +131,31 @@ export interface Offer {
 export type FilterType = 'all' | 'ending-soon' | 'new' | 'saved';
 
 /**
+ * Plan + feature flags for the signed-in user, as returned by
+ * `GET /user/entitlements` (FE-004). Entitlement is always determined by the
+ * backend — the frontend never calculates who gets what (AGENTS.md).
+ */
+export interface Entitlements {
+  plan: 'free' | 'pro';
+  visibleDiscoveries: number;
+  continuousMonitoring: boolean;
+  reminders: boolean;
+  calendarActions: boolean;
+  emailActions: boolean;
+  dailyBriefing: boolean;
+  /** Remaining Detective Chat questions; null = unlimited. */
+  chatQuestionsRemaining: number | null;
+}
+
+/**
+ * The gateable Pro features: the Entitlements fields that are boolean. Used by
+ * RequiresPro/UpgradePrompt so a plan or numeric field can never be a feature.
+ */
+export type ProFeature = {
+  [K in keyof Entitlements]: Entitlements[K] extends boolean ? K : never;
+}[keyof Entitlements];
+
+/**
  * Authenticated user, as returned by `GET /auth/me`. Mirrors the backend
  * session user — see Inbox-api. Never stored in localStorage; the session
  * lives in an httpOnly cookie.

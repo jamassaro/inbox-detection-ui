@@ -3,6 +3,17 @@
     "title": "Unlock everything with Pro",
     "cta": "Upgrade to Pro"
   },
+  "requiresPro": {
+    "message": "{{feature}} requires Pro.",
+    "cta": "Unlock with Pro",
+    "feature": {
+      "continuousMonitoring": "Continuous monitoring",
+      "reminders": "Reminders",
+      "calendarActions": "Calendar actions",
+      "emailActions": "Email actions",
+      "dailyBriefing": "Daily briefing"
+    }
+  },
   "status": {
     "activating": "Activating your Pro access…",
     "activated": "Pro activated"
