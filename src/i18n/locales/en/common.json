@@ -35,6 +35,7 @@
   },
   "agentStatus": {
     "active": "Active",
+  "activeWithScan": "Active — Last scan: {{time}}",
     "investigating": "Investigating...",
     "needsAttention_one": "Needs attention ({{count}} new)",
     "needsAttention_other": "Needs attention ({{count}} new)",

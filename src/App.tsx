@@ -28,6 +28,8 @@ const PrimitivesDemoPage = lazy(() => import('./pages/dev/PrimitivesDemoPage'));
 const AuthStatesDemoPage = lazy(() => import('./pages/dev/AuthStatesDemoPage'));
 // Dev-only Gmail connect states gallery (FE-008 evidence tooling).
 const GmailConnectStatesDemoPage = lazy(() => import('./pages/dev/GmailConnectStatesDemoPage'));
+// Dev-only app shell gallery (FE-010 evidence tooling).
+const AppShellStatesDemoPage = lazy(() => import('./pages/dev/AppShellStatesDemoPage'));
 // Dev-only discovery cards gallery (FE-012 evidence tooling).
 const DiscoveryCardsDemoPage = lazy(() => import('./pages/dev/DiscoveryCardsDemoPage'));
 
@@ -56,6 +58,7 @@ function App() {
           <Route path="/dev/primitives" element={<PrimitivesDemoPage />} />
           <Route path="/dev/auth-states" element={<AuthStatesDemoPage />} />
           <Route path="/dev/gmail-states" element={<GmailConnectStatesDemoPage />} />
+          <Route path="/dev/app-shell" element={<AppShellStatesDemoPage />} />
           <Route path="/dev/discovery-cards" element={<DiscoveryCardsDemoPage />} />
 
           {/* Protected onboarding */}
