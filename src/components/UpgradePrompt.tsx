@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { useLocation, useNavigate } from 'react-router-dom';
 import type { ProFeature } from '../types';
+import { useUpgradeRedirect } from '../hooks/useUpgradeRedirect';
 
 interface UpgradePromptProps {
   feature: ProFeature;
@@ -8,19 +8,18 @@ interface UpgradePromptProps {
 
 /**
  * Inline paywall companion for <RequiresPro>: states the feature requirement
- * and routes to /upgrade with `from` + `returnPath` so FE-016 can return the
- * user to where they started after checkout.
+ * and hands off through useUpgradeRedirect (FE-016) — the upgrade context
+ * (source = feature, returnPath = current location) is persisted to
+ * sessionStorage so post-checkout (FE-017) can resume where the user was.
  */
 const UpgradePrompt = ({ feature }: UpgradePromptProps) => {
   const { t } = useTranslation('billing');
-  const navigate = useNavigate();
-  const location = useLocation();
+  const { redirectToUpgrade } = useUpgradeRedirect();
 
   const featureLabel = t(`requiresPro.feature.${feature}`, { defaultValue: feature });
 
   const unlock = () => {
-    const returnPath = encodeURIComponent(`${location.pathname}${location.search}`);
-    navigate(`/upgrade?from=${feature}&returnPath=${returnPath}`);
+    redirectToUpgrade({ source: feature });
   };
 
   return (

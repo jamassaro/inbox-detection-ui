@@ -5,6 +5,7 @@ import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import i18n from '../../i18n';
 import UpgradePrompt from '../UpgradePrompt';
+import { readUpgradeContext } from '../../lib/upgradeContext';
 
 /** Records the live router location so navigation assertions can read it. */
 const LocationProbe = () => {
@@ -34,12 +35,14 @@ const renderPrompt = () =>
 describe('UpgradePrompt', () => {
   beforeEach(() => {
     window.localStorage.clear();
+    window.sessionStorage.clear();
   });
 
   afterEach(() => {
     cleanup();
     void i18n.changeLanguage('en');
     window.localStorage.clear();
+    window.sessionStorage.clear();
   });
 
   it('renders the English copy by default', () => {
@@ -55,12 +58,14 @@ describe('UpgradePrompt', () => {
     expect(screen.getByRole('button', { name: 'Desbloquear con Pro' })).toBeTruthy();
   });
 
-  it('navigates to /upgrade with from and returnPath query params', async () => {
+  it('navigates to /upgrade?from= and persists the context (returnPath in sessionStorage)', async () => {
     renderPrompt();
     await userEvent.click(screen.getByRole('button', { name: 'Unlock with Pro' }));
 
-    expect(screen.getByTestId('location').textContent).toBe(
-      '/upgrade?from=reminders&returnPath=%2Fapp%2Fchat',
-    );
+    expect(screen.getByTestId('location').textContent).toBe('/upgrade?from=reminders');
+    expect(readUpgradeContext()).toEqual({
+      source: 'reminders',
+      returnPath: '/app/chat',
+    });
   });
 });
