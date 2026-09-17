@@ -1,4 +1,5 @@
 import { cleanup, render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { I18nextProvider } from 'react-i18next';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -7,8 +8,17 @@ import indexHtml from '../../../index.html?raw';
 import LandingPage from '../LandingPage';
 import i18n from '../../i18n';
 import { LocaleProvider } from '../../contexts/LocaleContext';
+import { ToastProvider } from '../../contexts/ToastContext';
 import { AuthContext } from '../../contexts/authContext';
 import type { AuthContextValue } from '../../contexts/authContext';
+
+const { mockStartGoogleAuth } = vi.hoisted(() => ({ mockStartGoogleAuth: vi.fn() }));
+
+// FE-007: sign-in CTAs start the OAuth flow through useGoogleAuth — mocked
+// so tests assert the call instead of triggering full-page navigation.
+vi.mock('../../hooks/useGoogleAuth', () => ({
+  useGoogleAuth: () => ({ startGoogleAuth: mockStartGoogleAuth }),
+}));
 
 // LandingPage never fetches: auth state arrives via AuthContext, so tests
 // stub the context value directly instead of mocking apiClient.
@@ -23,13 +33,15 @@ const authValue = (overrides: Partial<AuthContextValue> = {}): AuthContextValue 
 const renderLanding = (auth: AuthContextValue = authValue()) =>
   render(
     <I18nextProvider i18n={i18n}>
-      <MemoryRouter>
-        <LocaleProvider>
-          <AuthContext.Provider value={auth}>
-            <LandingPage />
-          </AuthContext.Provider>
-        </LocaleProvider>
-      </MemoryRouter>
+      <ToastProvider>
+        <MemoryRouter>
+          <LocaleProvider>
+            <AuthContext.Provider value={auth}>
+              <LandingPage />
+            </AuthContext.Provider>
+          </LocaleProvider>
+        </MemoryRouter>
+      </ToastProvider>
     </I18nextProvider>,
   );
 
@@ -41,6 +53,7 @@ const signedInAuth = (): AuthContextValue =>
 
 beforeEach(() => {
   window.localStorage.clear();
+  mockStartGoogleAuth.mockReset();
 });
 
 afterEach(async () => {
@@ -101,6 +114,43 @@ describe('LandingPage', () => {
       expect(cta.getAttribute('href')).toBe('/auth/google');
     }
     expect(screen.getByRole('link', { name: 'Sign in' }).getAttribute('href')).toBe('/auth/google');
+  });
+
+  it('starts the OAuth flow with the dashboard return path when a visitor CTA is clicked', async () => {
+    renderLanding();
+
+    await userEvent.click(screen.getAllByRole('link', { name: 'Investigate my inbox' })[0]);
+
+    expect(mockStartGoogleAuth).toHaveBeenCalledTimes(1);
+    expect(mockStartGoogleAuth).toHaveBeenCalledWith({ returnPath: '/app/dashboard' });
+  });
+
+  it('starts the OAuth flow from the Sign in nav link too', async () => {
+    renderLanding();
+
+    await userEvent.click(screen.getByRole('link', { name: 'Sign in' }));
+
+    expect(mockStartGoogleAuth).toHaveBeenCalledTimes(1);
+    expect(mockStartGoogleAuth).toHaveBeenCalledWith({ returnPath: '/app/dashboard' });
+  });
+
+  it('never starts the OAuth flow for signed-in users clicking Go to app', async () => {
+    renderLanding(signedInAuth());
+
+    await userEvent.click(screen.getAllByRole('link', { name: 'Go to app' })[0]);
+
+    expect(mockStartGoogleAuth).not.toHaveBeenCalled();
+  });
+
+  it('explains the failure with a translated toast when the auth start is refused', async () => {
+    mockStartGoogleAuth.mockReturnValue(false); // VITE_API_BASE_URL unconfigured
+    renderLanding();
+
+    await userEvent.click(screen.getAllByRole('link', { name: 'Investigate my inbox' })[0]);
+
+    expect(
+      screen.getByText('Sign-in is temporarily unavailable. Please try again in a moment.'),
+    ).toBeTruthy();
   });
 
   it('shows the LanguageSelector in the nav bar', () => {
