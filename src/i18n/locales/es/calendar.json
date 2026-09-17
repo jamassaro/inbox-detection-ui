@@ -22,7 +22,8 @@
     "sending": "Enviando respuesta...",
     "sendPrompt": "¿Enviar esta respuesta?",
     "sent": "Respuesta enviada",
-    "sentToast": "Respuesta enviada"
+    "sentToast": "Respuesta enviada",
+    "noDraft": "Esta solicitud no referencia ningún borrador que enviar."
   },
   "errors": {
     "availability": "No pudimos cargar tu disponibilidad del calendario.",

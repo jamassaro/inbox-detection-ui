@@ -21,7 +21,8 @@
     "edit": "Edit",
     "cancel": "Cancel reminder",
     "confirmCancelTitle": "Cancel this reminder?",
-    "confirmCancelMessage": "You won't get a reminder for this. This can't be undone."
+    "confirmCancelMessage": "You won't get a reminder for this. This can't be undone.",
+    "keep": "Keep reminder"
   },
   "confirmation": {
     "set": "Reminder set for {{date}}",
@@ -34,9 +35,5 @@
     "cancel": "We couldn't cancel the reminder. Please try again.",
     "invalidDate": "Pick a valid date and time.",
     "titleRequired": "Give the reminder a title."
-  },
-  "upgrade": {
-    "message": "Reminders are a Pro feature. Upgrade to get notified before deals expire, prices change, or renewals hit.",
-    "cta": "Unlock with Pro"
   }
 }

@@ -6,11 +6,9 @@ import DiscoveryListItem from '../../components/DiscoveryListItem';
 import EmptyState from '../../components/EmptyState';
 import ErrorState from '../../components/ErrorState';
 import LockedDiscoveryCard from '../../components/LockedDiscoveryCard';
-import Modal from '../../components/Modal';
+import ReminderModal from '../../components/ReminderModal';
 import SkeletonCard from '../../components/SkeletonCard';
 import StatCard from '../../components/StatCard';
-import UpgradePrompt from '../../components/UpgradePrompt';
-import { useEntitlements } from '../../hooks/useEntitlements';
 import { useToast } from '../../hooks/useToast';
 import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import {
@@ -55,7 +53,6 @@ const FILTER_LABEL_KEYS: Record<DiscoveryFilter, string> = {
  */
 const DiscoveriesPage = () => {
   const { t } = useTranslation('discoveries');
-  const { isFree } = useEntitlements();
   const toast = useToast();
 
   const { data, isPending, isError, refetch } = useDiscoveries();
@@ -64,7 +61,7 @@ const DiscoveriesPage = () => {
   const [activeFilter, setActiveFilter] = useState<DiscoveryFilter>('all');
   const [searchInput, setSearchInput] = useState('');
   const search = useDebouncedValue(searchInput, SEARCH_DEBOUNCE_MS);
-  const [remindUpgradeOpen, setRemindUpgradeOpen] = useState(false);
+  const [reminderTarget, setReminderTarget] = useState<Discovery | null>(null);
 
   const discoveries = useMemo(() => data?.items ?? [], [data]);
   const visibleDiscoveries = useMemo(
@@ -99,14 +96,9 @@ const DiscoveriesPage = () => {
         dismissDiscovery.mutate(discovery.id);
         break;
       case 'remind':
-        // ReminderModal is FE-020 and is not built yet. Free users get the
-        // RequiresPro upgrade path; Pro users get the honest not-yet state.
-        if (isFree) {
-          setRemindUpgradeOpen(true);
-        } else {
-          toast.info(t('page.remindUnavailable.body'));
-          // TODO(FE-020): open ReminderModal once it exists.
-        }
+        // FE-020: ReminderModal gates Free users (RequiresPro upgrade path)
+        // and Pro users get the full scheduling form in the same dialog.
+        setReminderTarget(discovery);
         break;
       case 'view_source':
         // EmailDrawer is FE-014 and is not built yet — no clickable no-op.
@@ -266,14 +258,14 @@ const DiscoveriesPage = () => {
         )}
       </section>
 
-      {/* Remind-me paywall (FE-020 not built): RequiresPro upgrade path */}
-      <Modal
-        isOpen={remindUpgradeOpen}
-        onClose={() => setRemindUpgradeOpen(false)}
-        title={t('page.remindUnavailable.title')}
-      >
-        <UpgradePrompt feature="reminders" />
-      </Modal>
+      {/* FE-020 reminder scheduling (Free users see the upgrade path inside) */}
+      {reminderTarget !== null ? (
+        <ReminderModal
+          discovery={reminderTarget}
+          isOpen
+          onClose={() => setReminderTarget(null)}
+        />
+      ) : null}
     </div>
   );
 };

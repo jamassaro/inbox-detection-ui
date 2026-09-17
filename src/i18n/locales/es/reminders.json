@@ -21,7 +21,8 @@
     "edit": "Editar",
     "cancel": "Cancelar recordatorio",
     "confirmCancelTitle": "¿Cancelar este recordatorio?",
-    "confirmCancelMessage": "No recibirás ningún recordatorio por esto. No se puede deshacer."
+    "confirmCancelMessage": "No recibirás ningún recordatorio por esto. No se puede deshacer.",
+    "keep": "Mantener recordatorio"
   },
   "confirmation": {
     "set": "Recordatorio creado para el {{date}}",
@@ -34,9 +35,5 @@
     "cancel": "No pudimos cancelar el recordatorio. Inténtalo de nuevo.",
     "invalidDate": "Elige una fecha y una hora válidas.",
     "titleRequired": "Ponle un título al recordatorio."
-  },
-  "upgrade": {
-    "message": "Los recordatorios son una función Pro. Hazte Pro para recibir avisos antes de que venzan ofertas, cambien precios o lleguen renovaciones.",
-    "cta": "Desbloquear con Pro"
   }
 }

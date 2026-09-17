@@ -22,7 +22,8 @@
     "sending": "Sending response...",
     "sendPrompt": "Send this response?",
     "sent": "Response sent",
-    "sentToast": "Response sent"
+    "sentToast": "Response sent",
+    "noDraft": "This request doesn't reference a draft to send."
   },
   "errors": {
     "availability": "We couldn't load your calendar availability.",
