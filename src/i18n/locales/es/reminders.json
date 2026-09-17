@@ -1,9 +1,42 @@
 {
   "modal": {
     "title": "Recordarme",
-    "set": "Crear recordatorio"
+    "set": "Crear recordatorio",
+    "update": "Actualizar recordatorio",
+    "titleLabel": "Título",
+    "titlePlaceholder": "¿Sobre qué quieres que te recordemos?",
+    "optionsHeading": "¿Cuándo quieres que te recordemos?",
+    "optionsHeadingEdit": "Elige una nueva hora"
   },
-  "status": {
-    "setFor": "Te recordaré el {{date}}"
+  "options": {
+    "tomorrow": "Mañana",
+    "daysBefore_one": "{{count}} día antes",
+    "daysBefore_other": "{{count}} días antes",
+    "custom": "Elegir fecha y hora",
+    "dateLabel": "Fecha",
+    "timeLabel": "Hora"
+  },
+  "existing": {
+    "setFor": "Recordatorio creado: {{date}}",
+    "edit": "Editar",
+    "cancel": "Cancelar recordatorio",
+    "confirmCancelTitle": "¿Cancelar este recordatorio?",
+    "confirmCancelMessage": "No recibirás ningún recordatorio por esto. No se puede deshacer."
+  },
+  "confirmation": {
+    "set": "Recordatorio creado para el {{date}}",
+    "updated": "Recordatorio actualizado al {{date}}",
+    "cancelled": "Recordatorio cancelado"
+  },
+  "errors": {
+    "create": "No pudimos crear el recordatorio. Inténtalo de nuevo.",
+    "update": "No pudimos actualizar el recordatorio. Inténtalo de nuevo.",
+    "cancel": "No pudimos cancelar el recordatorio. Inténtalo de nuevo.",
+    "invalidDate": "Elige una fecha y una hora válidas.",
+    "titleRequired": "Ponle un título al recordatorio."
+  },
+  "upgrade": {
+    "message": "Los recordatorios son una función Pro. Hazte Pro para recibir avisos antes de que venzan ofertas, cambien precios o lleguen renovaciones.",
+    "cta": "Desbloquear con Pro"
   }
 }
