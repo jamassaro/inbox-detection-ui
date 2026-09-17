@@ -11,7 +11,7 @@ import { apiFetch } from '../../lib/apiClient';
 import { ApiError } from '../../lib/apiError';
 import { stubWindowLocation } from '../../test-utils';
 import UpgradePage from '../UpgradePage';
-import type { Entitlements, User } from '../../types';
+import type { BillingStatusWire, User } from '../../types';
 
 vi.mock('../../lib/apiClient', () => ({
   AUTH_EXPIRED_EVENT: 'auth:expired',
@@ -22,26 +22,43 @@ const mockApiFetch = vi.mocked(apiFetch);
 
 const testUser: User = { id: 'u1', name: 'Ada', email: 'ada@example.com', googleId: 'g1' };
 
-const FREE_ENTITLEMENTS: Entitlements = {
+/** Wire body of GET /billing/status (BE-030) — verified against Inbox-api src. */
+const FREE_STATUS: BillingStatusWire = {
   plan: 'free',
-  visibleDiscoveries: 5,
-  continuousMonitoring: false,
-  reminders: false,
-  calendarActions: false,
-  emailActions: false,
-  dailyBriefing: false,
-  chatQuestionsRemaining: 3,
+  subscriptionStatus: null,
+  currentPeriodEnd: null,
+  cancelAtPeriodEnd: false,
+  entitlements: {
+    investigationEmailLimit: 500,
+    visibleDiscoveryLimit: 5,
+    continuousMonitoring: false,
+    reminders: false,
+    calendarActions: false,
+    emailActions: false,
+    detectiveChatLimit: 3,
+    historicalComparison: false,
+    dailyBriefing: false,
+    fullDiscoveryHistory: false,
+  },
 };
 
-const PRO_ENTITLEMENTS: Entitlements = {
+const PRO_STATUS: BillingStatusWire = {
   plan: 'pro',
-  visibleDiscoveries: 100,
-  continuousMonitoring: true,
-  reminders: true,
-  calendarActions: true,
-  emailActions: true,
-  dailyBriefing: true,
-  chatQuestionsRemaining: null,
+  subscriptionStatus: 'active',
+  currentPeriodEnd: '2026-10-17T00:00:00.000Z',
+  cancelAtPeriodEnd: false,
+  entitlements: {
+    investigationEmailLimit: 2000,
+    visibleDiscoveryLimit: null, // Infinity serializes to null over JSON
+    continuousMonitoring: true,
+    reminders: true,
+    calendarActions: true,
+    emailActions: true,
+    detectiveChatLimit: null,
+    historicalComparison: true,
+    dailyBriefing: true,
+    fullDiscoveryHistory: true,
+  },
 };
 
 /** Fresh QueryClient per render so tests never share cache state. */
@@ -70,7 +87,7 @@ describe('UpgradePage', () => {
     mockApiFetch.mockReset();
     mockApiFetch.mockImplementation(async (path: string) => {
       if (path === '/auth/me') return testUser;
-      if (path === '/user/entitlements') return FREE_ENTITLEMENTS;
+      if (path === '/billing/status') return FREE_STATUS;
       throw new Error(`unexpected apiFetch path: ${path}`);
     });
   });
@@ -130,7 +147,7 @@ describe('UpgradePage', () => {
   it('shows a current-plan indicator instead of CTAs for Pro users', async () => {
     mockApiFetch.mockImplementation(async (path: string) => {
       if (path === '/auth/me') return testUser;
-      if (path === '/user/entitlements') return PRO_ENTITLEMENTS;
+      if (path === '/billing/status') return PRO_STATUS;
       throw new Error(`unexpected apiFetch path: ${path}`);
     });
     renderPage('/upgrade');
@@ -154,7 +171,7 @@ describe('UpgradePage', () => {
     const location = stubWindowLocation();
     mockApiFetch.mockImplementation(async (path: string, options?: RequestInit) => {
       if (path === '/auth/me') return testUser;
-      if (path === '/user/entitlements') return FREE_ENTITLEMENTS;
+      if (path === '/billing/status') return FREE_STATUS;
       if (path === '/billing/checkout' && options?.method === 'POST') {
         expect(JSON.parse(String(options.body))).toEqual({ priceId: 'price_test_monthly' });
         return { checkoutUrl: 'https://checkout.stripe.com/session_123' };
@@ -175,7 +192,7 @@ describe('UpgradePage', () => {
     vi.stubEnv('VITE_STRIPE_PRICE_ANNUAL_ID', 'price_test_annual');
     mockApiFetch.mockImplementation(async (path: string) => {
       if (path === '/auth/me') return testUser;
-      if (path === '/user/entitlements') return FREE_ENTITLEMENTS;
+      if (path === '/billing/status') return FREE_STATUS;
       if (path === '/billing/checkout') {
         throw new ApiError(400, 'INVALID_PRICE', 'Invalid price');
       }

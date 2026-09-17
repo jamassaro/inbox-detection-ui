@@ -8,7 +8,7 @@ export interface EntitlementContextValue {
   /** Null while unauthenticated, loading, or when the fetch fails. */
   entitlements: Entitlements | null;
   isLoading: boolean;
-  /** Re-fetches GET /user/entitlements and updates the shared cache (FE-017). */
+  /** Re-fetches GET /billing/status and updates the shared cache (FE-017). */
   refresh: () => Promise<void>;
 }
 

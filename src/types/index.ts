@@ -133,20 +133,58 @@ export interface Offer {
 export type FilterType = 'all' | 'ending-soon' | 'new' | 'saved';
 
 /**
- * Plan + feature flags for the signed-in user, as returned by
- * `GET /user/entitlements` (FE-004). Entitlement is always determined by the
- * backend — the frontend never calculates who gets what (AGENTS.md).
+ * Plan + feature flags for the signed-in user, mapped from the
+ * `GET /billing/status` entitlement map (BE-030). Entitlement is always
+ * determined by the backend — the frontend never calculates who gets what
+ * (AGENTS.md).
  */
 export interface Entitlements {
   plan: 'free' | 'pro';
-  visibleDiscoveries: number;
+  /** Discoveries visible to the plan; null = unlimited (Pro). */
+  visibleDiscoveries: number | null;
   continuousMonitoring: boolean;
   reminders: boolean;
   calendarActions: boolean;
   emailActions: boolean;
   dailyBriefing: boolean;
-  /** Remaining Detective Chat questions; null = unlimited. */
+  /**
+   * Daily Detective Chat allowance; null = unlimited. The backend exposes the
+   * static daily limit (`detectiveChatLimit`), not a server-decremented
+   * remaining count — exhaustion still arrives as the chat endpoint's
+   * 402 pro_required error.
+   */
   chatQuestionsRemaining: number | null;
+}
+
+/**
+ * Entitlement map of `GET /billing/status` — mirrors Inbox-api's
+ * PLAN_ENTITLEMENTS (BE-012). `Infinity` limits serialize to `null` over
+ * JSON, so Pro's unlimited fields arrive as null.
+ */
+export interface BillingEntitlementsWire {
+  investigationEmailLimit: number;
+  visibleDiscoveryLimit: number | null;
+  continuousMonitoring: boolean;
+  reminders: boolean;
+  calendarActions: boolean;
+  emailActions: boolean;
+  detectiveChatLimit: number | null;
+  historicalComparison: boolean;
+  dailyBriefing: boolean;
+  fullDiscoveryHistory: boolean;
+}
+
+/**
+ * Wire body of `GET /billing/status` (BE-030) — the user's subscription state
+ * plus the entitlement map for their plan. Verified against Inbox-api
+ * src/api/routes/billing.routes.ts.
+ */
+export interface BillingStatusWire {
+  plan: 'free' | 'pro';
+  subscriptionStatus: string | null;
+  currentPeriodEnd: string | null;
+  cancelAtPeriodEnd: boolean | null;
+  entitlements: BillingEntitlementsWire;
 }
 
 /**

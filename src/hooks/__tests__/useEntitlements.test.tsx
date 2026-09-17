@@ -5,7 +5,7 @@ import { AuthProvider } from '../../contexts/AuthProvider';
 import { EntitlementProvider } from '../../contexts/EntitlementProvider';
 import { useEntitlements } from '../useEntitlements';
 import { apiFetch } from '../../lib/apiClient';
-import type { Entitlements, User } from '../../types';
+import type { BillingStatusWire, Entitlements, User } from '../../types';
 
 vi.mock('../../lib/apiClient', () => ({
   AUTH_EXPIRED_EVENT: 'auth:expired',
@@ -16,6 +16,46 @@ const mockApiFetch = vi.mocked(apiFetch);
 
 const testUser: User = { id: 'u1', name: 'Ada', email: 'ada@example.com', googleId: 'g1' };
 
+/** Wire body of GET /billing/status (BE-030) — verified against Inbox-api src. */
+const FREE_STATUS: BillingStatusWire = {
+  plan: 'free',
+  subscriptionStatus: null,
+  currentPeriodEnd: null,
+  cancelAtPeriodEnd: false,
+  entitlements: {
+    investigationEmailLimit: 500,
+    visibleDiscoveryLimit: 5,
+    continuousMonitoring: false,
+    reminders: false,
+    calendarActions: false,
+    emailActions: false,
+    detectiveChatLimit: 3,
+    historicalComparison: false,
+    dailyBriefing: false,
+    fullDiscoveryHistory: false,
+  },
+};
+
+const PRO_STATUS: BillingStatusWire = {
+  plan: 'pro',
+  subscriptionStatus: 'active',
+  currentPeriodEnd: '2026-10-17T00:00:00.000Z',
+  cancelAtPeriodEnd: false,
+  entitlements: {
+    investigationEmailLimit: 2000,
+    visibleDiscoveryLimit: null, // Infinity serializes to null over JSON
+    continuousMonitoring: true,
+    reminders: true,
+    calendarActions: true,
+    emailActions: true,
+    detectiveChatLimit: null,
+    historicalComparison: true,
+    dailyBriefing: true,
+    fullDiscoveryHistory: true,
+  },
+};
+
+/** What mapBillingStatusToEntitlements yields for the wire fixtures above. */
 const FREE_ENTITLEMENTS: Entitlements = {
   plan: 'free',
   visibleDiscoveries: 5,
@@ -29,7 +69,7 @@ const FREE_ENTITLEMENTS: Entitlements = {
 
 const PRO_ENTITLEMENTS: Entitlements = {
   plan: 'pro',
-  visibleDiscoveries: 100,
+  visibleDiscoveries: null,
   continuousMonitoring: true,
   reminders: true,
   calendarActions: true,
@@ -61,7 +101,7 @@ describe('useEntitlements', () => {
 
   it('exposes Free-plan convenience booleans', async () => {
     mockApiFetch.mockResolvedValueOnce(testUser); // /auth/me
-    mockApiFetch.mockResolvedValueOnce(FREE_ENTITLEMENTS); // /user/entitlements
+    mockApiFetch.mockResolvedValueOnce(FREE_STATUS); // /billing/status
 
     const { result } = renderHook(() => useEntitlements(), { wrapper });
     await waitFor(() => expect(result.current.entitlements).toEqual(FREE_ENTITLEMENTS));
@@ -79,7 +119,7 @@ describe('useEntitlements', () => {
 
   it('exposes Pro-plan convenience booleans with unlimited chat', async () => {
     mockApiFetch.mockResolvedValueOnce(testUser); // /auth/me
-    mockApiFetch.mockResolvedValueOnce(PRO_ENTITLEMENTS); // /user/entitlements
+    mockApiFetch.mockResolvedValueOnce(PRO_STATUS); // /billing/status
 
     const { result } = renderHook(() => useEntitlements(), { wrapper });
     await waitFor(() => expect(result.current.entitlements).toEqual(PRO_ENTITLEMENTS));
@@ -97,7 +137,7 @@ describe('useEntitlements', () => {
 
   it('hasFeature() grants every feature when the plan is Pro even if a flag is off', async () => {
     mockApiFetch.mockResolvedValueOnce(testUser); // /auth/me
-    mockApiFetch.mockResolvedValueOnce({ ...PRO_ENTITLEMENTS, reminders: false }); // /user/entitlements
+    mockApiFetch.mockResolvedValueOnce({ ...PRO_STATUS, entitlements: { ...PRO_STATUS.entitlements, reminders: false } }); // /billing/status
 
     const { result } = renderHook(() => useEntitlements(), { wrapper });
     await waitFor(() => expect(result.current.isPro).toBe(true));

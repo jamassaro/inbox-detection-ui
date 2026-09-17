@@ -9,7 +9,7 @@ import { AuthProvider } from '../../contexts/AuthProvider';
 import { EntitlementProvider } from '../../contexts/EntitlementProvider';
 import { ToastProvider } from '../../contexts/ToastProvider';
 import { LocaleProvider } from '../../contexts/LocaleProvider';
-import type { Entitlements, User } from '../../types';
+import type { BillingStatusWire, User } from '../../types';
 import { apiFetch } from '../../lib/apiClient';
 import i18n from '../../i18n';
 
@@ -28,15 +28,24 @@ const wireUser = (overrides: Partial<User> = {}): User => ({
   ...overrides,
 });
 
-const entitlements = (plan: 'free' | 'pro'): Entitlements => ({
+/** Wire body of GET /billing/status (BE-030) — verified against Inbox-api src. */
+const billingStatus = (plan: 'free' | 'pro'): BillingStatusWire => ({
   plan,
-  visibleDiscoveries: 3,
-  continuousMonitoring: plan === 'pro',
-  reminders: plan === 'pro',
-  calendarActions: plan === 'pro',
-  emailActions: plan === 'pro',
-  dailyBriefing: plan === 'pro',
-  chatQuestionsRemaining: plan === 'pro' ? null : 5,
+  subscriptionStatus: plan === 'pro' ? 'active' : null,
+  currentPeriodEnd: null,
+  cancelAtPeriodEnd: false,
+  entitlements: {
+    investigationEmailLimit: plan === 'pro' ? 2000 : 500,
+    visibleDiscoveryLimit: plan === 'pro' ? null : 3, // Infinity → null over JSON
+    continuousMonitoring: plan === 'pro',
+    reminders: plan === 'pro',
+    calendarActions: plan === 'pro',
+    emailActions: plan === 'pro',
+    detectiveChatLimit: plan === 'pro' ? null : 5,
+    historicalComparison: plan === 'pro',
+    dailyBriefing: plan === 'pro',
+    fullDiscoveryHistory: plan === 'pro',
+  },
 });
 
 interface BackendOptions {
@@ -47,7 +56,7 @@ interface BackendOptions {
 
 /**
  * Wires mockApiFetch to every endpoint the settings page touches:
- * /auth/me, /user/entitlements, /gmail/status, /account/connections, and
+ * /auth/me, /billing/status, /gmail/status, /account/connections, and
  * the two disconnect DELETEs. Any other path fails loudly so a test can
  * never silently pass against an endpoint it did not stub.
  */
@@ -58,7 +67,7 @@ const mockBackend = ({
 }: BackendOptions = {}) => {
   mockApiFetch.mockImplementation((path: string, init?: { method?: string }) => {
     if (path.startsWith('/auth/me')) return Promise.resolve(wireUser());
-    if (path.startsWith('/user/entitlements')) return Promise.resolve(entitlements(plan));
+    if (path.startsWith('/billing/status')) return Promise.resolve(billingStatus(plan));
     if (path.startsWith('/gmail/status')) {
       return Promise.resolve({
         connected: gmailConnected,
@@ -185,7 +194,7 @@ describe('SettingsPage', () => {
         return Promise.reject(new Error('backend down'));
       }
       if (path.startsWith('/auth/me')) return Promise.resolve(wireUser());
-      if (path.startsWith('/user/entitlements')) return Promise.resolve(entitlements('pro'));
+      if (path.startsWith('/billing/status')) return Promise.resolve(billingStatus('pro'));
       if (path.startsWith('/gmail/status')) {
         return Promise.resolve({ connected: true, email: 'maria@example.com', lastSync: null });
       }
@@ -212,7 +221,7 @@ describe('SettingsPage', () => {
     const user = userEvent.setup();
     mockApiFetch.mockImplementation((path: string) => {
       if (path.startsWith('/auth/me')) return Promise.resolve(wireUser());
-      if (path.startsWith('/user/entitlements')) return Promise.resolve(entitlements('pro'));
+      if (path.startsWith('/billing/status')) return Promise.resolve(billingStatus('pro'));
       if (path.startsWith('/gmail/status')) return Promise.reject(new Error('backend down'));
       if (path === '/account/connections') {
         return Promise.resolve({
