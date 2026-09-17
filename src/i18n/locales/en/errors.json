@@ -1,6 +1,8 @@
 {
   "generic": "Something went wrong. Please try again.",
   "oauthFailed": "We couldn't complete sign-in. Please try again.",
+  "gmailConnectFailed": "We couldn't connect your Gmail. Please try again.",
+  "connectUnavailable": "Gmail connection is temporarily unavailable. Please try again in a moment.",
   "authUnavailable": "Sign-in is temporarily unavailable. Please try again in a moment.",
   "investigationFailed": "The investigation couldn't finish. Try again or contact support.",
   "retry": "Try again"

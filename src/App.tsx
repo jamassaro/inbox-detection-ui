@@ -26,6 +26,8 @@ const BillingPage = lazy(() => import('./pages/settings/BillingPage'));
 const PrimitivesDemoPage = lazy(() => import('./pages/dev/PrimitivesDemoPage'));
 // Dev-only auth states gallery (FE-007 evidence tooling).
 const AuthStatesDemoPage = lazy(() => import('./pages/dev/AuthStatesDemoPage'));
+// Dev-only Gmail connect states gallery (FE-008 evidence tooling).
+const GmailConnectStatesDemoPage = lazy(() => import('./pages/dev/GmailConnectStatesDemoPage'));
 
 /** Route-slot fallback until FE-005 ships the shared spinner. */
 const RouteFallback = () => {
@@ -51,6 +53,7 @@ function App() {
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/dev/primitives" element={<PrimitivesDemoPage />} />
           <Route path="/dev/auth-states" element={<AuthStatesDemoPage />} />
+          <Route path="/dev/gmail-states" element={<GmailConnectStatesDemoPage />} />
 
           {/* Protected onboarding */}
           <Route element={<ProtectedRoute />}>

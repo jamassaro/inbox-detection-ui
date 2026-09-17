@@ -17,5 +17,13 @@
   },
   "auth": {
     "signingIn": "Iniciando sesión…"
+  },
+  "gmailConnect": {
+    "checking": "Comprobando tu conexión de Gmail…",
+    "title": "Conecta tu bandeja",
+    "explanation": "Inbox Detective lee el asunto, el remitente y el cuerpo de los mensajes de tu Gmail para encontrar renovaciones de suscripciones, cambios de precio, reembolsos, créditos por vencer y otros hallazgos. Tu correo se usa solo con ese fin: nunca se elimina ni se envía nada sin tu aprobación explícita. Puedes revocar el acceso en cualquier momento.",
+    "privacyAssurance": "Acceso de solo lectura — consulta cómo tratamos tus datos:",
+    "privacyLink": "Política de Privacidad",
+    "cta": "Conectar Gmail"
   }
 }
