@@ -336,8 +336,10 @@ describe('SettingsPage', () => {
     renderPage();
 
     expect(await screen.findByRole('heading', { name: 'Settings' })).toBeTruthy();
-    // Both Gmail and Calendar rows show the not-connected copy.
-    expect(screen.getAllByText('Not connected')).toHaveLength(2);
+    // Both Gmail and Calendar rows show the not-connected copy. Async query:
+    // the heading renders before the connections fetch resolves, so a sync
+    // query races it and flakes on cold starts (CI).
+    expect((await screen.findAllByText('Not connected')).length).toBe(2);
 
     // LanguageSelector labels its buttons via t('language') per locale —
     // the ES toggle's accessible name is "Idioma".
