@@ -8,9 +8,14 @@
     "offers": "Ofertas",
     "companies": "Empresas",
     "saved": "Guardadas",
+    "subscriptions": "Suscripciones",
+    "askDetective": "Pregunta al Detective",
     "settings": "Ajustes",
     "help": "Ayuda",
-    "connected": "Conectado"
+    "connected": "Conectado",
+    "notConnected": "No conectado",
+    "connectGmail": "Conectar Gmail",
+    "ariaLabel": "Navegación principal"
   },
   "loading": "Loading…",
   "buttons": {
@@ -23,8 +28,28 @@
   },
   "actions": {
     "scanInbox": "Escanear bandeja",
+    "investigating": "Investigando...",
+    "scanFailed": "No se pudo iniciar el escaneo. Inténtalo de nuevo.",
     "copyCodeAndShop": "Copiar código y comprar",
     "search": "Buscar"
+  },
+  "agentStatus": {
+    "active": "Activo",
+  "activeWithScan": "Activo — Último escaneo: {{time}}",
+    "investigating": "Investigando...",
+    "needsAttention_one": "Necesita atención ({{count}} nueva)",
+    "needsAttention_other": "Necesita atención ({{count}} nuevas)",
+    "monitoringPaused": "Monitoreo pausado",
+    "notConnected": "No conectado",
+    "lastScan": "Último escaneo: {{time}}",
+    "scanAge": {
+      "min_one": "hace {{count}} min",
+      "min_other": "hace {{count}} min",
+      "hour_one": "hace {{count}} h",
+      "hour_other": "hace {{count}} h",
+      "day_one": "hace {{count}} día",
+      "day_other": "hace {{count}} días"
+    }
   },
   "search": {
     "placeholder": "Busca empresas u ofertas"
@@ -45,16 +70,6 @@
       "subtitle": "Ofertas encontradas en tu bandeja que podrías haber pasado por alto.",
       "dontMiss": "No te pierdas estas",
       "allOffers": "Todas las ofertas"
-    },
-    "companies": {
-      "title": "Empresas",
-      "subtitle": "Gestiona las empresas que sigues.",
-      "comingSoon": "La página de empresas llegará pronto..."
-    },
-    "saved": {
-      "title": "Ofertas guardadas",
-      "subtitle": "Tus ofertas guardadas.",
-      "empty": "Aún no tienes ofertas guardadas..."
     }
   }
 }

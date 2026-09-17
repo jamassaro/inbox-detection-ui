@@ -8,9 +8,14 @@
     "offers": "Offers",
     "companies": "Companies",
     "saved": "Saved",
+    "subscriptions": "Subscriptions",
+    "askDetective": "Ask Detective",
     "settings": "Settings",
     "help": "Help",
-    "connected": "Connected"
+    "connected": "Connected",
+    "notConnected": "Not connected",
+    "connectGmail": "Connect Gmail",
+    "ariaLabel": "Main navigation"
   },
   "loading": "Loading…",
   "buttons": {
@@ -23,8 +28,28 @@
   },
   "actions": {
     "scanInbox": "Scan Inbox",
+    "investigating": "Investigating...",
+    "scanFailed": "Could not start the scan. Try again.",
     "copyCodeAndShop": "Copy Code & Shop",
     "search": "Search"
+  },
+  "agentStatus": {
+    "active": "Active",
+  "activeWithScan": "Active — Last scan: {{time}}",
+    "investigating": "Investigating...",
+    "needsAttention_one": "Needs attention ({{count}} new)",
+    "needsAttention_other": "Needs attention ({{count}} new)",
+    "monitoringPaused": "Monitoring paused",
+    "notConnected": "Not connected",
+    "lastScan": "Last scan: {{time}}",
+    "scanAge": {
+      "min_one": "{{count}} min ago",
+      "min_other": "{{count}} min ago",
+      "hour_one": "{{count}} hr ago",
+      "hour_other": "{{count}} hrs ago",
+      "day_one": "{{count}} day ago",
+      "day_other": "{{count}} days ago"
+    }
   },
   "search": {
     "placeholder": "Search companies or offers"
@@ -45,16 +70,6 @@
       "subtitle": "Offers found in your inbox that you might have missed.",
       "dontMiss": "Don't miss these",
       "allOffers": "All Offers"
-    },
-    "companies": {
-      "title": "Companies",
-      "subtitle": "Manage companies you're tracking.",
-      "comingSoon": "Companies page coming soon..."
-    },
-    "saved": {
-      "title": "Saved Offers",
-      "subtitle": "Your bookmarked offers.",
-      "empty": "No saved offers yet..."
     }
   }
 }
