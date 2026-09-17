@@ -104,7 +104,10 @@ export function useDismissDiscovery() {
       const snapshots: [QueryKey, DiscoveriesWire][] = [];
       for (const query of queries) {
         const previous = queryClient.getQueryData<DiscoveriesWire>(query.queryKey);
-        if (previous === undefined) continue;
+        // findAll prefix-matches every query under ['discoveries'] — including
+        // FE-014's detail/evidence caches, whose cached value is a single wire
+        // row, not a DiscoveriesWire. Only list-shaped queries are patched.
+        if (previous === undefined || !Array.isArray(previous.discoveries)) continue;
         snapshots.push([query.queryKey, previous]);
         queryClient.setQueryData<DiscoveriesWire>(query.queryKey, {
           ...previous,

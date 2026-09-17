@@ -84,5 +84,53 @@
       "title": "Source email isn't available yet",
       "body": "Viewing the original email will arrive with the evidence drawer."
     }
+  },
+  "detail": {
+    "back": "Back to discoveries",
+    "whyTitle": "Why did Detective flag this?",
+    "viewSource": "View source email",
+    "actionsTitle": "What you can do",
+    "annualized": "≈ {{amount}} per year",
+    "dismissConfirm": {
+      "title": "Dismiss this discovery?",
+      "body": "It will leave your active discoveries. You can still find it later under dismissed."
+    },
+    "locked": {
+      "title": "This discovery is locked",
+      "body": "Full discovery details are part of the Pro plan.",
+      "cta": "Unlock with Pro"
+    },
+    "error": {
+      "title": "Couldn't load this discovery",
+      "body": "Something went wrong while fetching its details."
+    },
+    "findTimeUnavailable": {
+      "body": "Finding a time on your calendar is coming soon with the calendar features."
+    },
+    "actionUnavailable": {
+      "body": "This action isn't available yet."
+    },
+    "paywall": {
+      "title": "That action needs Pro"
+    },
+    "feedback": {
+      "title": "Was this useful?",
+      "useful": "Useful",
+      "notUseful": "Not useful",
+      "neverThisType": "Never show this type",
+      "thanks": "Thanks — your feedback helps Detective get better."
+    }
+  },
+  "drawer": {
+    "title": "Source email",
+    "close": "Close",
+    "whyNote": "Why Detective flagged this",
+    "from": "From",
+    "openInGmail": "Open in Gmail",
+    "empty": "No source email was attached to this discovery.",
+    "error": {
+      "title": "Couldn't load the source email",
+      "body": "Something went wrong while fetching the evidence."
+    }
   }
 }

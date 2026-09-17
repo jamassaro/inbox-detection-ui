@@ -85,5 +85,53 @@
       "title": "El correo original aún no está disponible",
       "body": "Ver el correo original llegará junto con el cajón de evidencia."
     }
+  },
+  "detail": {
+    "back": "Volver a descubrimientos",
+    "whyTitle": "¿Por qué lo marcó el Detective?",
+    "viewSource": "Ver correo original",
+    "actionsTitle": "Lo que puedes hacer",
+    "annualized": "≈ {{amount}} al año",
+    "dismissConfirm": {
+      "title": "¿Descartar este descubrimiento?",
+      "body": "Saldrá de tus descubrimientos activos. Podrás encontrarlo después entre los descartados."
+    },
+    "locked": {
+      "title": "Este descubrimiento está bloqueado",
+      "body": "Los detalles completos de los descubrimientos son parte del plan Pro.",
+      "cta": "Desbloquear con Pro"
+    },
+    "error": {
+      "title": "No se pudo cargar este descubrimiento",
+      "body": "Algo falló al obtener sus detalles."
+    },
+    "findTimeUnavailable": {
+      "body": "Buscar un horario en tu calendario llegará pronto con las funciones de calendario."
+    },
+    "actionUnavailable": {
+      "body": "Esta acción aún no está disponible."
+    },
+    "paywall": {
+      "title": "Esa acción requiere Pro"
+    },
+    "feedback": {
+      "title": "¿Fue útil?",
+      "useful": "Útil",
+      "notUseful": "No útil",
+      "neverThisType": "No mostrar este tipo",
+      "thanks": "Gracias: tus comentarios ayudan al Detective a mejorar."
+    }
+  },
+  "drawer": {
+    "title": "Correo original",
+    "close": "Cerrar",
+    "whyNote": "Por qué lo marcó el Detective",
+    "from": "De",
+    "openInGmail": "Abrir en Gmail",
+    "empty": "No hay ningún correo original asociado a este descubrimiento.",
+    "error": {
+      "title": "No se pudo cargar el correo original",
+      "body": "Algo falló al obtener la evidencia."
+    }
   }
 }
