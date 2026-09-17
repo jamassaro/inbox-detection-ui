@@ -15,6 +15,14 @@
     "title": "Investigation complete",
     "seeAll": "See all discoveries"
   },
+  "gmailConnect": {
+    "checking": "Checking your Gmail connection…",
+    "title": "Connect your inbox",
+    "explanation": "Inbox Detective reads the subject, sender, and body of the messages in your Gmail to find subscription renewals, price changes, refunds, expiring credits, and other discoveries. Your email is used for that purpose only — nothing is ever deleted or sent without your explicit approval. You can revoke access at any time.",
+    "privacyAssurance": "Read-only access — see exactly how your data is handled:",
+    "privacyLink": "Privacy Policy",
+    "cta": "Connect Gmail"
+  },
   "auth": {
     "signingIn": "Signing you in…"
   }
