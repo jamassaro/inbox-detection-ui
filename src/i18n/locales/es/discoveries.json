@@ -42,5 +42,48 @@
       "categoryHint": "Suscripciones, créditos y más",
       "cta": "Desbloquear con Pro"
     }
+  },
+  "page": {
+    "title": "Descubrimientos",
+    "subtitle": "Lo que reveló tu bandeja de entrada",
+    "stats": {
+      "total": "Descubrimientos totales",
+      "active": "Requieren atención",
+      "locked": "Bloqueados por plan"
+    },
+    "searchPlaceholder": "Buscar empresas u ofertas",
+    "filters": {
+      "all": "Todos",
+      "endingSoon": "Terminan pronto",
+      "new": "Nuevos",
+      "saved": "Guardados"
+    },
+    "featuredTitle": "Requieren tu atención",
+    "listTitle": "Todos los descubrimientos",
+    "empty": {
+      "title": "Nada requiere tu atención en este momento",
+      "body": "Ejecuta una investigación o vuelve más tarde: los nuevos hallazgos aparecerán aquí."
+    },
+    "savedUnavailable": {
+      "title": "Guardar aún no está disponible",
+      "body": "Los descubrimientos guardados llegarán pronto. Por ahora, todo está en la pestaña Todos."
+    },
+    "error": {
+      "title": "No se pudieron cargar tus descubrimientos",
+      "body": "Algo falló al obtener los hallazgos de tu bandeja de entrada.",
+      "retry": "Reintentar"
+    },
+    "lockedSection": {
+      "title": "Descubrimientos bloqueados",
+      "body": "{{count}} hallazgos más esperan detrás del plan Pro."
+    },
+    "remindUnavailable": {
+      "title": "Los recordatorios aún no están disponibles",
+      "body": "Estamos construyendo los recordatorios ahora mismo; pronto podrás programarlos aquí."
+    },
+    "sourceUnavailable": {
+      "title": "El correo original aún no está disponible",
+      "body": "Ver el correo original llegará junto con el cajón de evidencia."
+    }
   }
 }

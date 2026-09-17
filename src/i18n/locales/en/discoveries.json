@@ -41,5 +41,48 @@
       "categoryHint": "Subscriptions, credits, and more",
       "cta": "Unlock with Pro"
     }
+  },
+  "page": {
+    "title": "Discoveries",
+    "subtitle": "What your inbox revealed",
+    "stats": {
+      "total": "Total discoveries",
+      "active": "Needs attention",
+      "locked": "Locked by plan"
+    },
+    "searchPlaceholder": "Search companies or offers",
+    "filters": {
+      "all": "All",
+      "endingSoon": "Ending Soon",
+      "new": "New",
+      "saved": "Saved"
+    },
+    "featuredTitle": "Needs your attention",
+    "listTitle": "All discoveries",
+    "empty": {
+      "title": "Nothing needs your attention right now",
+      "body": "Run an investigation or check back later — new findings will appear here."
+    },
+    "savedUnavailable": {
+      "title": "Saving isn't available yet",
+      "body": "Saved discoveries are coming soon. Everything is on the All tab for now."
+    },
+    "error": {
+      "title": "Couldn't load your discoveries",
+      "body": "Something went wrong while fetching your inbox findings.",
+      "retry": "Try again"
+    },
+    "lockedSection": {
+      "title": "Locked discoveries",
+      "body": "{{count}} more findings are waiting behind the Pro plan."
+    },
+    "remindUnavailable": {
+      "title": "Reminders aren't available yet",
+      "body": "We're building reminders right now — you'll be able to schedule them here soon."
+    },
+    "sourceUnavailable": {
+      "title": "Source email isn't available yet",
+      "body": "Viewing the original email will arrive with the evidence drawer."
+    }
   }
 }
