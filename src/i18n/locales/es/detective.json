@@ -3,5 +3,19 @@
     "emptyState": "Pregúntame lo que sea sobre tu bandeja",
     "inputPlaceholder": "Pregunta al Detective…",
     "thinking": "El Detective está pensando…"
+  },
+  "agentStates": {
+    "thinking": "El Detective está pensando…",
+    "proposing": "El Detective tiene una sugerencia",
+    "proposalEmpty": "No hay ninguna sugerencia para mostrar",
+    "approving": "Confirma esta acción",
+    "destructiveWarning": "Esto envía información fuera de Inbox Detective. Revisa bien antes de confirmar.",
+    "confirm": "Confirmar",
+    "cancel": "Cancelar",
+    "executing": "Trabajando en ello…",
+    "verifying": "Verificando el resultado…",
+    "done": "Listo",
+    "failed": "Algo salió mal",
+    "retry": "Intentar de nuevo"
   }
 }
