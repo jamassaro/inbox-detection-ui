@@ -4,20 +4,25 @@
     "cta": "Connect Calendar"
   },
   "meeting": {
+    "findTimeCta": "Find a time",
     "proposalHeading": "Choose a time",
+    "suggested": "Suggested",
     "approveCreate": "Create meeting on {{time}}?",
     "creating": "Creating calendar event...",
     "confirming": "Confirming...",
     "done": "Event created: {{time}}",
     "eventCreatedToast": "Calendar event created",
     "noProposedTime": "This request doesn't include a proposed time yet.",
-    "slotUnavailable": "That time is no longer free. Pick another slot."
+    "noFreeSlots": "No free times on the proposed day.",
+    "slotUnavailable": "That time is no longer free. Pick another slot.",
+    "defaultEventTitle": "Meeting"
   },
   "email": {
     "draftHeading": "Suggested reply",
     "draftToLabel": "To",
     "draftSubjectLabel": "Subject",
     "approveDraft": "Create this draft reply?",
+    "creatingDraft": "Creating draft reply...",
     "draftCreatedToast": "Reply drafted",
     "sending": "Sending response...",
     "sendPrompt": "Send this response?",
@@ -25,7 +30,13 @@
     "sentToast": "Response sent",
     "noDraft": "This request doesn't reference a draft to send."
   },
+  "detail": {
+    "back": "Back to discoveries",
+    "notFound": "Discovery not found",
+    "locked": "This discovery is available on Pro."
+  },
   "errors": {
+    "actions": "We couldn't load the meeting proposal.",
     "availability": "We couldn't load your calendar availability.",
     "event": "We couldn't create the calendar event. Please try again.",
     "draft": "We couldn't create the draft. Please try again.",

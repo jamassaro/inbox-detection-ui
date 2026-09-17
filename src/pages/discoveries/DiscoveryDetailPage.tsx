@@ -124,7 +124,7 @@ const DiscoveryDetailPage = () => {
     return false;
   });
 
-  const openPaywallOrToast = (feature: 'reminders' | 'calendarActions', unavailableBody: string) => {
+  const openPaywallOrToast = (feature: 'calendarActions', unavailableBody: string) => {
     // FE-013 parity: Free users get the RequiresPro upgrade path; Pro users
     // get the honest not-yet state (ReminderModal shipped in FE-020; the
     // calendar picker is FE-021).

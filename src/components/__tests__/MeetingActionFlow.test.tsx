@@ -56,16 +56,24 @@ const routeApi = async (url: string, init?: { method?: string; body?: unknown })
   if (url === '/auth/me') {
     return { id: 'u1', name: 'Ada', email: 'ada@example.com', googleId: 'g1' };
   }
-  if (url === '/user/entitlements') {
+  if (url === '/billing/status') {
     return {
       plan: 'pro',
-      visibleDiscoveries: 100,
-      continuousMonitoring: true,
-      reminders: true,
-      calendarActions: true,
-      emailActions: true,
-      dailyBriefing: true,
-      chatQuestionsRemaining: null,
+      subscriptionStatus: 'active',
+      currentPeriodEnd: '2026-10-17T00:00:00.000Z',
+      cancelAtPeriodEnd: false,
+      entitlements: {
+        investigationEmailLimit: 25,
+        visibleDiscoveryLimit: null,
+        continuousMonitoring: true,
+        reminders: true,
+        calendarActions: true,
+        emailActions: true,
+        detectiveChatLimit: 20,
+        historicalComparison: true,
+        dailyBriefing: true,
+        fullDiscoveryHistory: true,
+      },
     };
   }
   if (url === '/account/connections') {
