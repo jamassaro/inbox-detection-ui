@@ -1,6 +1,195 @@
 {
   "landing": {
-    "title": "Encuentra el dinero escondido en tu bandeja",
-    "cta": "Investigar mi bandeja"
+    "title": "Tu bandeja de entrada sabe cosas que tú no.",
+    "subtitle": "Inbox Detective se conecta a tu Gmail y revela las ofertas, bajadas de precio, créditos y reuniones que te estás perdiendo — automáticamente.",
+    "cta": "Investigar mi bandeja",
+    "trust": "Conecta Gmail. Mira lo que te has estado perdiendo.",
+    "nav": {
+      "brand": "Inbox Detective",
+      "signIn": "Iniciar sesión",
+      "goToApp": "Ir a la app"
+    },
+    "problem": {
+      "eyebrow": "El problema",
+      "title": "El correo es donde mueren los tratos",
+      "subtitle": "Las promociones expiran, los precios cambian y los créditos se escapan — enterrados bajo boletines que nunca lees.",
+      "items": {
+        "subscriptions": {
+          "title": "Suscripciones que olvidaste",
+          "description": "Pruebas gratuitas que se convirtieron en planes de pago sin que lo notaras."
+        },
+        "prices": {
+          "title": "Cambios de precio",
+          "description": "Una bajada en algo que ya pagas — o un aumento silencioso."
+        },
+        "credits": {
+          "title": "Créditos sin usar",
+          "description": "Créditos y saldos de regalo que expiran sin que los notes."
+        },
+        "meetings": {
+          "title": "Reuniones enterradas",
+          "description": "Reprogramaciones e invitaciones perdidas entre spam de recibos."
+        }
+      }
+    },
+    "discovery": {
+      "eyebrow": "Descubrimientos",
+      "title": "Lo que revela una investigación",
+      "subtitle": "Cada escaneo convierte tu bandeja en hallazgos claros y accionables.",
+      "example1": {
+        "badge": "Cambio de precio",
+        "company": "Streamflix",
+        "title": "El precio subió $2.00/mes",
+        "body": "Tu plan pasó de $11.99 a $13.99 en marzo. Baja de plan o cancela antes del siguiente ciclo."
+      },
+      "example2": {
+        "badge": "Crédito sin usar",
+        "company": "CloudNine Storage",
+        "title": "Un crédito de $15 expira en 5 días",
+        "body": "Tienes un crédito de lealtad en tu cuenta. Úsalo o piérdelo."
+      },
+      "example3": {
+        "badge": "Suscripción olvidada",
+        "company": "FitGym",
+        "title": "7 meses de cobros sin uso",
+        "body": "Una membresía que no usas desde febrero. Cancela en dos clics."
+      }
+    },
+    "how": {
+      "eyebrow": "Cómo funciona",
+      "title": "Del caos a la claridad en cuatro pasos",
+      "steps": {
+        "connect": {
+          "title": "Conecta",
+          "description": "Vincula tu Gmail de forma segura. Acceso de solo lectura — tú mantienes el control."
+        },
+        "investigate": {
+          "title": "Investiga",
+          "description": "El agente escanea meses de correo en busca de ofertas, cambios y compromisos."
+        },
+        "discover": {
+          "title": "Descubre",
+          "description": "Los hallazgos se convierten en un feed claro — cada uno explicado y con evidencia."
+        },
+        "act": {
+          "title": "Actúa",
+          "description": "Cancela, reclama, reprograma o responde — con un clic donde importa."
+        }
+      }
+    },
+    "free": {
+      "eyebrow": "Investigación gratuita",
+      "title": "Empieza con una investigación gratuita",
+      "subtitle": "Un escaneo completo de tu bandeja. No se requiere tarjeta.",
+      "features": {
+        "f1": "Una investigación completa de tu bandeja",
+        "f2": "Un feed de descubrimientos con evidencia de cada hallazgo",
+        "f3": "Alertas de cambios de precio y suscripciones",
+        "f4": "Guía para cancelar o reclamar cada descubrimiento"
+      }
+    },
+    "agent": {
+      "eyebrow": "Inbox Detective Pro",
+      "title": "Un agente que sigue trabajando después del primer escaneo",
+      "subtitle": "Pro convierte un reporte único en una bandeja defendida continuamente.",
+      "features": {
+        "monitoring": {
+          "title": "Monitoreo continuo",
+          "description": "Nuevas ofertas, cambios de precio y créditos por expirar — detectados apenas llegan."
+        },
+        "reminders": {
+          "title": "Recordatorios",
+          "description": "El agente te avisa en el momento correcto: renueva, cancela o reclama."
+        },
+        "calendar": {
+          "title": "Acciones de calendario",
+          "description": "Reprogramaciones e invitaciones resueltas sin buscar entre hilos."
+        },
+        "chat": {
+          "title": "Chat",
+          "description": "Hazle preguntas a tu bandeja en lenguaje natural y obtén respuestas con fuentes."
+        }
+      }
+    },
+    "compare": {
+      "eyebrow": "Comparar",
+      "title": "Gratis vs Pro",
+      "subtitle": "Empieza gratis. Mejora cuando tu bandeja necesite un agente de tiempo completo.",
+      "colFree": "Gratis",
+      "colPro": "Pro",
+      "rows": {
+        "r1": { "feature": "Investigación de bandeja", "free": "1 investigación gratuita", "pro": "Ilimitadas" },
+        "r2": { "feature": "Feed de descubrimientos con evidencia", "free": "Incluido", "pro": "Incluido" },
+        "r3": { "feature": "Monitoreo continuo", "free": "—", "pro": "Incluido" },
+        "r4": { "feature": "Recordatorios y seguimientos", "free": "—", "pro": "Incluido" },
+        "r5": { "feature": "Acciones de calendario", "free": "—", "pro": "Incluido" },
+        "r6": { "feature": "Chat con el agente", "free": "—", "pro": "Incluido" }
+      }
+    },
+    "pricing": {
+      "eyebrow": "Precios",
+      "title": "Precios simples",
+      "subtitle": "Empieza gratis. Pasa a Pro cuando estés listo.",
+      "free": {
+        "name": "Gratis",
+        "price": "$0",
+        "period": "para siempre",
+        "features": {
+          "f1": "1 investigación gratuita",
+          "f2": "Feed de descubrimientos con evidencia",
+          "f3": "Guía para cancelar o reclamar"
+        }
+      },
+      "proMonthly": {
+        "name": "Pro",
+        "badge": "Mensual",
+        "price": "$5.99",
+        "features": {
+          "f1": "Todo lo de Gratis",
+          "f2": "Monitoreo continuo",
+          "f3": "Recordatorios, calendario y chat"
+        }
+      },
+      "proAnnual": {
+        "name": "Pro",
+        "badge": "Anual",
+        "price": "$49",
+        "features": {
+          "f1": "Todo lo del Pro mensual",
+          "f2": "Dos meses gratis vs mensual",
+          "f3": "Soporte prioritario"
+        }
+      },
+      "note": "Los montos se muestran como referencia. El pago de Stripe es siempre la fuente de verdad del precio final."
+    },
+    "faq": {
+      "eyebrow": "FAQ",
+      "title": "Preguntas frecuentes",
+      "items": {
+        "q1": "¿Está seguro mi correo?",
+        "a1": "El acceso es de solo lectura y puedes revocarlo en cualquier momento. La evidencia se guarda como extractos mínimos — nunca vendemos tus datos.",
+        "q2": "¿Qué es exactamente una investigación gratuita?",
+        "a2": "Un escaneo único y completo de tu bandeja conectada que produce un feed de descubrimientos: ofertas, cambios de precio, créditos y reuniones que te perdiste.",
+        "q3": "¿Qué agrega Pro?",
+        "a3": "Monitoreo continuo, recordatorios, acciones de calendario y chat con tu bandeja — el agente sigue trabajando después del primer escaneo.",
+        "q4": "¿Cuánto cuesta Pro?",
+        "a4": "$5.99 al mes o $49 al año. El pago de Stripe es la fuente de verdad del monto final en tu moneda.",
+        "q5": "¿Puedo cancelar Pro?",
+        "a5": "Sí — cancela cuando quieras desde Configuración → Facturación. Conservas Pro hasta el final del periodo.",
+        "q6": "¿Qué pasa después de mi investigación gratuita?",
+        "a6": "Tu feed de descubrimientos queda disponible. Mejora a Pro para seguir monitoreando tu bandeja automáticamente."
+      }
+    },
+    "finalCta": {
+      "title": "Descubre lo que tu bandeja está ocultando.",
+      "subtitle": "Tu primera investigación es gratis.",
+      "cta": "Investigar mi bandeja"
+    },
+    "footer": {
+      "tagline": "Tu bandeja, investigada.",
+      "privacy": "Política de Privacidad",
+      "terms": "Términos",
+      "copyright": "© {{year}} Inbox Detective. Todos los derechos reservados."
+    }
   }
 }

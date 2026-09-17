@@ -1,6 +1,195 @@
 {
   "landing": {
-    "title": "Find the money hiding in your inbox",
-    "cta": "Investigate my inbox"
+    "title": "Your inbox knows things you don't.",
+    "subtitle": "Inbox Detective connects to your Gmail and surfaces the offers, price drops, credits, and meetings you've been missing — automatically.",
+    "cta": "Investigate my inbox",
+    "trust": "Connect Gmail. See what you've been missing.",
+    "nav": {
+      "brand": "Inbox Detective",
+      "signIn": "Sign in",
+      "goToApp": "Go to app"
+    },
+    "problem": {
+      "eyebrow": "The problem",
+      "title": "Email is where deals go to die",
+      "subtitle": "Promotions expire, prices change, and credits slip away — buried under newsletters you never read.",
+      "items": {
+        "subscriptions": {
+          "title": "Subscriptions you forgot",
+          "description": "Free trials that quietly became paid plans."
+        },
+        "prices": {
+          "title": "Price changes",
+          "description": "A price drop on something you already pay for — or a silent increase."
+        },
+        "credits": {
+          "title": "Unused credits",
+          "description": "Account credits and gift balances that expire unnoticed."
+        },
+        "meetings": {
+          "title": "Buried meetings",
+          "description": "Reschedules and invites lost between receipt spam."
+        }
+      }
+    },
+    "discovery": {
+      "eyebrow": "Discoveries",
+      "title": "What an investigation surfaces",
+      "subtitle": "Every scan turns your inbox into clear, actionable findings.",
+      "example1": {
+        "badge": "Price change",
+        "company": "Streamflix",
+        "title": "Price increased $2.00/month",
+        "body": "Your plan went from $11.99 to $13.99 in March. Downgrade or cancel before the next cycle."
+      },
+      "example2": {
+        "badge": "Unused credit",
+        "company": "CloudNine Storage",
+        "title": "$15 credit expires in 5 days",
+        "body": "A loyalty credit is sitting on your account. Use it or lose it."
+      },
+      "example3": {
+        "badge": "Forgotten subscription",
+        "company": "FitGym",
+        "title": "Billed for 7 months without use",
+        "body": "A membership you haven't touched since February. Cancel in two clicks."
+      }
+    },
+    "how": {
+      "eyebrow": "How it works",
+      "title": "From chaos to clarity in four steps",
+      "steps": {
+        "connect": {
+          "title": "Connect",
+          "description": "Link your Gmail securely. Read-only access — you stay in control."
+        },
+        "investigate": {
+          "title": "Investigate",
+          "description": "The agent scans months of email for offers, changes, and commitments."
+        },
+        "discover": {
+          "title": "Discover",
+          "description": "Findings become a clear feed — each one explained, with evidence."
+        },
+        "act": {
+          "title": "Act",
+          "description": "Cancel, claim, reschedule, or reply — with one click where it counts."
+        }
+      }
+    },
+    "free": {
+      "eyebrow": "Free investigation",
+      "title": "Start with a free investigation",
+      "subtitle": "One full scan of your inbox. No card required.",
+      "features": {
+        "f1": "A complete inbox investigation",
+        "f2": "A discovery feed with evidence for every finding",
+        "f3": "Price-change and subscription alerts",
+        "f4": "Cancel-or-claim guidance for each discovery"
+      }
+    },
+    "agent": {
+      "eyebrow": "Inbox Detective Pro",
+      "title": "An agent that keeps working after the first scan",
+      "subtitle": "Pro turns a one-time report into a continuously defended inbox.",
+      "features": {
+        "monitoring": {
+          "title": "Continuous monitoring",
+          "description": "New offers, price changes, and expiring credits — caught as they arrive."
+        },
+        "reminders": {
+          "title": "Reminders",
+          "description": "The agent nudges you at the right moment: renew, cancel, or claim."
+        },
+        "calendar": {
+          "title": "Calendar actions",
+          "description": "Reschedules and invites handled without digging through threads."
+        },
+        "chat": {
+          "title": "Chat",
+          "description": "Ask your inbox questions in plain language and get sourced answers."
+        }
+      }
+    },
+    "compare": {
+      "eyebrow": "Compare",
+      "title": "Free vs Pro",
+      "subtitle": "Start free. Upgrade when your inbox needs a full-time agent.",
+      "colFree": "Free",
+      "colPro": "Pro",
+      "rows": {
+        "r1": { "feature": "Inbox investigation", "free": "1 free investigation", "pro": "Unlimited" },
+        "r2": { "feature": "Discovery feed with evidence", "free": "Included", "pro": "Included" },
+        "r3": { "feature": "Continuous monitoring", "free": "—", "pro": "Included" },
+        "r4": { "feature": "Reminders and follow-ups", "free": "—", "pro": "Included" },
+        "r5": { "feature": "Calendar actions", "free": "—", "pro": "Included" },
+        "r6": { "feature": "Agent chat", "free": "—", "pro": "Included" }
+      }
+    },
+    "pricing": {
+      "eyebrow": "Pricing",
+      "title": "Simple pricing",
+      "subtitle": "Start free. Go Pro when you're ready.",
+      "free": {
+        "name": "Free",
+        "price": "$0",
+        "period": "forever",
+        "features": {
+          "f1": "1 free investigation",
+          "f2": "Discovery feed with evidence",
+          "f3": "Cancel-or-claim guidance"
+        }
+      },
+      "proMonthly": {
+        "name": "Pro",
+        "badge": "Monthly",
+        "price": "$5.99",
+        "features": {
+          "f1": "Everything in Free",
+          "f2": "Continuous monitoring",
+          "f3": "Reminders, calendar actions, and chat"
+        }
+      },
+      "proAnnual": {
+        "name": "Pro",
+        "badge": "Annual",
+        "price": "$49",
+        "features": {
+          "f1": "Everything in Pro monthly",
+          "f2": "Two months free vs monthly",
+          "f3": "Priority support"
+        }
+      },
+      "note": "Amounts are shown for reference. Stripe checkout is always the source of truth for final pricing."
+    },
+    "faq": {
+      "eyebrow": "FAQ",
+      "title": "Frequently asked questions",
+      "items": {
+        "q1": "Is my email safe?",
+        "a1": "Access is read-only and revocable at any time. Evidence is stored as minimal excerpts — we never sell your data.",
+        "q2": "What exactly is a free investigation?",
+        "a2": "A one-time, full scan of your connected inbox that produces a discovery feed: offers, price changes, credits, and meetings you've missed.",
+        "q3": "What does Pro add?",
+        "a3": "Continuous monitoring, reminders, calendar actions, and chat with your inbox — the agent keeps working after the first scan.",
+        "q4": "How much does Pro cost?",
+        "a4": "$5.99 per month or $49 per year. Stripe checkout is the source of truth for the final amount in your currency.",
+        "q5": "Can I cancel Pro?",
+        "a5": "Yes — cancel anytime from Settings → Billing. You keep Pro until the end of the billing period.",
+        "q6": "What happens after my free investigation?",
+        "a6": "Your discovery feed stays available. Upgrade to Pro to keep monitoring your inbox automatically."
+      }
+    },
+    "finalCta": {
+      "title": "Find out what your inbox is hiding.",
+      "subtitle": "Your first investigation is free.",
+      "cta": "Investigate my inbox"
+    },
+    "footer": {
+      "tagline": "Your inbox, investigated.",
+      "privacy": "Privacy Policy",
+      "terms": "Terms",
+      "copyright": "© {{year}} Inbox Detective. All rights reserved."
+    }
   }
 }
