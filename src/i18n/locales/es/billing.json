@@ -21,5 +21,51 @@
   "status": {
     "activating": "Activando tu acceso Pro…",
     "activated": "Pro activado"
+  },
+  "upgradePage": {
+    "contextual": {
+      "default": "Mejora a Inbox Detective Pro",
+      "locked_discovery": "Tu Detective encontró más cosas que te conviene conocer.",
+      "reminder": "Configura recordatorios para no perder ninguna fecha límite.",
+      "calendar": "Desbloquea las acciones de calendario.",
+      "chat_limit": "Obtén acceso ilimitado al Detective.",
+      "investigation_results": "Ve todo lo que encontró tu investigación."
+    },
+    "subcopy": "Pasa a Pro para monitoreo continuo y todas las funciones desbloqueadas.",
+    "plans": {
+      "cta": "Mejorar ahora",
+      "currentPlan": "Plan actual",
+      "free": {
+        "name": "Gratis",
+        "features": {
+          "investigation": "Una investigación completa de tu bandeja",
+          "discoveries": "Tus primeros descubrimientos, de regalo",
+          "chat": "Detective Chat limitado",
+          "refresh": "Actualización manual"
+        }
+      },
+      "pro": {
+        "features": {
+          "monitoring": "Monitoreo continuo de tu bandeja",
+          "discoveries": "Todos los descubrimientos desbloqueados",
+          "reminders": "Recordatorios para no perder fechas límite",
+          "calendar": "Acciones de calendario y programación",
+          "chat": "Detective Chat ilimitado",
+          "briefing": "Briefing diario"
+        }
+      },
+      "monthly": {
+        "name": "Pro Mensual"
+      },
+      "annual": {
+        "name": "Pro Anual",
+        "saveBadge": "Ahorra 31%"
+      }
+    },
+    "alreadyPro": "¿Ya eres Pro?",
+    "manageBilling": "Administrar suscripción",
+    "errors": {
+      "checkout": "No pudimos iniciar el pago. Inténtalo de nuevo."
+    }
   }
 }

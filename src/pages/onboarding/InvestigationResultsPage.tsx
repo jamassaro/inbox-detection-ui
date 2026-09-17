@@ -7,6 +7,7 @@ import ErrorState from '../../components/ErrorState';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import LockedDiscoveryCard from '../../components/LockedDiscoveryCard';
 import { useLocale } from '../../hooks/useLocale';
+import { useUpgradeRedirect } from '../../hooks/useUpgradeRedirect';
 import {
   toDiscovery,
   useInvestigation,
@@ -138,6 +139,7 @@ export const InvestigationResultsContent = ({
 
 const InvestigationResultsPage = () => {
   const navigate = useNavigate();
+  const { redirectToUpgrade } = useUpgradeRedirect();
   const [searchParams] = useSearchParams();
   const { t } = useTranslation('investigation');
   const investigationId = searchParams.get('investigationId');
@@ -155,7 +157,9 @@ const InvestigationResultsPage = () => {
   };
 
   const handleUpgrade = () => {
-    navigate(UPGRADE_PATH);
+    // FE-016: persist the upgrade context (source + returnPath back to these
+    // results, ?investigationId included) instead of a bare navigate.
+    redirectToUpgrade({ source: 'locked_discovery' });
   };
 
   const mapped = useMemo(
