@@ -2,7 +2,7 @@ import { act, cleanup, render, screen } from '@testing-library/react';
 import { I18nextProvider } from 'react-i18next';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import i18n, { LOCALE_STORAGE_KEY } from '../../i18n';
-import { LocaleProvider } from '../../contexts/LocaleContext';
+import { LocaleProvider } from '../../contexts/LocaleProvider';
 import { useLocale } from '../useLocale';
 
 const Probe = () => {

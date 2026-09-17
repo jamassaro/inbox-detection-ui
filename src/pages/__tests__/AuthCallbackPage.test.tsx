@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import AuthCallbackPage from '../AuthCallbackPage';
 import { apiFetch } from '../../lib/apiClient';
-import { AuthProvider } from '../../contexts/AuthContext';
+import { AuthProvider } from '../../contexts/AuthProvider';
 import { RETURN_PATH_STORAGE_KEY } from '../../hooks/useGoogleAuth';
 import { stubWindowLocation } from '../../test-utils';
 import i18n from '../../i18n';

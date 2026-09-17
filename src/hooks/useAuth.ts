@@ -2,7 +2,7 @@ import { useContext } from 'react';
 import { AuthContext } from '../contexts/authContext';
 import type { AuthContextValue } from '../contexts/authContext';
 
-/** Session accessor — must be used within an AuthProvider (see src/contexts/AuthContext.tsx). */
+/** Session accessor — must be used within an AuthProvider (see src/contexts/AuthProvider.tsx). */
 export const useAuth = (): AuthContextValue => {
   const ctx = useContext(AuthContext);
   if (!ctx) {

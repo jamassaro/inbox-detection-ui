@@ -1,6 +1,6 @@
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { AuthProvider } from '../AuthContext';
+import { AuthProvider } from '../AuthProvider';
 import { useAuth } from '../../hooks/useAuth';
 import { AUTH_EXPIRED_EVENT, apiFetch } from '../../lib/apiClient';
 import { stubWindowLocation } from '../../test-utils';

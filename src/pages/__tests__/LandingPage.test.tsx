@@ -7,8 +7,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import indexHtml from '../../../index.html?raw';
 import LandingPage from '../LandingPage';
 import i18n from '../../i18n';
-import { LocaleProvider } from '../../contexts/LocaleContext';
-import { ToastProvider } from '../../contexts/ToastContext';
+import { LocaleProvider } from '../../contexts/LocaleProvider';
+import { ToastProvider } from '../../contexts/ToastProvider';
 import { AuthContext } from '../../contexts/authContext';
 import type { AuthContextValue } from '../../contexts/authContext';
 
