@@ -78,6 +78,8 @@ export interface Discovery {
   importance: DiscoveryImportance;
   /** Lifecycle state (backend enum value). */
   status: DiscoveryStatus;
+  /** When the backend row was created (BE-028), when provided — feeds recency filters. */
+  createdAt?: string;
   /**
    * Backend entitlement flag: free users receive `locked: true` on
    * Discoveries beyond their visible limit. Never calculated client-side.

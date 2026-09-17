@@ -1,13 +1,6 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { apiFetch } from '../lib/apiClient';
-import { getInitials } from '../lib/discoveryHelpers';
-import type {
-  Discovery,
-  DiscoveryAction,
-  DiscoveryImportance,
-  DiscoveryStatus,
-  DiscoveryType,
-} from '../types';
+import type { DiscoveriesWire } from '../lib/discoveryWire';
 
 /**
  * Investigation-flow hooks (FE-009): trigger an investigation, poll its
@@ -247,36 +240,12 @@ export function useTriggerInvestigation() {
 }
 
 /**
- * Wire item of `GET /discoveries` (BE-028), as actually returned by the
- * backend — masked rows keep title (🔒 placeholder), company, amount,
- * priority, and status, and carry `isLocked: true` with a null description.
+ * The BE-028 `/discoveries` wire types and the wire → domain adapter live in
+ * lib/discoveryWire.ts (lifted for FE-013 so the page maps the API
+ * identically). Re-exported here to keep this module's public surface stable.
  */
-export interface DiscoveryWire {
-  id: string;
-  /** Backend classification — `money|subscription|expiration|meeting_request|change`. */
-  type: string;
-  priority: string;
-  status: string;
-  title: string;
-  description: string | null;
-  explanation?: string | null;
-  company?: string | null;
-  amount?: number | null;
-  currency?: string | null;
-  eventDate?: string | null;
-  confidence?: number;
-  isLocked: boolean;
-  availableActions: string[];
-}
-
-/** Wire body of `GET /discoveries` (BE-028). */
-export interface DiscoveriesWire {
-  discoveries: DiscoveryWire[];
-  /** Total discoveries for the user (the count is NOT scoped by query filters). */
-  total: number;
-  lockedCount: number;
-  pagination?: { limit: number; offset: number };
-}
+export { toDiscovery } from '../lib/discoveryWire';
+export type { DiscoveryWire, DiscoveriesWire } from '../lib/discoveryWire';
 
 /** Page size for the results page's first-discoveries list (FE-009: "3–5 cards"). */
 const RESULTS_DISCOVERY_LIMIT = 5;
@@ -300,78 +269,3 @@ export function useInvestigationDiscoveries() {
   });
 }
 
-// ---------------------------------------------------------------------------
-// Wire → domain adapter
-//
-// DiscoveryCard (FE-012) consumes the FE-011 `Discovery` domain type, while
-// GET /discoveries returns BE-028 wire rows. The mapping below follows the
-// backend's own category semantics (Inbox-api ai-extraction.worker.ts:
-// "money maps to credit", "change" maps to price_change) — it does not
-// invent finer-grained types than the backend distinguishes.
-// FE-013 will want this lifted into lib/discoveryHelpers.ts.
-// ---------------------------------------------------------------------------
-
-/** Backend category → FE-011 DiscoveryType. Unknown values fall back to the action_required catch-all so the card system can never crash on a new wire value. */
-const WIRE_TYPE_TO_DOMAIN: Record<string, DiscoveryType> = {
-  money: 'credit',
-  subscription: 'subscription',
-  expiration: 'expiration',
-  meeting_request: 'meeting',
-  change: 'price_change',
-};
-
-/** Backend priority → FE-011 importance ('urgent' has no FE-011 equivalent — it folds into 'high'). */
-const WIRE_PRIORITY_TO_IMPORTANCE: Record<string, DiscoveryImportance> = {
-  urgent: 'high',
-  high: 'high',
-  medium: 'medium',
-  low: 'low',
-};
-
-/** Backend lifecycle → FE-011 status ('expired' has no FE-011 equivalent — it renders as viewed). */
-const WIRE_STATUS_TO_DOMAIN: Record<string, DiscoveryStatus> = {
-  active: 'new',
-  viewed: 'viewed',
-  actioned: 'acted',
-  dismissed: 'dismissed',
-  expired: 'viewed',
-};
-
-const DISCOVERY_ACTIONS: readonly DiscoveryAction[] = [
-  'remind',
-  'dismiss',
-  'view_source',
-  'open_provider',
-  'review_subscription',
-  'investigate',
-  'find_time',
-  'track_refund',
-  'ask_detective',
-];
-
-const isDiscoveryAction = (value: string): value is DiscoveryAction =>
-  (DISCOVERY_ACTIONS as readonly string[]).includes(value);
-
-/**
- * Normalizes a BE-028 wire row into the FE-011 `Discovery` the card system
- * renders. Fields the backend does not send (frequency, previousAmount,
- * companyInitials) are derived or omitted — never fabricated.
- */
-export function toDiscovery(wire: DiscoveryWire): Discovery {
-  return {
-    id: wire.id,
-    type: WIRE_TYPE_TO_DOMAIN[wire.type] ?? 'action_required',
-    title: wire.title,
-    summary: wire.description ?? '',
-    company: wire.company ?? '',
-    companyInitials: getInitials(wire.company ?? ''),
-    ...(wire.amount != null && { amount: wire.amount }),
-    ...(wire.currency != null && { currency: wire.currency }),
-    ...(wire.eventDate != null && { date: wire.eventDate }),
-    importance: WIRE_PRIORITY_TO_IMPORTANCE[wire.priority] ?? 'medium',
-    status: WIRE_STATUS_TO_DOMAIN[wire.status] ?? 'new',
-    locked: wire.isLocked,
-    availableActions: wire.availableActions.filter(isDiscoveryAction),
-    ...(wire.confidence != null && { confidence: wire.confidence }),
-  };
-}
