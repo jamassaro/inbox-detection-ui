@@ -1,5 +1,6 @@
 interface StatCardProps {
-  value: number;
+  /** Display value — raw counts as number, or a preformatted string (formatCurrency/formatNumber). */
+  value: string | number;
   label: string;
   color?: 'default' | 'red' | 'green';
 }
