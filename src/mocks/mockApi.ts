@@ -100,15 +100,16 @@ const daysFromNow = (days: number): string => new Date(Date.now() + days * 86_40
 
 /** Initial state — rebuilt by resetMockState so tests start deterministic. */
 function initialState(): MockState {
+  const plan = mockPlanOverride();
   return {
     user: {
       id: 'usr_mock_001',
       email: 'detective@example.com',
       displayName: 'Mock Detective',
       photoUrl: null,
-      plan: 'pro',
-      subscriptionStatus: 'active',
-      currentPeriodEnd: daysFromNow(21),
+      plan,
+      subscriptionStatus: plan === 'pro' ? 'active' : null,
+      currentPeriodEnd: plan === 'pro' ? daysFromNow(21) : null,
       calendarConnected: true,
       gmailComposeEnabled: true,
       locale: 'en',
@@ -342,6 +343,18 @@ export function resetMockState(): void {
   state = initialState();
 }
 
+/**
+ * Dev hook: `localStorage['mock:plan'] = 'free' | 'pro'` (default pro) picks
+ * the seeded plan so Free-gated surfaces can be exercised without a rebuild.
+ */
+export function mockPlanOverride(): 'free' | 'pro' {
+  try {
+    return localStorage.getItem('mock:plan') === 'free' ? 'free' : 'pro';
+  } catch {
+    return 'pro';
+  }
+}
+
 /** Small delay so loading/skeleton states are real in mock mode too. */
 const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
 
@@ -368,6 +381,22 @@ function proEntitlements(): Record<string, unknown> {
   };
 }
 
+/** Free entitlements exactly as the backend serializes them — Infinity → null. */
+function freeEntitlements(): Record<string, unknown> {
+  return {
+    investigationEmailLimit: 500,
+    visibleDiscoveryLimit: null, // backend Infinity → null over JSON
+    continuousMonitoring: false,
+    reminders: false,
+    calendarActions: false,
+    emailActions: false,
+    detectiveChatLimit: 5,
+    historicalComparison: false,
+    dailyBriefing: false,
+    fullDiscoveryHistory: false,
+  };
+}
+
 /** GET /billing/status body (BE-030). */
 function billingStatus() {
   return {
@@ -375,7 +404,7 @@ function billingStatus() {
     subscriptionStatus: state.user.subscriptionStatus,
     currentPeriodEnd: state.user.currentPeriodEnd,
     cancelAtPeriodEnd: false,
-    entitlements: proEntitlements(),
+    entitlements: state.user.plan === 'pro' ? proEntitlements() : freeEntitlements(),
   };
 }
 
@@ -400,10 +429,14 @@ function discoveryList(url: URL) {
       (type === '' || d.type === type) &&
       (status === '' || status === null || d.status === status),
   );
+  // BE-028 entitlement masking: Free sees only the first visibleDiscoveryLimit
+  // rows of the filtered list; the remainder surfaces as lockedCount.
+  const visibleLimit = state.user.plan === 'pro' ? Infinity : 3;
+  const visible = filtered.slice(0, visibleLimit);
   return {
-    discoveries: filtered.slice(offset, offset + limit),
-    total: state.discoveries.length,
-    lockedCount: 0,
+    discoveries: visible.slice(offset, offset + limit),
+    total: filtered.length,
+    lockedCount: Math.max(0, filtered.length - visible.length),
     pagination: { limit, offset },
   };
 }

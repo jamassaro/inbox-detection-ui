@@ -225,3 +225,46 @@ describe('mock surface hygiene', () => {
     expect(sent).toMatchObject({ messageId: expect.any(String), sent: true });
   });
 });
+
+describe('mock plan override (localStorage mock:plan)', () => {
+  afterEach(() => {
+    localStorage.removeItem('mock:plan');
+    resetMockState();
+  });
+
+  it('defaults to Pro when no override is set', async () => {
+    resetMockState();
+    const body = await (await get('/account/me')).json();
+    expect(body.plan).toBe('pro');
+  });
+
+  it('seeds a Free user whose /billing/status carries the Free entitlement map', async () => {
+    localStorage.setItem('mock:plan', 'free');
+    resetMockState();
+    const body = await (await get('/billing/status')).json();
+    expect(body.plan).toBe('free');
+    expect(body.subscriptionStatus).toBeNull();
+    expect(body.currentPeriodEnd).toBeNull();
+    // Exact backend Free map (Infinity → null over JSON) — no Pro leakage.
+    expect(body.entitlements).toEqual({
+      investigationEmailLimit: 500,
+      visibleDiscoveryLimit: null,
+      continuousMonitoring: false,
+      reminders: false,
+      calendarActions: false,
+      emailActions: false,
+      detectiveChatLimit: 5,
+      historicalComparison: false,
+      dailyBriefing: false,
+      fullDiscoveryHistory: false,
+    });
+  });
+
+  it('masks discoveries beyond the Free visibility limit as lockedCount (BE-028)', async () => {
+    localStorage.setItem('mock:plan', 'free');
+    resetMockState();
+    const body = await (await get('/discoveries?status=active&limit=20')).json();
+    expect(body.discoveries.length).toBeLessThanOrEqual(3);
+    expect(body.lockedCount).toBeGreaterThan(0);
+  });
+});
