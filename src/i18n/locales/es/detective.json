@@ -1,8 +1,22 @@
 {
   "chat": {
+    "title": "Pregunta al Detective",
     "emptyState": "Pregúntame lo que sea sobre tu bandeja",
     "inputPlaceholder": "Pregunta al Detective…",
-    "thinking": "El Detective está pensando…"
+    "thinking": "El Detective está pensando…",
+    "suggestion1": "¿A qué suscripciones estoy pagando?",
+    "suggestion2": "¿Dónde puedo ahorrar dinero?",
+    "suggestion3": "¿Hay pruebas gratis por terminar pronto?",
+    "suggestion4": "¿Subió alguna de mis facturas?",
+    "suggestion5": "¿Qué créditos o reembolsos tengo?",
+    "suggestion6": "¿Cuánto gasto en total?",
+    "send": "Enviar",
+    "limitRemaining": "Quedan {{remaining}} de {{total}} preguntas hoy",
+    "limitReached": "Ya usaste todas tus preguntas gratis del Detective por hoy.",
+    "upgrade": "Mejora a Pro",
+    "sources": "Fuentes",
+    "sourceUnavailable": "Detalles de la fuente próximamente",
+    "error": "El Detective no pudo responder en este momento."
   },
   "agentStates": {
     "thinking": "El Detective está pensando…",

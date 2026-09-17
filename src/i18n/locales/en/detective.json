@@ -1,8 +1,22 @@
 {
   "chat": {
+    "title": "Ask Detective",
     "emptyState": "Ask me anything about your inbox",
     "inputPlaceholder": "Ask the Detective…",
-    "thinking": "Detective is thinking…"
+    "thinking": "Detective is thinking…",
+    "suggestion1": "Which subscriptions am I paying for?",
+    "suggestion2": "Where can I save money?",
+    "suggestion3": "Any free trials ending soon?",
+    "suggestion4": "Did any of my bills go up?",
+    "suggestion5": "What credits or refunds do I have?",
+    "suggestion6": "How much am I spending in total?",
+    "send": "Send",
+    "limitRemaining": "{{remaining}} of {{total}} questions remaining today",
+    "limitReached": "You've used all your free Detective questions for today.",
+    "upgrade": "Upgrade to Pro",
+    "sources": "Sources",
+    "sourceUnavailable": "Source details coming soon",
+    "error": "The Detective couldn't answer right now."
   },
   "agentStates": {
     "thinking": "Detective is thinking…",
