@@ -42,6 +42,7 @@ const entitlementsResult = (chatQuestionsRemaining: number | null): UseEntitleme
     },
     isLoading: false,
     refresh: vi.fn(),
+    decrementChatQuestions: vi.fn(),
     plan: isPro ? 'pro' : 'free',
     isPro,
     isFree: !isPro,

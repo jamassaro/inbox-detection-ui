@@ -1,7 +1,8 @@
-import { useRef, useState } from 'react';
+import { useContext, useRef, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { apiFetch } from '../lib/apiClient';
 import { ApiError } from '../lib/apiError';
+import { EntitlementContext } from '../contexts/entitlementContext';
 
 /**
  * Detective Chat hook (FE-022).
@@ -20,6 +21,13 @@ import { ApiError } from '../lib/apiError';
  *   synthesis failure → 502 `{ error: 'chat_unavailable' }`.
  * - There is NO history endpoint — the ticket's `GET /chat/messages` is not
  *   implemented server-side, so conversations start empty on every mount.
+ *
+ * Entitlement display: the wire carries no server-decremented remaining
+ * count, so each accepted turn consumes one question from the shared
+ * entitlements cache (decrementChatQuestions) — a display estimate that
+ * clamps at 0 and re-seeds from the daily allowance on the next
+ * /billing/status fetch. The 402 pro_required error stays the enforcement
+ * source of truth.
  *
  * The backend generates `response` in the user's locale (User.locale row) and
  * it is rendered as-is — never translated or transformed in the frontend.
@@ -75,6 +83,9 @@ export function useChat(): UseChatResult {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [error, setError] = useState<ApiError | null>(null);
   const lastSentRef = useRef<string | null>(null);
+  // Null-safe by design: outside an EntitlementProvider (isolated hook use,
+  // tests) there is no shared counter and the hook still works.
+  const entitlements = useContext(EntitlementContext);
 
   const mutation = useMutation({
     mutationFn: async (content: string): Promise<ChatMessage> => {
@@ -108,6 +119,10 @@ export function useChat(): UseChatResult {
       onSuccess: (detectiveMessage) => {
         setError(null);
         setMessages((prev) => [...prev, detectiveMessage]);
+        // One accepted turn = one question consumed from the shared cache
+        // (display estimate; the 402 pro_required error enforces the real
+        // limit). Failed turns never decrement — only successful POSTs do.
+        entitlements?.decrementChatQuestions();
       },
       onError: (mutationError) => {
         // Roll the optimistic turn back: the transcript may only contain

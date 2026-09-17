@@ -193,4 +193,74 @@ describe('EntitlementContext', () => {
 
     expect(mockApiFetch).toHaveBeenCalledTimes(1); // only /auth/me
   });
+
+  describe('decrementChatQuestions (PR #28 follow-up — client-side chat counter)', () => {
+    it('decrements the cached counter and clamps at 0', async () => {
+      mockApiFetch.mockResolvedValueOnce(testUser); // /auth/me
+      mockApiFetch.mockResolvedValueOnce(FREE_STATUS); // /billing/status
+
+      const { result } = renderHook(() => useEntitlements(), { wrapper });
+      await waitFor(() => expect(result.current.entitlements).toEqual(FREE_ENTITLEMENTS));
+
+      // One accepted turn each; waitFor re-reads the hook after the cache
+      // update re-renders the provider (concurrent scheduling in React 19).
+      act(() => { result.current.decrementChatQuestions(); });
+      await waitFor(() => expect(result.current.chatQuestionsRemaining).toBe(2));
+
+      act(() => { result.current.decrementChatQuestions(); });
+      await waitFor(() => expect(result.current.chatQuestionsRemaining).toBe(1));
+
+      act(() => { result.current.decrementChatQuestions(); });
+      await waitFor(() => expect(result.current.chatQuestionsRemaining).toBe(0));
+
+      // A fourth accepted turn must not go negative.
+      act(() => { result.current.decrementChatQuestions(); });
+      await waitFor(() => expect(result.current.chatQuestionsRemaining).toBe(0));
+      expect(queryClient.getQueryData(ENTITLEMENTS_QUERY_KEY)).toEqual({
+        ...FREE_ENTITLEMENTS,
+        chatQuestionsRemaining: 0,
+      });
+    });
+
+    it('leaves the Pro (null) counter untouched', async () => {
+      mockApiFetch.mockResolvedValueOnce(testUser); // /auth/me
+      mockApiFetch.mockResolvedValueOnce(PRO_STATUS); // /billing/status
+
+      const { result } = renderHook(() => useEntitlements(), { wrapper });
+      await waitFor(() => expect(result.current.entitlements).toEqual(PRO_ENTITLEMENTS));
+
+      act(() => { result.current.decrementChatQuestions(); });
+
+      expect(result.current.chatQuestionsRemaining).toBeNull();
+      expect(queryClient.getQueryData(ENTITLEMENTS_QUERY_KEY)).toEqual(PRO_ENTITLEMENTS);
+    });
+
+    it('refresh() re-seeds the counter from the daily allowance after decrements', async () => {
+      mockApiFetch.mockResolvedValueOnce(testUser); // /auth/me
+      mockApiFetch.mockResolvedValueOnce(FREE_STATUS); // initial fetch
+      mockApiFetch.mockResolvedValueOnce(FREE_STATUS); // refresh fetch
+
+      const { result } = renderHook(() => useEntitlements(), { wrapper });
+      await waitFor(() => expect(result.current.entitlements).toEqual(FREE_ENTITLEMENTS));
+
+      act(() => { result.current.decrementChatQuestions(); });
+      await waitFor(() => expect(result.current.chatQuestionsRemaining).toBe(2));
+
+      await act(async () => { await result.current.refresh(); });
+
+      // The decrement is a display estimate, not persistence: the refetched
+      // /billing/status re-seeds the allowance (detectiveChatLimit: 3).
+      await waitFor(() => expect(result.current.chatQuestionsRemaining).toBe(3));
+    });
+
+    it('is a no-op on an empty cache (unauthenticated) without throwing', async () => {
+      mockApiFetch.mockRejectedValueOnce(new ApiError(401, 'UNAUTHORIZED', 'no session')); // /auth/me: definitive logged-out answer
+
+      const { result } = renderHook(() => useEntitlements(), { wrapper });
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+      expect(() => act(() => { result.current.decrementChatQuestions(); })).not.toThrow();
+      expect(queryClient.getQueryData(ENTITLEMENTS_QUERY_KEY)).toBeUndefined();
+    });
+  });
 });

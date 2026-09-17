@@ -70,6 +70,7 @@ const entitlementValue = (plan: 'free' | 'pro'): EntitlementContextValue => ({
   entitlements: entitlements(plan),
   isLoading: false,
   refresh: vi.fn(),
+  decrementChatQuestions: vi.fn(),
 });
 
 /** Route probes that surface the in-memory location (MemoryRouter doesn't touch window.location). */

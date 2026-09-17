@@ -66,6 +66,7 @@ const entitlementValue = (plan: 'free' | 'pro'): EntitlementContextValue => ({
   entitlements: entitlements(plan),
   isLoading: false,
   refresh: vi.fn(),
+  decrementChatQuestions: vi.fn(),
 });
 
 const renderPage = ({ plan = 'pro' }: { plan?: 'free' | 'pro' } = {}) => {
