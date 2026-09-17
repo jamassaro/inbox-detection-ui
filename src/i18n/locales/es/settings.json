@@ -1,6 +1,50 @@
 {
   "title": "Ajustes",
+  "account": "Cuenta",
   "language": "Idioma",
   "connectedAccounts": "Cuentas conectadas",
-  "account": "Cuenta"
+  "billing": "Facturación",
+  "privacy": "Privacidad",
+  "accountSection": {
+    "name": "Nombre",
+    "email": "Correo electrónico",
+    "logout": "Cerrar sesión",
+    "deleteAccount": "Eliminar cuenta"
+  },
+  "gmail": {
+    "label": "Gmail",
+    "connected": "Gmail conectado",
+    "notConnected": "No conectado",
+    "lastSynced": "Última sincronización {{time}}",
+    "neverSynced": "Nunca sincronizado",
+    "disconnect": "Desconectar Gmail",
+    "connect": "Conectar Gmail",
+    "confirmTitle": "¿Desconectar Gmail?",
+    "confirmMessage": "Desconectar Gmail detendrá todo el monitoreo y las investigaciones. Tus datos existentes no se eliminan."
+  },
+  "calendar": {
+    "label": "Google Calendar",
+    "connected": "Google Calendar conectado",
+    "notConnected": "No conectado",
+    "disconnect": "Desconectar Calendar",
+    "connect": "Conectar Calendar",
+    "confirmTitle": "¿Desconectar Google Calendar?",
+    "confirmMessage": "Desconectar Google Calendar eliminará el acceso al calendario. Los descubrimientos y datos existentes no se eliminan."
+  },
+  "billingSection": {
+    "currentPlan": "Plan actual",
+    "manage": "Administrar facturación",
+    "plan": {
+      "free": "Gratis",
+      "pro": "Pro"
+    }
+  },
+  "privacySection": {
+    "privacyPolicy": "Política de privacidad",
+    "terms": "Términos de servicio"
+  },
+  "errors": {
+    "disconnectFailed": "No se pudo desconectar. Inténtalo de nuevo.",
+    "connectFailed": "No se pudo iniciar la conexión. Inténtalo de nuevo."
+  }
 }

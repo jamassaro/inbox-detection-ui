@@ -1,6 +1,50 @@
 {
   "title": "Settings",
+  "account": "Account",
   "language": "Language",
   "connectedAccounts": "Connected Accounts",
-  "account": "Account"
+  "billing": "Billing",
+  "privacy": "Privacy",
+  "accountSection": {
+    "name": "Name",
+    "email": "Email",
+    "logout": "Log out",
+    "deleteAccount": "Delete account"
+  },
+  "gmail": {
+    "label": "Gmail",
+    "connected": "Gmail connected",
+    "notConnected": "Not connected",
+    "lastSynced": "Last synced {{time}}",
+    "neverSynced": "Never synced",
+    "disconnect": "Disconnect Gmail",
+    "connect": "Connect Gmail",
+    "confirmTitle": "Disconnect Gmail?",
+    "confirmMessage": "Disconnecting Gmail will stop all monitoring and investigations. Your existing data is not deleted."
+  },
+  "calendar": {
+    "label": "Google Calendar",
+    "connected": "Google Calendar connected",
+    "notConnected": "Not connected",
+    "disconnect": "Disconnect Calendar",
+    "connect": "Connect Calendar",
+    "confirmTitle": "Disconnect Google Calendar?",
+    "confirmMessage": "Disconnecting Google Calendar will remove calendar access. Existing discoveries and data are not deleted."
+  },
+  "billingSection": {
+    "currentPlan": "Current plan",
+    "manage": "Manage billing",
+    "plan": {
+      "free": "Free",
+      "pro": "Pro"
+    }
+  },
+  "privacySection": {
+    "privacyPolicy": "Privacy policy",
+    "terms": "Terms of service"
+  },
+  "errors": {
+    "disconnectFailed": "Could not disconnect. Please try again.",
+    "connectFailed": "Could not start the connection flow. Please try again."
+  }
 }
