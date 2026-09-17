@@ -7,6 +7,7 @@ import { ENTITLEMENTS_QUERY_KEY } from '../entitlementContext';
 import { useAuth } from '../../hooks/useAuth';
 import { useEntitlements } from '../../hooks/useEntitlements';
 import { apiFetch } from '../../lib/apiClient';
+import { ApiError } from '../../lib/apiError';
 import type { Entitlements, User } from '../../types';
 
 vi.mock('../../lib/apiClient', () => ({
@@ -111,7 +112,7 @@ describe('EntitlementContext', () => {
   });
 
   it('unauthenticated session: entitlements null and no entitlement fetch fires', async () => {
-    mockApiFetch.mockRejectedValueOnce(new Error('401')); // /auth/me fails
+    mockApiFetch.mockRejectedValueOnce(new ApiError(401, 'UNAUTHORIZED', 'no session')); // /auth/me: definitive logged-out answer
 
     const { result } = renderHook(
       () => ({ auth: useAuth(), entitlements: useEntitlements() }),
@@ -141,7 +142,7 @@ describe('EntitlementContext', () => {
   });
 
   it('refresh() does not fetch while unauthenticated', async () => {
-    mockApiFetch.mockRejectedValueOnce(new Error('401')); // /auth/me fails
+    mockApiFetch.mockRejectedValueOnce(new ApiError(401, 'UNAUTHORIZED', 'no session')); // /auth/me: definitive logged-out answer
 
     const { result } = renderHook(() => useEntitlements(), { wrapper });
     await waitFor(() => expect(result.current.isLoading).toBe(false));

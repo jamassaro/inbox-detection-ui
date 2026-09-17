@@ -72,6 +72,18 @@ describe('apiFetch', () => {
     window.removeEventListener(AUTH_EXPIRED_EVENT, handler)
   })
 
+  it('does not dispatch auth:expired on 401 when authExpiredEvent is false', async () => {
+    mockFetchOnce(jsonResponse(401, { code: 'UNAUTHORIZED' }))
+
+    const handler = vi.fn()
+    window.addEventListener(AUTH_EXPIRED_EVENT, handler)
+
+    await expect(apiFetch('/test', { authExpiredEvent: false })).rejects.toBeInstanceOf(ApiError)
+
+    expect(handler).not.toHaveBeenCalled()
+    window.removeEventListener(AUTH_EXPIRED_EVENT, handler)
+  })
+
   it('throws ApiError with status and code on other non-2xx responses', async () => {
     mockFetchOnce(jsonResponse(500, { code: 'GMAIL_CONNECTION_EXPIRED', message: 'Gmail died' }))
 

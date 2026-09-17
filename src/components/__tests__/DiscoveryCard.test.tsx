@@ -49,6 +49,21 @@ describe('DiscoveryCard', () => {
     void i18n.changeLanguage('en');
   });
 
+  it('renders a repeated secondary action once so the action-row keys stay unique', () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    // A duplicated action in the wire payload must not yield two identical
+    // buttons (duplicate React keys): the secondary row dedupes.
+    renderCard(buildDiscovery({ availableActions: ['dismiss', 'remind', 'remind'] }));
+
+    expect(screen.getByTestId('card-primary-action')).toBeTruthy();
+    expect(screen.getAllByTestId('card-secondary-action-remind')).toHaveLength(1);
+    const duplicateKeyWarning = errorSpy.mock.calls.find((call) =>
+      call.some((arg) => typeof arg === 'string' && arg.includes('key')),
+    );
+    expect(duplicateKeyWarning).toBeUndefined();
+    errorSpy.mockRestore();
+  });
+
   it('renders for all 12 DiscoveryType values with a translated type badge', () => {
     (Object.keys(TYPE_LABELS) as DiscoveryType[]).forEach((type) => {
       renderCard(buildDiscovery({ type }));

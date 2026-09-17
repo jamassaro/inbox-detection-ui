@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import ConnectGmailPage from '../ConnectGmailPage';
 import { apiFetch } from '../../../lib/apiClient';
+import { ApiError } from '../../../lib/apiError';
 import type { GmailStatus } from '../../../hooks/useGmailStatus';
 import { AuthProvider } from '../../../contexts/AuthProvider';
 import { ToastProvider } from '../../../contexts/ToastProvider';
@@ -170,13 +171,13 @@ describe('ConnectGmailPage', () => {
   });
 
   it('redirects unauthenticated visits from /onboarding to / (ProtectedRoute)', async () => {
-    mockApiFetch.mockRejectedValueOnce(new Error('no session')); // GET /auth/me
+    mockApiFetch.mockRejectedValueOnce(new ApiError(401, 'UNAUTHORIZED', 'no session')); // GET /auth/me
     renderPage({ behindProtectedRoute: true });
 
     await waitFor(() => expect(screen.getByText('probe:/')).toBeTruthy());
     // The Gmail status check never even mounts behind the FE-003 guard.
     expect(mockApiFetch).toHaveBeenCalledTimes(1);
-    expect(mockApiFetch).toHaveBeenCalledWith('/auth/me');
+    expect(mockApiFetch).toHaveBeenCalledWith('/auth/me', { authExpiredEvent: false });
     expect(mockApiFetch).not.toHaveBeenCalledWith('/gmail/status');
   });
 
