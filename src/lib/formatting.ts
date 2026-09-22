@@ -47,6 +47,22 @@ export function formatCurrency(
   );
 }
 
+/**
+ * True for strings Intl.NumberFormat accepts as a currency code. Backend
+ * `currency` fields are free strings — they have sent non-ISO values like
+ * "percent" for rate-based discoveries, which would otherwise crash
+ * formatCurrency. Callers that receive backend data should check this
+ * before treating a value as monetary.
+ */
+export function isFormattableCurrency(currency: string): boolean {
+  try {
+    new Intl.NumberFormat('en', { style: 'currency', currency }).format(0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function formatNumber(value: number, locale: string): string {
   return new Intl.NumberFormat(locale).format(value);
 }

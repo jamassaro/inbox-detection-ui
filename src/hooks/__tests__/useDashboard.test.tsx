@@ -85,6 +85,15 @@ describe('deriveDashboardStats', () => {
     expect(stats.needsAttentionCount).toBe(2); // urgent + high
   });
 
+  it('excludes rows with a non-monetary currency from moneyFound', () => {
+    const stats = deriveDashboardStats([
+      wireDiscovery({ id: 'd1', type: 'change', priority: 'medium', amount: 5, currency: 'percent' }),
+      wireDiscovery({ id: 'd2', type: 'money', priority: 'low', amount: 100, currency: 'USD' }),
+    ]);
+
+    expect(stats.moneyFound).toEqual([{ currency: 'USD', amount: 100 }]);
+  });
+
   it('derives all-zero stats from an empty window', () => {
     expect(deriveDashboardStats([])).toEqual({
       moneyFound: [],

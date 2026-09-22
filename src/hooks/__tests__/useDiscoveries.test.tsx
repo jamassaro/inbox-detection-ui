@@ -86,6 +86,12 @@ describe('toDiscovery', () => {
     expect(discovery.type).toBe('action_required');
     expect(discovery.availableActions).toEqual(['dismiss']);
   });
+
+  it('drops amount and currency together when currency is not a formattable ISO code', () => {
+    const discovery = toDiscovery(wireRow({ amount: 5, currency: 'percent' }));
+    expect(discovery.amount).toBeUndefined();
+    expect(discovery.currency).toBeUndefined();
+  });
 });
 
 describe('useDiscoveries', () => {

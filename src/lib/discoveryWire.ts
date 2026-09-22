@@ -10,6 +10,7 @@
  * client-side filter, `priority` maps to the FE-011 importance.
  */
 import { getInitials } from './discoveryHelpers';
+import { isFormattableCurrency } from './formatting';
 import type {
   Discovery,
   DiscoveryAction,
@@ -98,6 +99,12 @@ const isDiscoveryAction = (value: string): value is DiscoveryAction =>
  * companyInitials) are derived or omitted — never fabricated.
  */
 export function toDiscovery(wire: DiscoveryWire): Discovery {
+  // Amount/currency are dropped together when currency isn't a formattable
+  // ISO code (e.g. "percent" for a rate-based discovery) — an amount with
+  // no valid monetary unit can't be rendered, and the wire's AI-generated
+  // title/summary already describe the value in words.
+  const hasMoney = wire.amount != null && !!wire.currency && isFormattableCurrency(wire.currency);
+
   return {
     id: wire.id,
     type: WIRE_TYPE_TO_DOMAIN[wire.type] ?? 'action_required',
@@ -105,8 +112,7 @@ export function toDiscovery(wire: DiscoveryWire): Discovery {
     summary: wire.description ?? '',
     company: wire.company ?? '',
     companyInitials: getInitials(wire.company ?? ''),
-    ...(wire.amount != null && { amount: wire.amount }),
-    ...(wire.currency != null && { currency: wire.currency }),
+    ...(hasMoney && { amount: wire.amount!, currency: wire.currency! }),
     ...(wire.eventDate != null && { date: wire.eventDate }),
     ...(wire.createdAt != null && { createdAt: wire.createdAt }),
     importance: WIRE_PRIORITY_TO_IMPORTANCE[wire.priority] ?? 'medium',
