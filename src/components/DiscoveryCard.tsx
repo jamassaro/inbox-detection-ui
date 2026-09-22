@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { CalendarDays } from 'lucide-react';
 import {
   getDiscoveryActionKey,
@@ -57,6 +58,7 @@ const ImportanceIndicator = ({ importance }: { importance: DiscoveryImportance }
  */
 const DiscoveryCard = ({ discovery, onAction, compact = false }: DiscoveryCardProps) => {
   const { t, i18n } = useTranslation('discoveries');
+  const navigate = useNavigate();
   const locale = i18n.language;
   const meta = getDiscoveryMeta(discovery.type);
   const { amount, previousAmount, currency = 'USD', frequency, date } = discovery;
@@ -167,13 +169,21 @@ const DiscoveryCard = ({ discovery, onAction, compact = false }: DiscoveryCardPr
         </div>
       )}
 
-      {/* Actions row: max 1 primary + 2 secondary, mapped via getDiscoveryActionKey */}
-      <div className="flex items-center gap-2" data-testid="actions-row">
+      {/* Actions row: View button always present, then max 1 primary + 2 secondary from availableActions */}
+      <div className="flex items-center justify-end gap-2" data-testid="actions-row">
+        <button
+          type="button"
+          onClick={() => navigate(`/app/discoveries/${discovery.id}`)}
+          className="border border-gray-200 text-gray-700 py-2 px-3 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
+          data-testid="card-view-action"
+        >
+          {t('actions.view')}
+        </button>
         {primaryAction != null && (
           <button
             type="button"
             onClick={() => onAction(primaryAction)}
-            className="flex-1 bg-gray-900 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
+            className="bg-gray-900 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
             data-testid="card-primary-action"
           >
             {t(getDiscoveryActionKey(primaryAction), { nsSeparator: '.' })}

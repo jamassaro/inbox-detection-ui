@@ -1,5 +1,21 @@
 {
   "title": "Subscriptions",
+  "summary": {
+    "monthlyTotal": "{{amount}} / month",
+    "annualTotal": "{{amount}} / year"
+  },
+  "list": {
+    "renewsOn": "Renews {{date}}",
+    "priceChanged": "Price changed"
+  },
+  "empty": {
+    "title": "No subscriptions detected yet",
+    "description": "Run an investigation to find subscriptions hiding in your inbox."
+  },
+  "error": {
+    "title": "Couldn't load subscriptions",
+    "retry": "Try again"
+  },
   "detail": {
     "renewalDate": "Renews on {{date}}",
     "annualizedCost": "{{amount}} per year"

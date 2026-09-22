@@ -217,6 +217,29 @@ export interface User {
   createdAt: string;
 }
 
+/** Billing cadence of a detected subscription. */
+export type SubscriptionFrequency = 'monthly' | 'annual' | 'weekly';
+
+/** A recurring charge detected in the user's inbox (FE-025). */
+export interface Subscription {
+  id: string;
+  company: string;
+  companyInitials: string;
+  product?: string;
+  currentAmount: number;
+  currency: string;
+  frequency: SubscriptionFrequency;
+  nextRenewal?: string;
+  previousAmount?: number;
+  priceChangedAt?: string;
+  discoveryId?: string;
+}
+
+/** Response shape for `GET /subscriptions`. */
+export interface SubscriptionListResponse {
+  subscriptions: Subscription[];
+}
+
 /**
  * Wire shape of `GET /account/connections` (Inbox-api BE-035) — Google
  * connection state for the signed-in user. Booleans only; tokens are never

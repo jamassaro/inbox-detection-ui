@@ -1,6 +1,7 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { I18nextProvider } from 'react-i18next';
+import { MemoryRouter } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import i18n from '../../i18n';
 import DiscoveryCard from '../DiscoveryCard';
@@ -39,7 +40,9 @@ const buildDiscovery = (overrides: Partial<Discovery> = {}): Discovery => ({
 const renderCard = (discovery: Discovery, onAction = vi.fn(), compact = false) =>
   render(
     <I18nextProvider i18n={i18n}>
-      <DiscoveryCard discovery={discovery} onAction={onAction} compact={compact} />
+      <MemoryRouter>
+        <DiscoveryCard discovery={discovery} onAction={onAction} compact={compact} />
+      </MemoryRouter>
     </I18nextProvider>,
   );
 
@@ -152,14 +155,16 @@ describe('DiscoveryCard', () => {
     const buttons = Array.from(
       screen.getByTestId('actions-row').querySelectorAll('button'),
     );
-    expect(buttons).toHaveLength(3);
-    expect(buttons[0]!.className).toContain('bg-gray-900');
-    expect(buttons[0]!.textContent).toBe('Remind me');
-    buttons.slice(1).forEach((button) => {
+    // View button is always first, then 1 primary + up to 2 secondary = 4 total.
+    expect(buttons).toHaveLength(4);
+    expect(buttons[0]!.textContent).toBe('View');
+    expect(buttons[1]!.className).toContain('bg-gray-900');
+    expect(buttons[1]!.textContent).toBe('Remind me');
+    buttons.slice(2).forEach((button) => {
       expect(button.className).toContain('border-gray-200');
     });
-    expect(buttons[1]!.textContent).toBe('Dismiss');
-    expect(buttons[2]!.textContent).toBe('View source email');
+    expect(buttons[2]!.textContent).toBe('Dismiss');
+    expect(buttons[3]!.textContent).toBe('View source email');
   });
 
   it('invokes onAction with the clicked action', async () => {

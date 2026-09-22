@@ -14,6 +14,7 @@
     "actionRequired": "Acción requerida"
   },
   "actions": {
+    "view": "Ver",
     "remindMe": "Recuérdamelo",
     "dismiss": "Descartar",
     "viewSource": "Ver correo original",

@@ -1,5 +1,21 @@
 {
   "title": "Suscripciones",
+  "summary": {
+    "monthlyTotal": "{{amount}} / mes",
+    "annualTotal": "{{amount}} / año"
+  },
+  "list": {
+    "renewsOn": "Se renueva el {{date}}",
+    "priceChanged": "Precio cambiado"
+  },
+  "empty": {
+    "title": "No se detectaron suscripciones todavía",
+    "description": "Realiza una investigación para encontrar suscripciones en tu bandeja de entrada."
+  },
+  "error": {
+    "title": "No se pudieron cargar las suscripciones",
+    "retry": "Intentar de nuevo"
+  },
   "detail": {
     "renewalDate": "Se renueva el {{date}}",
     "annualizedCost": "{{amount}} al año"

@@ -5,7 +5,8 @@
   },
   "frequency": {
     "monthly": "month",
-    "annual": "year"
+    "annual": "year",
+    "weekly": "week"
   },
   "requiresPro": {
     "message": "{{feature}} requires Pro.",
