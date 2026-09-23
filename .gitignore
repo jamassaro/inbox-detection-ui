@@ -24,3 +24,4 @@ dist-extension
 *.sln
 *.sw?
 bun.lock
+.env
