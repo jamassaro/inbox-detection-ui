@@ -18,12 +18,21 @@ export const EntitlementProvider = ({ children }: { children: ReactNode }) => {
   const { isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
 
-  const { data, isLoading } = useQuery({
+  // `isPending`, not v5's `isLoading` (isPending && isFetching): a disabled
+  // query (unauthenticated, or authenticated but the fetch hasn't started
+  // this render yet) reports isFetching: false, which would make isLoading
+  // read false for a frame right as auth resolves — entitlements: null
+  // would then look "resolved to nothing" instead of "still loading" to
+  // every consumer (e.g. SettingsPage briefly showing "Free" for a Pro
+  // user). Gating on isAuthenticated keeps it false while logged out,
+  // where there is genuinely nothing to load.
+  const { data, isPending } = useQuery({
     queryKey: ENTITLEMENTS_QUERY_KEY,
     queryFn: async (): Promise<Entitlements> =>
       mapBillingStatusToEntitlements(await apiFetch<BillingStatusWire>(BILLING_STATUS_PATH)),
     enabled: isAuthenticated,
   });
+  const isLoading = isAuthenticated && isPending;
 
   const refresh = useCallback(async () => {
     // Invalidation refetches the active ['entitlements'] query and resolves

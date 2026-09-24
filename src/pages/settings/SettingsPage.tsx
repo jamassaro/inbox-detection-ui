@@ -75,7 +75,7 @@ const SettingsPage = () => {
   const { locale } = useLocale();
   const toast = useToast();
   const { user, logout } = useAuth();
-  const { plan } = useEntitlements();
+  const { plan, isLoading: entitlementsLoading } = useEntitlements();
   const gmailStatus = useGmailStatus();
   const calendarStatus = useCalendarStatus();
   const disconnectGmail = useDisconnectGmail();
@@ -264,7 +264,11 @@ const SettingsPage = () => {
           <p className="text-sm text-gray-600">
             {t('billingSection.currentPlan')}:{' '}
             <span className="font-medium text-gray-900" data-testid="billing-plan">
-              {t(`billingSection.plan.${plan ?? 'free'}`)}
+              {entitlementsLoading ? (
+                <span className="inline-block h-4 w-16 bg-gray-200 rounded animate-pulse" aria-busy="true" />
+              ) : (
+                t(`billingSection.plan.${plan ?? 'free'}`)
+              )}
             </span>
           </p>
           <Link

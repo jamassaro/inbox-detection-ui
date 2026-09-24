@@ -355,7 +355,8 @@ describe('SettingsPage', () => {
   it('shows the current plan and a manage-billing link for Free and Pro users', async () => {
     mockBackend({ plan: 'free' });
     const { unmount } = renderPage();
-    expect((await screen.findByTestId('billing-plan')).textContent).toBe('Free');
+    await screen.findByTestId('billing-plan');
+    await waitFor(() => expect(screen.getByTestId('billing-plan').textContent).toBe('Free'));
     expect(screen.getByTestId('manage-billing-link').getAttribute('href')).toBe(
       '/app/settings/billing',
     );
