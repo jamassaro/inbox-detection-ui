@@ -3,8 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { LayoutDashboard, Sparkles, CreditCard, MessageCircle, Settings, Mail } from 'lucide-react';
 import LanguageSelector from './LanguageSelector';
 import AgentStatusBadge from './AgentStatusBadge';
+import RemindersWidget from './RemindersWidget';
 import { useGmailStatus } from '../hooks/useGmailStatus';
 import { useTriggerInvestigation } from '../hooks/useInvestigation';
+import { useIsScanActive } from '../hooks/useInvestigationStatus';
 
 const navItems = [
   { icon: LayoutDashboard, label: 'nav.dashboard', path: '/app/dashboard' },
@@ -31,17 +33,24 @@ const Sidebar = () => {
   // (plural) — a route the backend has never served; the real surface is
   // `POST /investigation` (BE-025), which useTriggerInvestigation owns.
   const triggerInvestigation = useTriggerInvestigation();
-  const isInvestigating = triggerInvestigation.isPending;
+  // Disabled whenever a scan is active for ANY reason — this button's own
+  // pending POST, another tab's manual trigger, or Pro's automatic hourly
+  // re-scan — not just this component's own mutation state.
+  const scanActiveElsewhere = useIsScanActive();
+  const isInvestigating = triggerInvestigation.isPending || scanActiveElsewhere;
 
   return (
     <div className="w-48 bg-gray-50 border-r border-gray-200 flex flex-col h-screen">
       {/* Header: brand + agent badge + real Gmail status */}
       <div className="p-4 border-b border-gray-200">
-        <div className="flex items-center gap-2 mb-2">
-          <div className="w-8 h-8 bg-gray-800 rounded-lg flex items-center justify-center">
-            <Mail className="w-5 h-5 text-white" />
+        <div className="flex items-center justify-between gap-2 mb-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-8 h-8 bg-gray-800 rounded-lg flex items-center justify-center shrink-0">
+              <Mail className="w-5 h-5 text-white" />
+            </div>
+            <h1 className="font-semibold text-sm leading-tight">{t('app.name')}</h1>
           </div>
-          <h1 className="font-semibold text-sm">{t('app.name')}</h1>
+          <RemindersWidget />
         </div>
         {isLoading ? (
           <div className="h-4 w-28 bg-gray-200 rounded animate-pulse" aria-hidden="true" />

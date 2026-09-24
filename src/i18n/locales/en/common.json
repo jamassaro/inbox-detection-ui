@@ -51,6 +51,20 @@
       "day_other": "{{count}} days ago"
     }
   },
+  "scanStatus": {
+    "title": "Agent activity",
+    "error": "Couldn't load scan status.",
+    "scanning": "Scanning your inbox…",
+    "emailsReviewed": "emails reviewed",
+    "neverScanned": "Your agent hasn't scanned your inbox yet.",
+    "failed": "The last scan failed.",
+    "lastScan_one": "Last scan finished {{time}} — found {{count}} discovery.",
+    "lastScan_other": "Last scan finished {{time}} — found {{count}} discoveries.",
+    "reviewingRange": "Now reviewing the last {{days}} days: {{start}} – {{end}}",
+    "reviewedRange": "Reviewed the last {{days}} days: {{start}} – {{end}}",
+    "nextScan": "Next automatic scan: {{time}}",
+    "nextScanPending": "Continuous monitoring is scheduling your next scan."
+  },
   "search": {
     "placeholder": "Search companies or offers"
   },

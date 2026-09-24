@@ -35,5 +35,23 @@
     "cancel": "No pudimos cancelar el recordatorio. Inténtalo de nuevo.",
     "invalidDate": "Elige una fecha y una hora válidas.",
     "titleRequired": "Ponle un título al recordatorio."
+  },
+  "widget": {
+    "title": "Recordatorios",
+    "tabs": {
+      "upcoming": "Próximos",
+      "history": "Historial"
+    },
+    "status": {
+      "sent": "Enviado",
+      "cancelled": "Cancelado",
+      "failed": "Fallido"
+    },
+    "viewDiscovery": "Ver descubrimiento",
+    "empty": {
+      "upcoming": "No tienes recordatorios próximos.",
+      "history": "Todavía no hay historial de recordatorios."
+    },
+    "error": "No se pudieron cargar los recordatorios."
   }
 }

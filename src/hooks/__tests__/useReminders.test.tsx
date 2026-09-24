@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { apiFetch } from '../../lib/apiClient';
 import {
   REMINDERS_QUERY_KEY,
+  useAllReminders,
   useCreateReminder,
   useDeleteReminder,
   useReminders,
@@ -202,5 +203,87 @@ describe('useDeleteReminder', () => {
 describe('REMINDERS_QUERY_KEY', () => {
   it('is the stable list cache key', () => {
     expect(REMINDERS_QUERY_KEY).toEqual(['reminders']);
+  });
+});
+
+describe('useAllReminders', () => {
+  beforeEach(() => {
+    mockApiFetch.mockReset();
+  });
+
+  afterEach(cleanup);
+
+  it('fetches every reminder with no status filter', async () => {
+    const rows = [
+      wireReminder(),
+      wireReminder({ id: 'rem_2', status: 'sent' }),
+      wireReminder({ id: 'rem_3', status: 'cancelled' }),
+    ];
+    mockApiFetch.mockResolvedValue({ reminders: rows });
+
+    const { result } = renderHook(() => useAllReminders(), { wrapper: makeWrapper() });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(mockApiFetch).toHaveBeenCalledWith('/reminders');
+    expect(result.current.data?.reminders).toEqual(rows);
+  });
+
+  it('surfaces the list error instead of swallowing it', async () => {
+    mockApiFetch.mockRejectedValue(new Error('list unavailable'));
+
+    const { result } = renderHook(() => useAllReminders(), { wrapper: makeWrapper() });
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+  });
+
+  it('caches independently from the pending-only list — no cross-contamination', async () => {
+    mockApiFetch.mockImplementation((path: string) => {
+      if (path === '/reminders?status=pending') {
+        return Promise.resolve({ reminders: [wireReminder()] });
+      }
+      if (path === '/reminders') {
+        return Promise.resolve({
+          reminders: [wireReminder(), wireReminder({ id: 'rem_2', status: 'sent' })],
+        });
+      }
+      return Promise.reject(new Error(`unexpected path: ${String(path)}`));
+    });
+
+    const wrapper = makeWrapper();
+    const pending = renderHook(() => useReminders(), { wrapper });
+    const all = renderHook(() => useAllReminders(), { wrapper });
+
+    await waitFor(() => expect(pending.result.current.isPending).toBe(false));
+    await waitFor(() => expect(all.result.current.isSuccess).toBe(true));
+
+    expect(pending.result.current.reminders).toHaveLength(1);
+    expect(all.result.current.data?.reminders).toHaveLength(2);
+  });
+
+  it('is refetched when a mutation invalidates the reminders prefix', async () => {
+    let cancelled = false;
+    mockApiFetch.mockImplementation((path: string) => {
+      if (path === '/reminders') {
+        return Promise.resolve({
+          reminders: cancelled ? [wireReminder({ status: 'cancelled' })] : [wireReminder()],
+        });
+      }
+      if (path === '/reminders/rem_1') {
+        cancelled = true;
+        return Promise.resolve(undefined);
+      }
+      return Promise.reject(new Error(`unexpected path: ${String(path)}`));
+    });
+
+    const wrapper = makeWrapper();
+    const all = renderHook(() => useAllReminders(), { wrapper });
+    const del = renderHook(() => useDeleteReminder(), { wrapper });
+
+    await waitFor(() => expect(all.result.current.data?.reminders[0]?.status).toBe('pending'));
+
+    del.result.current.mutate('rem_1');
+
+    await waitFor(() => expect(del.result.current.isSuccess).toBe(true));
+    await waitFor(() => expect(all.result.current.data?.reminders[0]?.status).toBe('cancelled'));
   });
 });

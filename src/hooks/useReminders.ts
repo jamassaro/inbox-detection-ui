@@ -42,10 +42,16 @@ export interface CreateReminderResponse {
   status: ReminderStatus;
 }
 
-/** TanStack Query cache key for the pending-reminders list. */
+/**
+ * Base TanStack Query cache key prefix for every reminders list, regardless
+ * of which status filter it was fetched with — the three mutations below
+ * invalidate this bare prefix, which matches (and so refreshes) every keyed
+ * variant at once.
+ */
 export const REMINDERS_QUERY_KEY = ['reminders'] as const;
 
-const REMINDERS_LIST_PATH = '/reminders?status=pending';
+/** Keyed cache entry for one status filter ('all' = no filter, every status). */
+const remindersQueryKey = (status: ReminderStatus | 'all') => [...REMINDERS_QUERY_KEY, status] as const;
 
 /**
  * Pending reminders for the signed-in user, optionally narrowed to one
@@ -54,8 +60,8 @@ const REMINDERS_LIST_PATH = '/reminders?status=pending';
  */
 export function useReminders(discoveryId?: string) {
   const query = useQuery({
-    queryKey: REMINDERS_QUERY_KEY,
-    queryFn: () => apiFetch<{ reminders: ReminderWire[] }>(REMINDERS_LIST_PATH),
+    queryKey: remindersQueryKey('pending'),
+    queryFn: () => apiFetch<{ reminders: ReminderWire[] }>('/reminders?status=pending'),
     retry: false,
   });
 
@@ -65,6 +71,21 @@ export function useReminders(discoveryId?: string) {
   }, [query.data, discoveryId]);
 
   return { ...query, reminders };
+}
+
+/**
+ * Every reminder for the signed-in user, any status, in one request —
+ * `GET /reminders` with no `status` param returns the full unfiltered set,
+ * sorted `remindAt` ascending (BE-031, no pagination). Backs the Reminders
+ * widget's Upcoming/History grouping, which is derived client-side from
+ * this single list rather than one request per tab.
+ */
+export function useAllReminders() {
+  return useQuery({
+    queryKey: remindersQueryKey('all'),
+    queryFn: () => apiFetch<{ reminders: ReminderWire[] }>('/reminders'),
+    retry: false,
+  });
 }
 
 /**

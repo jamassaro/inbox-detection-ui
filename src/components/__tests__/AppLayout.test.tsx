@@ -6,6 +6,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import AppLayout from '../AppLayout';
 import { apiFetch } from '../../lib/apiClient';
 import { LocaleProvider } from '../../contexts/LocaleProvider';
+import { ToastProvider } from '../../contexts/ToastProvider';
 import i18n from '../../i18n';
 
 vi.mock('../../lib/apiClient', () => ({
@@ -26,15 +27,17 @@ describe('AppLayout', () => {
     const { container } = render(
       <QueryClientProvider client={queryClient}>
         <I18nextProvider i18n={i18n}>
-          <LocaleProvider>
-            <MemoryRouter initialEntries={['/app/dashboard']}>
-              <Routes>
-                <Route path="/app" element={<AppLayout />}>
-                  <Route path="dashboard" element={<div>dash-content</div>} />
-                </Route>
-              </Routes>
-            </MemoryRouter>
-          </LocaleProvider>
+          <ToastProvider>
+            <LocaleProvider>
+              <MemoryRouter initialEntries={['/app/dashboard']}>
+                <Routes>
+                  <Route path="/app" element={<AppLayout />}>
+                    <Route path="dashboard" element={<div>dash-content</div>} />
+                  </Route>
+                </Routes>
+              </MemoryRouter>
+            </LocaleProvider>
+          </ToastProvider>
         </I18nextProvider>
       </QueryClientProvider>,
     );

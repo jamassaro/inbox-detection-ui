@@ -51,6 +51,20 @@
       "day_other": "hace {{count}} días"
     }
   },
+  "scanStatus": {
+    "title": "Actividad del agente",
+    "error": "No se pudo cargar el estado del análisis.",
+    "scanning": "Analizando tu bandeja de entrada…",
+    "emailsReviewed": "correos revisados",
+    "neverScanned": "Tu agente todavía no ha analizado tu bandeja de entrada.",
+    "failed": "El último análisis falló.",
+    "lastScan_one": "Último análisis finalizado {{time}} — se encontró {{count}} hallazgo.",
+    "lastScan_other": "Último análisis finalizado {{time}} — se encontraron {{count}} hallazgos.",
+    "reviewingRange": "Revisando ahora los últimos {{days}} días: {{start}} – {{end}}",
+    "reviewedRange": "Se revisaron los últimos {{days}} días: {{start}} – {{end}}",
+    "nextScan": "Próximo análisis automático: {{time}}",
+    "nextScanPending": "El monitoreo continuo está programando tu próximo análisis."
+  },
   "search": {
     "placeholder": "Busca empresas u ofertas"
   },

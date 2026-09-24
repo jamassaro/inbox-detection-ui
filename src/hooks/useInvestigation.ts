@@ -1,6 +1,8 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '../lib/apiClient';
 import type { DiscoveriesWire } from '../lib/discoveryWire';
+import { INVESTIGATION_STATUS_QUERY_KEY } from './useInvestigationStatus';
+import type { InvestigationStatusWire, LatestScanStatus } from './useInvestigationStatus';
 
 /**
  * Investigation-flow hooks (FE-009): trigger an investigation, poll its
@@ -227,14 +229,39 @@ const toWireStatus = (value: string | undefined): InvestigationWireStatus | null
  * sent — the backend default lookback applies (BE-025). The backend is
  * idempotent while a scan is queued/running, but callers still guard against
  * double-POST on re-render/StrictMode double-invoke (FE-009 trust rule).
+ *
+ * On success, optimistically writes the new run into the shared
+ * `['investigation', 'status']` cache (useInvestigationStatus) so every
+ * consumer — Sidebar's disabled state, the floating scan-status widget —
+ * sees it as active immediately, regardless of which one triggered it or
+ * whether the next 60s status poll has landed yet.
  */
 export function useTriggerInvestigation() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: async (): Promise<TriggerInvestigationResult> => {
       const wire = await apiFetch<TriggerInvestigationWire>(INVESTIGATION_PATH, {
         method: 'POST',
       });
       return { id: wire.investigationId, status: toWireStatus(wire.status) };
+    },
+    onSuccess: ({ id, status }) => {
+      // 'cancelled' has no useInvestigationStatus equivalent (like
+      // toInvestigationStatus's UI mapping, it folds into 'failed').
+      const latestScanStatus: LatestScanStatus = status === 'cancelled' ? 'failed' : (status ?? 'queued');
+      queryClient.setQueryData<InvestigationStatusWire>(INVESTIGATION_STATUS_QUERY_KEY, (current) => ({
+        monitoring: current?.monitoring ?? { enabled: false, intervalMinutes: 60, nextScanAt: null },
+        latestScan: {
+          id,
+          status: latestScanStatus,
+          startedAt: null,
+          completedAt: null,
+          emailsProcessed: 0,
+          emailsDiscovered: 0,
+          discoveriesCreated: 0,
+        },
+      }));
     },
   });
 }

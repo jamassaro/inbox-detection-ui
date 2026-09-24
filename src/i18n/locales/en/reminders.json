@@ -35,5 +35,23 @@
     "cancel": "We couldn't cancel the reminder. Please try again.",
     "invalidDate": "Pick a valid date and time.",
     "titleRequired": "Give the reminder a title."
+  },
+  "widget": {
+    "title": "Reminders",
+    "tabs": {
+      "upcoming": "Upcoming",
+      "history": "History"
+    },
+    "status": {
+      "sent": "Sent",
+      "cancelled": "Cancelled",
+      "failed": "Failed"
+    },
+    "viewDiscovery": "View discovery",
+    "empty": {
+      "upcoming": "No upcoming reminders.",
+      "history": "No reminder history yet."
+    },
+    "error": "Couldn't load reminders."
   }
 }

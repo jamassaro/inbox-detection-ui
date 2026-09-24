@@ -8,6 +8,7 @@ import Sidebar from '../Sidebar';
 import { apiFetch } from '../../lib/apiClient';
 import type { GmailStatus } from '../../hooks/useGmailStatus';
 import { LocaleProvider } from '../../contexts/LocaleProvider';
+import { ToastProvider } from '../../contexts/ToastProvider';
 import i18n from '../../i18n';
 
 vi.mock('../../lib/apiClient', () => ({
@@ -37,35 +38,50 @@ const renderSidebar = ({ initialEntry = '/app/dashboard' } = {}) => {
   return render(
     <QueryClientProvider client={queryClient}>
       <I18nextProvider i18n={i18n}>
-        <LocaleProvider>
-          <MemoryRouter initialEntries={[initialEntry]}>
-            <Routes>
-              {/* PathProbe rides along inside the shell route so on-route assertions work too. */}
-              <Route
-                path="/app/*"
-                element={
-                  <>
-                    <Sidebar />
-                    <PathProbe />
-                  </>
-                }
-              />
-              <Route path="*" element={<PathProbe />} />
-            </Routes>
-          </MemoryRouter>
-        </LocaleProvider>
+        <ToastProvider>
+          <LocaleProvider>
+            <MemoryRouter initialEntries={[initialEntry]}>
+              <Routes>
+                {/* PathProbe rides along inside the shell route so on-route assertions work too. */}
+                <Route
+                  path="/app/*"
+                  element={
+                    <>
+                      <Sidebar />
+                      <PathProbe />
+                    </>
+                  }
+                />
+                <Route path="*" element={<PathProbe />} />
+              </Routes>
+            </MemoryRouter>
+          </LocaleProvider>
+        </ToastProvider>
       </I18nextProvider>
     </QueryClientProvider>,
   );
 };
 
+/** Wire body of GET /investigation/status (useInvestigationStatus). */
+const investigationStatus = (overrides: Partial<{ latestScan: unknown; monitoring: unknown }> = {}) => ({
+  latestScan: null,
+  monitoring: { enabled: false, intervalMinutes: 60, nextScanAt: null },
+  ...overrides,
+});
+
 /** Mocks apiFetch routing by path: connections/stats + investigation POST. */
 const stubApi = ({
   status = gmailStatus(),
   investigations,
+  scanStatus = investigationStatus(),
+  reminders = [],
 }: {
   status?: GmailStatus;
   investigations?: () => Promise<unknown>;
+  /** useIsScanActive's own source (useInvestigationStatus) — never-scanned/inactive by default. */
+  scanStatus?: ReturnType<typeof investigationStatus>;
+  /** RemindersWidget's own source (useAllReminders) — empty by default. */
+  reminders?: unknown[];
 } = {}) => {
   mockApiFetch.mockImplementation(async (path: string, options?: RequestInit) => {
     // useGmailStatus composes the two REAL endpoints (BE-035 + BE-045):
@@ -84,6 +100,8 @@ const stubApi = ({
       if (!investigations) throw new Error('unexpected POST /investigation');
       return investigations();
     }
+    if (path === '/investigation/status') return scanStatus;
+    if (path === '/reminders') return { reminders };
     throw new Error(`unexpected apiFetch: ${path} ${options?.method ?? 'GET'}`);
   });
 };
@@ -237,6 +255,35 @@ describe('Sidebar', () => {
       // Stays on the same route — no navigation on failure.
       expect(screen.getByText('probe:/app/dashboard')).toBeTruthy();
     });
+
+    it('disables the button while a scan is active for any reason, not just its own mutation', async () => {
+      // Nothing was clicked in THIS render — /investigation/status alone
+      // (another tab's manual trigger, or Pro's automatic hourly re-scan)
+      // reports a run in flight.
+      stubApi({
+        status: gmailStatus({ connected: true }),
+        scanStatus: investigationStatus({
+          latestScan: { id: 'inv-elsewhere', status: 'running' },
+        }),
+      });
+      renderSidebar();
+
+      const button = await screen.findByRole('button', { name: 'Investigating...' });
+      expect((button as HTMLButtonElement).disabled).toBe(true);
+    });
+
+    it('re-enables the button once the externally-tracked scan finishes', async () => {
+      stubApi({
+        status: gmailStatus({ connected: true }),
+        scanStatus: investigationStatus({
+          latestScan: { id: 'inv-elsewhere', status: 'completed' },
+        }),
+      });
+      renderSidebar();
+
+      const button = await screen.findByRole('button', { name: 'Scan Inbox' });
+      expect((button as HTMLButtonElement).disabled).toBe(false);
+    });
   });
 
   describe('i18n', () => {
@@ -248,6 +295,25 @@ describe('Sidebar', () => {
       expect(screen.getByRole('button', { name: 'Escanear bandeja' })).toBeTruthy();
       expect((await screen.findAllByText('No conectado')).length).toBeGreaterThanOrEqual(1);
       expect(screen.getByRole('link', { name: 'Conectar Gmail' })).toBeTruthy();
+    });
+  });
+
+  describe('Reminders widget', () => {
+    it('renders the bell toggle, reflects the pending count in its badge, and opens the panel', async () => {
+      stubApi({
+        reminders: [
+          { id: 'rem_1', discoveryId: 'd1', title: 'Netflix', remindAt: '2026-10-01T09:00:00.000Z', status: 'pending' },
+          { id: 'rem_2', discoveryId: 'd2', title: 'Spotify', remindAt: '2026-10-02T09:00:00.000Z', status: 'sent' },
+        ],
+      });
+      const user = userEvent.setup();
+      renderSidebar();
+
+      const badge = await screen.findByTestId('reminders-widget-badge');
+      expect(badge.textContent).toBe('1');
+
+      await user.click(screen.getByTestId('reminders-widget-toggle'));
+      expect(await screen.findByTestId('reminders-widget-panel')).toBeTruthy();
     });
   });
 });
