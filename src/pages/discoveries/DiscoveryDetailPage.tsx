@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, CalendarClock, ThumbsDown, ThumbsUp } from 'lucide-react';
+import { ArrowLeft, CalendarClock, ExternalLink, ThumbsDown, ThumbsUp } from 'lucide-react';
 import ActionButton from '../../components/ActionButton';
 import ConfirmModal from '../../components/ConfirmModal';
-import EmailDrawer from '../../components/EmailDrawer';
+import EmailEvidenceList from '../../components/EmailEvidenceList';
 import ErrorState from '../../components/ErrorState';
 import Modal from '../../components/Modal';
 import ReminderModal from '../../components/ReminderModal';
@@ -15,7 +15,7 @@ import RequiresPro from '../../components/RequiresPro';
 import { useEntitlements } from '../../hooks/useEntitlements';
 import { useToast } from '../../hooks/useToast';
 import { useDiscoveryFeedback, useDismissDiscovery } from '../../hooks/useDiscoveries';
-import { useDiscovery } from '../../hooks/useDiscovery';
+import { useDiscovery, useDiscoverySource } from '../../hooks/useDiscovery';
 import {
   getDiscoveryActionKey,
   getDiscoveryMeta,
@@ -73,11 +73,13 @@ function annualizedCost(amount: number, frequency: NonNullable<Discovery['freque
  *
  * Backend reality (BE-028/BE-029 — see hooks/useDiscovery.ts): the detail
  * route returns the raw Prisma row mapped through the shared toDiscovery
- * adapter, evidence lives at GET /:id/evidence (fetched by the EmailDrawer
- * on open), and dismiss/feedback reuse the FE-013 mutations. `previousAmount`
- * does not exist on the wire — the Was/Now diff only renders when a value is
- * actually present; nothing is fabricated. Locked rows answer 402 and render
- * the paywall state instead of any narrative content.
+ * adapter, evidence lives at GET /:id/evidence (fetched inline, always —
+ * EmailEvidenceList, not a drawer), and dismiss/feedback reuse the FE-013
+ * mutations. `previousAmount` does not exist on the wire — the Was/Now diff
+ * only renders when a value is actually present; nothing is fabricated.
+ * Locked rows answer 402 and render the paywall state instead of any
+ * narrative content (callToActions included — a locked row never leaks a
+ * clickable merchant link any more than it leaks the summary).
  */
 const DiscoveryDetailPage = () => {
   const { id = '' } = useParams<{ id: string }>();
@@ -91,7 +93,11 @@ const DiscoveryDetailPage = () => {
   const dismissDiscovery = useDismissDiscovery();
   const feedback = useDiscoveryFeedback();
 
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  // Evidence renders inline on the page now (no drawer) — always fetched,
+  // not gated on a user click, since the page has the room for it.
+  const evidence = useDiscoverySource(id, true);
+  const evidenceSectionRef = useRef<HTMLElement>(null);
+
   const [confirmDismissOpen, setConfirmDismissOpen] = useState(false);
   const [paywallFeature, setPaywallFeature] = useState<'calendarActions' | null>(null);
 
@@ -110,6 +116,21 @@ const DiscoveryDetailPage = () => {
     next.delete('openReminder');
     setSearchParams(next, { replace: true });
   }, [searchParams, setSearchParams]);
+
+  // `?scrollTo=evidence` (list-page "View evidence" clicks): jump straight
+  // to the section instead of landing at the top like a plain "View"
+  // click. Gated on the ref actually being attached — the section only
+  // mounts once the discovery has loaded, past the loading/error returns
+  // below — so this re-checks on every render (via the `discovery` dep)
+  // until it can actually scroll, then clears the param once.
+  useEffect(() => {
+    if (searchParams.get('scrollTo') !== 'evidence') return;
+    if (!evidenceSectionRef.current) return;
+    evidenceSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const next = new URLSearchParams(searchParams);
+    next.delete('scrollTo');
+    setSearchParams(next, { replace: true });
+  }, [searchParams, setSearchParams, discovery]);
 
   // Consume the OAuth return context exactly once, on mount, and only when
   // it points at THIS discovery. useState initializer = intentional
@@ -140,24 +161,22 @@ const DiscoveryDetailPage = () => {
       case 'dismiss':
         setConfirmDismissOpen(true);
         break;
-      case 'view_source':
-        setDrawerOpen(true);
-        break;
-      case 'remind':
+      case 'create_reminder':
         // FE-020: the ReminderModal owns both plans — Free sees the inline
         // upgrade prompt inside the dialog, Pro gets the real flow.
         setReminderOpen(true);
         break;
-      case 'find_time':
+      case 'check_availability':
         openPaywallOrToast('calendarActions', t('detail.findTimeUnavailable.body'));
         break;
-      case 'ask_detective':
-        navigate(`/app/chat?discoveryId=${discovery?.id ?? id}`);
-        break;
       default:
-        // open_provider has no backend URL to link to (BE-029 sends none), and
-        // review_subscription/investigate/track_refund route through their own
-        // tickets — surfacing them as clickable no-ops would lie.
+        // investigate has no shipped flow yet. view_evidence never reaches
+        // here (evidence is unconditionally visible on this page — rowActions
+        // excludes it below, since scrolling to something already on screen
+        // reads as a dead click). open_provider is rendered as real CTA links
+        // above (never dispatched through here). upgrade never reaches this
+        // switch (locked rows 402 into the separate locked-state render
+        // above). Surfacing any of these as a no-op click would lie.
         toast.info(t('detail.actionUnavailable.body'));
         break;
     }
@@ -221,11 +240,19 @@ const DiscoveryDetailPage = () => {
     : null;
   const isDismissed = discovery.status === 'dismissed';
   // FE-021: meeting_request discoveries get the real booking flow inline; it
-  // replaces the find_time action button instead of duplicating it.
+  // replaces the check_availability action button instead of duplicating it.
   const isMeetingDiscovery = discovery.type === 'meeting';
-  const rowActions = isMeetingDiscovery
-    ? discovery.availableActions.filter((action) => action !== 'find_time')
-    : discovery.availableActions;
+  const rowActions = discovery.availableActions.filter((action) => {
+    if (action === 'open_provider') return false; // rendered as real CTA links, not a generic button
+    // Evidence is unconditionally visible on this page (the section below
+    // renders regardless of availableActions) — a button that only scrolls
+    // to something already on screen reads as a dead click, especially on
+    // a short discovery where it's already in view. Meaningful only on the
+    // list pages, which don't have the section at all.
+    if (action === 'view_evidence') return false;
+    if (isMeetingDiscovery && action === 'check_availability') return false;
+    return true;
+  });
 
   return (
     <div className="p-6 lg:p-8" data-testid="discovery-detail-page">
@@ -328,6 +355,32 @@ const DiscoveryDetailPage = () => {
           </p>
         </section>
 
+        {/* Call-to-action links — real merchant links extracted from the
+            source email (never AI-invented). Untrusted third-party content:
+            plain external links, no auto-navigation. The backend's own
+            ordering is preserved; the first is the primary CTA. */}
+        {discovery.callToActions && discovery.callToActions.length > 0 ? (
+          <section className="mt-4 flex flex-wrap gap-2" data-testid="detail-cta-row">
+            {discovery.callToActions.map((cta, index) => (
+              <a
+                key={cta.url}
+                href={cta.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-testid="detail-cta-link"
+                className={
+                  index === 0
+                    ? 'inline-flex items-center gap-1.5 rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-800'
+                    : 'inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50'
+                }
+              >
+                {cta.label}
+                <ExternalLink aria-hidden="true" className="h-4 w-4" />
+              </a>
+            ))}
+          </section>
+        ) : null}
+
         {/* Meeting flow — approve-then-create booking for meeting_request
             discoveries (FE-021). RequiresPro gates Free users to the upgrade
             prompt; Pro users get slot picking, approval, and event creation. */}
@@ -347,19 +400,25 @@ const DiscoveryDetailPage = () => {
           </section>
         ) : null}
 
-        {/* Source evidence — opens the drawer (lazy fetch inside) */}
-        <section className="mt-4" data-testid="detail-source-section">
-          <ActionButton
-            variant="secondary"
-            onClick={() => setDrawerOpen(true)}
-            data-testid="view-source-button"
-          >
-            {t('detail.viewSource')}
-          </ActionButton>
+        {/* Source evidence — inline, not a drawer: the page has the room. */}
+        <section className="mt-4 rounded-xl border border-gray-200 bg-white p-5" data-testid="detail-source-section" ref={evidenceSectionRef}>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
+            {t('drawer.title')}
+          </h2>
+          <div className="mt-3">
+            <EmailEvidenceList
+              data={evidence.data}
+              isPending={evidence.isPending}
+              isError={evidence.isError}
+              onRetry={() => void evidence.refetch()}
+            />
+          </div>
         </section>
 
-        {/* Actions — every backend-provided action, handlers per ticket
-            (find_time omitted on meetings: the inline flow is the action) */}
+        {/* Actions — every backend-provided action except open_provider (its
+            own CTA row above), view_evidence (the section above is always
+            visible), and check_availability on meetings (the inline flow is
+            the action) */}
         {rowActions.length > 0 ? (
           <section className="mt-6" data-testid="detail-actions">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
@@ -452,13 +511,6 @@ const DiscoveryDetailPage = () => {
       >
         {paywallFeature ? <UpgradePrompt feature={paywallFeature} /> : null}
       </Modal>
-
-      {/* Evidence drawer — slide-in from the right, fetches on open */}
-      <EmailDrawer
-        discoveryId={id}
-        isOpen={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-      />
     </div>
   );
 };

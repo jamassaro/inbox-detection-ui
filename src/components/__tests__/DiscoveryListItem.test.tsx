@@ -23,7 +23,8 @@ const buildDiscovery = (overrides: Partial<Discovery> = {}): Discovery => ({
   importance: 'medium',
   status: 'new',
   locked: false,
-  availableActions: ['remind', 'dismiss'],
+  availableActions: ['create_reminder', 'dismiss'],
+  callToActions: null,
   ...overrides,
 });
 
@@ -96,12 +97,20 @@ describe('DiscoveryListItem', () => {
   it('invokes onAction for the primary action without navigating', async () => {
     const onAction = vi.fn();
     renderListItem(
-      buildDiscovery({ id: 'disc-42', availableActions: ['remind', 'dismiss'] }),
+      buildDiscovery({ id: 'disc-42', availableActions: ['create_reminder', 'dismiss'] }),
       onAction,
     );
     await userEvent.click(screen.getByTestId('list-item-primary-action'));
     expect(onAction).toHaveBeenCalledTimes(1);
-    expect(onAction).toHaveBeenCalledWith('remind');
+    expect(onAction).toHaveBeenCalledWith('create_reminder');
     expect(screen.getByTestId('location').textContent).toBe('/app/discoveries');
+  });
+
+  it('excludes open_provider from the primary-action slot (it has no room for real CTA links here)', async () => {
+    const onAction = vi.fn();
+    renderListItem(buildDiscovery({ availableActions: ['open_provider', 'dismiss'] }), onAction);
+
+    await userEvent.click(screen.getByTestId('list-item-primary-action'));
+    expect(onAction).toHaveBeenCalledWith('dismiss');
   });
 });

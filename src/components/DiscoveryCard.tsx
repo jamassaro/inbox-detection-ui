@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { CalendarDays } from 'lucide-react';
+import { CalendarDays, ExternalLink } from 'lucide-react';
 import {
   getDiscoveryActionKey,
   getDiscoveryMeta,
@@ -69,13 +69,18 @@ const DiscoveryCard = ({ discovery, onAction, compact = false }: DiscoveryCardPr
   const frequencySuffix = frequencyKey ? t(frequencyKey) : '';
 
   // Actions come from the backend via availableActions; labels map through
-  // getDiscoveryActionKey so raw enum values never reach the UI. Dedupe so a
-  // duplicated action in the wire payload cannot produce duplicate React
-  // keys in the secondary-action row (primary keeps its first occurrence).
-  const [primaryAction, ...secondaryActionsRaw] = discovery.availableActions.slice(
-    0,
-    MAX_VISIBLE_ACTIONS,
+  // getDiscoveryActionKey so raw enum values never reach the UI. Two are
+  // excluded from these primary/secondary slots: open_provider gets its own
+  // CTA row below (real external links, not a single onAction click), and
+  // view_evidence would just navigate to the same place the always-present
+  // View button already goes — a near-duplicate button competing for a
+  // scarce slot. Dedupe so a duplicated action in the wire payload cannot
+  // produce duplicate React keys in the secondary-action row (primary keeps
+  // its first occurrence).
+  const clickableActions = discovery.availableActions.filter(
+    (action) => action !== 'open_provider' && action !== 'view_evidence',
   );
+  const [primaryAction, ...secondaryActionsRaw] = clickableActions.slice(0, MAX_VISIBLE_ACTIONS);
   const secondaryActions = [...new Set(secondaryActionsRaw)];
 
   const priceChange =
@@ -166,6 +171,27 @@ const DiscoveryCard = ({ discovery, onAction, compact = false }: DiscoveryCardPr
               )}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Call-to-action links — real merchant links from the source email
+          (never AI-invented), own row: multiple external links don't fit
+          the single primary + 2 secondary onAction slots below. */}
+      {discovery.callToActions && discovery.callToActions.length > 0 && (
+        <div className="flex flex-wrap gap-2 mb-3" data-testid="cta-row">
+          {discovery.callToActions.map((cta) => (
+            <a
+              key={cta.url}
+              href={cta.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-testid="cta-link"
+              className="inline-flex items-center gap-1 rounded-md bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-700 transition-colors hover:bg-green-200"
+            >
+              {cta.label}
+              <ExternalLink aria-hidden="true" className="h-3 w-3" />
+            </a>
+          ))}
         </div>
       )}
 

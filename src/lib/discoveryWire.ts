@@ -12,12 +12,19 @@
 import { getInitials } from './discoveryHelpers';
 import { isFormattableCurrency } from './formatting';
 import type {
+  CallToAction,
   Discovery,
   DiscoveryAction,
   DiscoveryImportance,
   DiscoveryStatus,
   DiscoveryType,
 } from '../types';
+
+/** One `callToActions` entry as the backend stores/sends it (`extraction.service.ts`'s `ExtractionResult.callToActions`). */
+export interface CallToActionWire {
+  label: string;
+  url: string;
+}
 
 /** A row of GET /discoveries, as actually returned by the backend (BE-028). */
 export interface DiscoveryWire {
@@ -38,6 +45,14 @@ export interface DiscoveryWire {
   confidence?: number;
   isLocked: boolean;
   availableActions: string[];
+  /**
+   * Real merchant links extracted from the source email (`Discovery.
+   * callToActions` JSONB column, verified against Inbox-api 2026-09-24) —
+   * 0-3 entries, null when none matched or the row is locked. Optional here
+   * (not every wire fixture in this codebase predates the field) — toDiscovery
+   * normalizes an absent key to the same `null` the backend itself sends.
+   */
+  callToActions?: CallToActionWire[] | null;
   /** Row creation timestamp (Prisma `default(now())`) — feeds the "New" filter. */
   createdAt?: string;
 }
@@ -78,20 +93,46 @@ const WIRE_STATUS_TO_DOMAIN: Record<string, DiscoveryStatus> = {
   expired: 'viewed',
 };
 
+/**
+ * The complete, real `availableActions` enum — verified directly against
+ * Inbox-api's `discovery.service.ts` (`determineAvailableActions`) and the
+ * locked-row masking in `discoveries.routes.ts`, 2026-09-24. There is no
+ * broader backend enum this is a subset of; an unrecognized wire value is
+ * new/unexpected, not a gap in this list.
+ */
 const DISCOVERY_ACTIONS: readonly DiscoveryAction[] = [
-  'remind',
-  'dismiss',
-  'view_source',
-  'open_provider',
-  'review_subscription',
+  'view_evidence',
+  'create_reminder',
+  'check_availability',
   'investigate',
-  'find_time',
-  'track_refund',
-  'ask_detective',
+  'dismiss',
+  'open_provider',
+  'upgrade',
 ];
 
 const isDiscoveryAction = (value: string): value is DiscoveryAction =>
   (DISCOVERY_ACTIONS as readonly string[]).includes(value);
+
+/** Backend cap on callToActions (`discovery.service.ts`'s `MAX_CALL_TO_ACTIONS`) — enforced again here since this is untrusted third-party content crossing a system boundary. */
+const MAX_CALL_TO_ACTIONS = 3;
+
+/**
+ * Validates and caps the wire's callToActions. `url` must be a real
+ * `https://` link — email-extracted content is untrusted, and an anchor
+ * href is a real (if narrow) injection surface (e.g. a `javascript:` URL).
+ * A malformed entry is dropped rather than rendered broken or unsafe.
+ */
+function toCallToActions(wire: CallToActionWire[] | null | undefined): CallToAction[] | null {
+  if (!wire) return null;
+  const valid = wire.filter(
+    (cta): cta is CallToActionWire =>
+      typeof cta?.label === 'string' &&
+      cta.label.trim() !== '' &&
+      typeof cta?.url === 'string' &&
+      cta.url.startsWith('https://'),
+  );
+  return valid.length > 0 ? valid.slice(0, MAX_CALL_TO_ACTIONS) : null;
+}
 
 /**
  * Normalizes a BE-028 wire row into the FE-011 `Discovery` the card system
@@ -119,6 +160,7 @@ export function toDiscovery(wire: DiscoveryWire): Discovery {
     status: WIRE_STATUS_TO_DOMAIN[wire.status] ?? 'new',
     locked: wire.isLocked,
     availableActions: wire.availableActions.filter(isDiscoveryAction),
+    callToActions: toCallToActions(wire.callToActions),
     ...(wire.confidence != null && { confidence: wire.confidence }),
   };
 }

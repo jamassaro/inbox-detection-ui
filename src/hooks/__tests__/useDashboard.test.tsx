@@ -32,7 +32,7 @@ const wireDiscovery = (overrides: Partial<DiscoveryWire> = {}): DiscoveryWire =>
   priority: 'high',
   status: 'active',
   isLocked: false,
-  availableActions: ['review_subscription', 'dismiss'],
+  availableActions: ['investigate', 'dismiss'],
   confidence: 0.9,
   ...overrides,
 });
@@ -132,7 +132,7 @@ describe('selectPriorityDiscoveries', () => {
     expect(selected).toHaveLength(1);
     expect(selected[0]?.importance).toBe('high'); // urgent folds into high importance
     expect(selected[0]?.companyInitials).toBe('N');
-    expect(selected[0]?.availableActions).toEqual(['review_subscription', 'dismiss']);
+    expect(selected[0]?.availableActions).toEqual(['investigate', 'dismiss']);
   });
 });
 

@@ -33,19 +33,28 @@ export type DiscoveryStatus = 'new' | 'viewed' | 'acted' | 'dismissed';
 export type DiscoveryImportance = 'high' | 'medium' | 'low';
 
 /**
- * Action available on a Discovery. Mirrors the backend
- * `DiscoveryAction` enum (Prisma) — see Inbox-api `prisma/schema.prisma`.
+ * Action available on a Discovery — the complete, real set of string values
+ * `discovery.service.ts`'s `determineAvailableActions` (and the locked-row
+ * masking in `discoveries.routes.ts`) can ever emit, verified directly
+ * against the backend source 2026-09-24. There is no richer enum on the
+ * backend to "mirror" — this IS the whole set.
  */
 export type DiscoveryAction =
-  | 'remind'
-  | 'dismiss'
-  | 'view_source'
-  | 'open_provider'
-  | 'review_subscription'
+  | 'view_evidence'
+  | 'create_reminder'
+  | 'check_availability'
   | 'investigate'
-  | 'find_time'
-  | 'track_refund'
-  | 'ask_detective';
+  | 'dismiss'
+  | 'open_provider'
+  | 'upgrade';
+
+/** A real merchant link extracted from the source email's own HTML — never AI-invented (backend `extraction.service.ts`). */
+export interface CallToAction {
+  /** Actual anchor text from the email, e.g. "Shop the sale" — display as-is, never translate/paraphrase. */
+  label: string;
+  /** Real https:// URL from the email. Untrusted third-party content: open with target="_blank" rel="noopener noreferrer", never auto-navigate or pre-fetch. */
+  url: string;
+}
 
 /**
  * The primary domain object: a single actionable insight extracted
@@ -87,6 +96,14 @@ export interface Discovery {
   locked: boolean;
   /** Actions the UI may offer for this Discovery — map through getDiscoveryActionKey(). */
   availableActions: DiscoveryAction[];
+  /**
+   * Real merchant links from the source email — 0-3 entries, present iff
+   * 'open_provider' is in availableActions. Null when the email had no
+   * matchable link, or the row is locked (masked the same as description/
+   * explanation). Never derive open_provider's presence separately from
+   * this — they are set together by the backend.
+   */
+  callToActions: CallToAction[] | null;
   /** Backend classifier confidence in [0, 1], when known. */
   confidence?: number;
 }

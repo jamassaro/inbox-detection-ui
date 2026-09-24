@@ -1,7 +1,7 @@
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { I18nextProvider } from 'react-i18next';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import DiscoveriesPage from '../DiscoveriesPage';
@@ -38,7 +38,7 @@ const wireRow = (overrides: Partial<WireRow> = {}): WireRow => ({
   priority: 'high',
   status: 'active',
   isLocked: false,
-  availableActions: ['review_subscription', 'dismiss'],
+  availableActions: ['investigate', 'dismiss'],
   confidence: 0.9,
   createdAt: daysFromNow(-1),
   ...overrides,
@@ -69,6 +69,12 @@ const entitlementValue = (plan: 'free' | 'pro'): EntitlementContextValue => ({
   decrementChatQuestions: vi.fn(),
 });
 
+/** Renders the destination pathname+search so navigation assertions can read the full URL. */
+const DetailProbe = () => {
+  const location = useLocation();
+  return <div>probe:detail{location.pathname}{location.search}</div>;
+};
+
 const renderPage = ({ plan = 'pro' }: { plan?: 'free' | 'pro' } = {}) => {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
@@ -80,7 +86,7 @@ const renderPage = ({ plan = 'pro' }: { plan?: 'free' | 'pro' } = {}) => {
               <MemoryRouter initialEntries={['/app/discoveries']}>
                 <Routes>
                   <Route path="/app/discoveries" element={<DiscoveriesPage />} />
-                  <Route path="/app/discoveries/:id" element={<div>probe:detail</div>} />
+                  <Route path="/app/discoveries/:id" element={<DetailProbe />} />
                   <Route path="/upgrade" element={<div>probe:/upgrade</div>} />
                 </Routes>
               </MemoryRouter>
@@ -269,7 +275,7 @@ describe('DiscoveriesPage', () => {
 
   it('opens the RequiresPro upgrade path when a Free user clicks Remind me', async () => {
     mockApiFetch.mockResolvedValue(
-      wireResponse([wireRow({ availableActions: ['remind', 'dismiss'] })]),
+      wireResponse([wireRow({ availableActions: ['create_reminder', 'dismiss'] })]),
     );
     renderPage({ plan: 'free' });
 
@@ -281,7 +287,7 @@ describe('DiscoveriesPage', () => {
 
   it('opens the reminder dialog for a Pro user without the paywall', async () => {
     mockApiFetch.mockResolvedValue(
-      wireResponse([wireRow({ availableActions: ['remind', 'dismiss'] })]),
+      wireResponse([wireRow({ availableActions: ['create_reminder', 'dismiss'] })]),
     );
     renderPage({ plan: 'pro' });
 
@@ -290,5 +296,15 @@ describe('DiscoveriesPage', () => {
 
     expect(screen.queryByTestId('upgrade-prompt')).toBeFalsy();
     expect(await screen.findByTestId('reminder-form')).toBeTruthy();
+  });
+
+  it('never renders a "View evidence" button — it would just duplicate the row/card\'s own View action', async () => {
+    mockApiFetch.mockResolvedValue(
+      wireResponse([wireRow({ availableActions: ['view_evidence', 'dismiss'] })]),
+    );
+    renderPage();
+
+    await screen.findByTestId('discoveries-list');
+    expect(screen.queryByRole('button', { name: /view evidence/i })).toBeNull();
   });
 });

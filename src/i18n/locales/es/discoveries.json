@@ -15,15 +15,13 @@
   },
   "actions": {
     "view": "Ver",
-    "remindMe": "Recuérdamelo",
+    "createReminder": "Recuérdamelo",
     "dismiss": "Descartar",
-    "viewSource": "Ver correo original",
+    "viewEvidence": "Ver evidencia",
     "openProvider": "Abrir en el proveedor",
-    "reviewSubscription": "Revisar suscripción",
     "investigate": "Investigar",
-    "findTime": "Buscar un horario",
-    "trackRefund": "Seguir reembolso",
-    "askDetective": "Preguntar al Detective"
+    "checkAvailability": "Buscar un horario",
+    "upgrade": "Mejorar plan"
   },
   "card": {
     "was": "Antes",
@@ -77,16 +75,11 @@
     "lockedSection": {
       "title": "Descubrimientos bloqueados",
       "body": "{{count}} hallazgos más esperan detrás del plan Pro."
-    },
-    "sourceUnavailable": {
-      "title": "El correo original aún no está disponible",
-      "body": "Ver el correo original llegará junto con el cajón de evidencia."
     }
   },
   "detail": {
     "back": "Volver a descubrimientos",
     "whyTitle": "¿Por qué lo marcó el Detective?",
-    "viewSource": "Ver correo original",
     "actionsTitle": "Lo que puedes hacer",
     "annualized": "≈ {{amount}} al año",
     "dismissConfirm": {

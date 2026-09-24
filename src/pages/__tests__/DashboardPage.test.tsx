@@ -1,7 +1,7 @@
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { I18nextProvider } from 'react-i18next';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import DashboardPage from '../DashboardPage';
@@ -78,7 +78,7 @@ const wireDiscovery = (overrides: Partial<DiscoveryWire> = {}): DiscoveryWire =>
   priority: 'high',
   status: 'active',
   isLocked: false,
-  availableActions: ['review_subscription', 'dismiss'],
+  availableActions: ['investigate', 'dismiss'],
   confidence: 0.9,
   ...overrides,
 });
@@ -137,6 +137,12 @@ const mockBackend = ({
   });
 };
 
+/** Renders the destination pathname+search so navigation assertions can read the full URL. */
+const DetailProbe = () => {
+  const location = useLocation();
+  return <div>probe:detail{location.pathname}{location.search}</div>;
+};
+
 /** Full provider stack in main.tsx order, with route probes for navigation. */
 const renderPage = () => {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -151,6 +157,7 @@ const renderPage = () => {
                   <Routes>
                     <Route path="/app/dashboard" element={<DashboardPage />} />
                     <Route path="/app/discoveries" element={<div>probe:/app/discoveries</div>} />
+                    <Route path="/app/discoveries/:id" element={<DetailProbe />} />
                     <Route path="/upgrade" element={<div>probe:/upgrade</div>} />
                   </Routes>
                 </MemoryRouter>
@@ -274,7 +281,7 @@ describe('DashboardPage', () => {
 
   it('opens the reminder dialog when a Pro user clicks remind', async () => {
     const user = userEvent.setup();
-    mockBackend({ discoveries: [wireDiscovery({ availableActions: ['remind'] })] });
+    mockBackend({ discoveries: [wireDiscovery({ availableActions: ['create_reminder'] })] });
     renderPage();
 
     expect(await screen.findByTestId('discovery-card')).toBeTruthy();
@@ -287,7 +294,7 @@ describe('DashboardPage', () => {
 
   it('shows the Free user the inline paywall when they click remind', async () => {
     const user = userEvent.setup();
-    mockBackend({ plan: 'free', discoveries: [wireDiscovery({ availableActions: ['remind'] })] });
+    mockBackend({ plan: 'free', discoveries: [wireDiscovery({ availableActions: ['create_reminder'] })] });
     renderPage();
 
     expect(await screen.findByTestId('discovery-card')).toBeTruthy();
@@ -299,6 +306,15 @@ describe('DashboardPage', () => {
     const dialogs = screen.getAllByRole('dialog');
     expect(within(dialogs[0] as HTMLElement).getByTestId('upgrade-prompt')).toBeTruthy();
     expect(screen.queryByText('probe:/upgrade')).toBeNull();
+  });
+
+  it('renders no primary action for a view_evidence-only row — it would just duplicate the View button', async () => {
+    mockBackend({ discoveries: [wireDiscovery({ availableActions: ['view_evidence'] })] });
+    renderPage();
+
+    expect(await screen.findByTestId('discovery-card')).toBeTruthy();
+    expect(screen.queryByTestId('card-primary-action')).toBeNull();
+    expect(screen.getByTestId('card-view-action')).toBeTruthy();
   });
 
   it('renders the dashboard copy in Spanish when the locale is es', async () => {

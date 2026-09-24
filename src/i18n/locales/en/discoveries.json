@@ -15,15 +15,13 @@
   },
   "actions": {
     "view": "View",
-    "remindMe": "Remind me",
+    "createReminder": "Remind me",
     "dismiss": "Dismiss",
-    "viewSource": "View source email",
+    "viewEvidence": "View evidence",
     "openProvider": "Open in provider",
-    "reviewSubscription": "Review subscription",
     "investigate": "Investigate",
-    "findTime": "Find a time",
-    "trackRefund": "Track refund",
-    "askDetective": "Ask Detective"
+    "checkAvailability": "Find a time",
+    "upgrade": "Upgrade"
   },
   "card": {
     "was": "Was",
@@ -76,16 +74,11 @@
     "lockedSection": {
       "title": "Locked discoveries",
       "body": "{{count}} more findings are waiting behind the Pro plan."
-    },
-    "sourceUnavailable": {
-      "title": "Source email isn't available yet",
-      "body": "Viewing the original email will arrive with the evidence drawer."
     }
   },
   "detail": {
     "back": "Back to discoveries",
     "whyTitle": "Why did Detective flag this?",
-    "viewSource": "View source email",
     "actionsTitle": "What you can do",
     "annualized": "≈ {{amount}} per year",
     "dismissConfirm": {

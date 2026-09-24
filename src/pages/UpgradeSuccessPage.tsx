@@ -87,7 +87,7 @@ const UpgradeSuccessPage = () => {
           // FE-020: an interrupted reminder resumes the exact flow — the
           // target discovery auto-opens the ReminderModal via the
           // ?openReminder=true entry point.
-          if (ctx?.pendingAction === 'remind' && ctx.discoveryId !== undefined) {
+          if (ctx?.pendingAction === 'create_reminder' && ctx.discoveryId !== undefined) {
             const base = ctx.returnPath || `/app/discoveries/${ctx.discoveryId}`;
             const separator = base.includes('?') ? '&' : '?';
             navigateRef.current(`${base}${separator}openReminder=true`, { replace: true });

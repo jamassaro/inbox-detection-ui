@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ArrowRight, ShieldCheck } from 'lucide-react';
 import type { ReactNode } from 'react';
@@ -40,6 +40,7 @@ const DashboardPage = () => {
   const { t } = useTranslation('common');
   const { locale } = useLocale();
   const toast = useToast();
+  const navigate = useNavigate();
 
   const gmailStatus = useGmailStatus();
   const { data, isLoading, isError, refetch, dismiss } = useDashboard();
@@ -57,14 +58,24 @@ const DashboardPage = () => {
       });
       return;
     }
-    if (action === 'remind') {
+    if (action === 'create_reminder') {
       // FE-020: the real reminder flow for both plans — Free sees the Pro
       // paywall inline in the modal (with the post-upgrade resumption
       // context), Pro creates reminders directly.
       setReminderDiscovery(discovery);
       return;
     }
-    // Remaining card actions belong to the full discoveries surface (FE-013).
+    if (action === 'check_availability') {
+      // The meeting flow is fulfilled on the detail page — no separate
+      // dashboard-level treatment.
+      navigate(`/app/discoveries/${discovery.id}`);
+      return;
+    }
+    // investigate has no shipped flow yet; open_provider/view_evidence/upgrade
+    // never reach here (DiscoveryCard excludes the first two from onAction —
+    // view_evidence would just navigate to the same place the always-present
+    // View button already goes — and locked rows never render via
+    // DiscoveryCard).
     toast.info(t('dashboard.toasts.actionComingSoon'));
   };
 

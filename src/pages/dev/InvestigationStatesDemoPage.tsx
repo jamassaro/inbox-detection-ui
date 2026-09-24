@@ -33,7 +33,8 @@ const fixtureDiscoveries: Discovery[] = [
     importance: 'high',
     status: 'new',
     locked: false,
-    availableActions: ['review_subscription', 'dismiss'],
+    availableActions: ['view_evidence', 'dismiss'],
+    callToActions: null,
   },
   {
     id: 'd-2',
@@ -49,6 +50,7 @@ const fixtureDiscoveries: Discovery[] = [
     status: 'new',
     locked: false,
     availableActions: ['dismiss'],
+    callToActions: null,
   },
   {
     id: 'd-3',
@@ -63,7 +65,8 @@ const fixtureDiscoveries: Discovery[] = [
     importance: 'high',
     status: 'new',
     locked: false,
-    availableActions: ['remind', 'dismiss'],
+    availableActions: ['create_reminder', 'open_provider', 'dismiss'],
+    callToActions: [{ label: 'Redeem your credit', url: 'https://www.delta.com/skymiles' }],
   },
 ];
 

@@ -32,7 +32,7 @@ const wireRow = (overrides: Partial<DiscoveriesWire['discoveries'][number]> = {}
   priority: 'high',
   status: 'active',
   isLocked: false,
-  availableActions: ['review_subscription', 'dismiss'],
+  availableActions: ['investigate', 'dismiss'],
   confidence: 0.9,
   createdAt: '2026-09-17T11:00:00.000Z',
   ...overrides,
@@ -81,7 +81,7 @@ describe('toDiscovery', () => {
 
   it('falls back to the action_required type and drops unknown wire actions', () => {
     const discovery = toDiscovery(
-      wireRow({ type: 'unknown_type', availableActions: ['dismiss', 'upgrade'] }),
+      wireRow({ type: 'unknown_type', availableActions: ['dismiss', 'some_future_action'] }),
     );
     expect(discovery.type).toBe('action_required');
     expect(discovery.availableActions).toEqual(['dismiss']);

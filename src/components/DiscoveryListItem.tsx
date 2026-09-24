@@ -28,7 +28,14 @@ const DiscoveryListItem = ({ discovery, onAction }: DiscoveryListItemProps) => {
   const meta = getDiscoveryMeta(discovery.type);
   const { amount, currency = 'USD', frequency, date } = discovery;
   const Icon = meta.icon;
-  const [primaryAction] = discovery.availableActions;
+  // open_provider needs its own multi-link row (DiscoveryCard/DiscoveryDetailPage) —
+  // this dense row has no space for that, so it's excluded here; the row's own
+  // click already navigates to the detail page, where the real CTA links live.
+  // view_evidence is excluded too — it would just navigate to that same
+  // detail page, a near-duplicate of clicking the row itself.
+  const [primaryAction] = discovery.availableActions.filter(
+    (action) => action !== 'open_provider' && action !== 'view_evidence',
+  );
 
   return (
     <div

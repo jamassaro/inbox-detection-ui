@@ -73,7 +73,8 @@ export const mockDiscoveries: Discovery[] = [
     importance: 'high',
     status: 'new',
     locked: false,
-    availableActions: ['review_subscription', 'remind', 'dismiss'],
+    availableActions: ['view_evidence', 'create_reminder', 'dismiss'],
+    callToActions: null,
     confidence: 0.97,
   },
   {
@@ -90,7 +91,8 @@ export const mockDiscoveries: Discovery[] = [
     importance: 'high',
     status: 'new',
     locked: false,
-    availableActions: ['remind', 'open_provider', 'dismiss'],
+    availableActions: ['create_reminder', 'open_provider', 'dismiss'],
+    callToActions: [{ label: 'Manage subscription', url: 'https://www.spotify.com/account/subscription/' }],
   },
   {
     id: 'disc-3',
@@ -108,6 +110,7 @@ export const mockDiscoveries: Discovery[] = [
     status: 'new',
     locked: false,
     availableActions: ['investigate', 'dismiss'],
+    callToActions: null,
   },
   {
     id: 'disc-4',
@@ -121,7 +124,8 @@ export const mockDiscoveries: Discovery[] = [
     importance: 'medium',
     status: 'viewed',
     locked: false,
-    availableActions: ['track_refund', 'ask_detective'],
+    availableActions: ['view_evidence', 'dismiss'],
+    callToActions: null,
   },
   {
     id: 'disc-5',
@@ -134,6 +138,7 @@ export const mockDiscoveries: Discovery[] = [
     importance: 'high',
     status: 'new',
     locked: false,
-    availableActions: ['find_time'],
+    availableActions: ['check_availability'],
+    callToActions: null,
   },
 ];

@@ -128,7 +128,7 @@ describe('UpgradeSuccessPage', () => {
       source: 'reminder',
       returnPath: '/app/discoveries/disc-1',
       discoveryId: 'disc-1',
-      pendingAction: 'remind',
+      pendingAction: 'create_reminder',
     });
     mockPro();
     renderPage();

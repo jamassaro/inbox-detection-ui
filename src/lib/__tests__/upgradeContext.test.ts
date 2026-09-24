@@ -29,7 +29,7 @@ describe('upgradeContext', () => {
     const ctx: UpgradeContext = {
       ...baseContext,
       discoveryId: 'dsc_42',
-      pendingAction: 'remind',
+      pendingAction: 'create_reminder',
     };
     saveUpgradeContext(ctx);
     expect(readUpgradeContext()).toEqual(ctx);

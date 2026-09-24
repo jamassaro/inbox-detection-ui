@@ -364,7 +364,7 @@ describe('ReminderModal — Free user', () => {
       source: 'reminder',
       returnPath: '/app/discoveries/disc-1',
       discoveryId: 'disc-1',
-      pendingAction: 'remind',
+      pendingAction: 'create_reminder',
     });
     expect(screen.getByTestId('location').textContent).toBe('/upgrade?from=reminder');
   });

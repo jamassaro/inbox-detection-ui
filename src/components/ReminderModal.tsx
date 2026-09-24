@@ -42,7 +42,7 @@ const DEFAULT_CUSTOM_TIME = '09:00';
 /**
  * Inline paywall shown to Free users inside the modal. Same look and copy as
  * <UpgradePrompt>, but the CTA persists the richer resumption context
- * (discoveryId + pendingAction: 'remind') the post-upgrade flow needs to drop
+ * (discoveryId + pendingAction: 'create_reminder') the post-upgrade flow needs to drop
  * the user back into THIS modal — the shared component's CTA carries neither.
  */
 const ReminderUpgradeFallback = ({ discoveryId }: { discoveryId: string }) => {
@@ -64,7 +64,7 @@ const ReminderUpgradeFallback = ({ discoveryId }: { discoveryId: string }) => {
             source: 'reminder',
             returnPath: `/app/discoveries/${discoveryId}`,
             discoveryId,
-            pendingAction: 'remind',
+            pendingAction: 'create_reminder',
           })
         }
         className="px-3 py-1.5 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition-colors"

@@ -35,7 +35,7 @@ export function getDiscoveryTypeKey(type: DiscoveryType): string {
 /**
  * Maps a backend DiscoveryAction to its `discoveries.actions.*` i18n key.
  *
- * @example getDiscoveryActionKey('remind') // 'discoveries.actions.remindMe'
+ * @example getDiscoveryActionKey('create_reminder') // 'discoveries.actions.createReminder'
  * @example getDiscoveryActionKey('dismiss') // 'discoveries.actions.dismiss'
  */
 export function getDiscoveryActionKey(action: DiscoveryAction): string {
@@ -101,15 +101,17 @@ const TYPE_TO_KEY_SLUG: Record<DiscoveryType, string> = {
 };
 
 const ACTION_TO_KEY_SLUG: Record<DiscoveryAction, string> = {
-  remind: 'remindMe',
-  dismiss: 'dismiss',
-  view_source: 'viewSource',
-  open_provider: 'openProvider',
-  review_subscription: 'reviewSubscription',
+  view_evidence: 'viewEvidence',
+  create_reminder: 'createReminder',
+  check_availability: 'checkAvailability',
   investigate: 'investigate',
-  find_time: 'findTime',
-  track_refund: 'trackRefund',
-  ask_detective: 'askDetective',
+  dismiss: 'dismiss',
+  open_provider: 'openProvider',
+  // Never actually rendered through this path — locked rows (the only
+  // source of 'upgrade') route to LockedDiscoveryCard, not DiscoveryCard/
+  // DiscoveryListItem's action buttons. Present only so this map stays
+  // exhaustive over DiscoveryAction.
+  upgrade: 'upgrade',
 };
 
 const TYPE_META: Record<DiscoveryType, DiscoveryTypeMeta> = {

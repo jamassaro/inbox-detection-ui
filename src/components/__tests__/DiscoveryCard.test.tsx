@@ -33,7 +33,8 @@ const buildDiscovery = (overrides: Partial<Discovery> = {}): Discovery => ({
   importance: 'medium',
   status: 'new',
   locked: false,
-  availableActions: ['remind', 'dismiss'],
+  availableActions: ['create_reminder', 'dismiss'],
+  callToActions: null,
   ...overrides,
 });
 
@@ -56,10 +57,10 @@ describe('DiscoveryCard', () => {
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     // A duplicated action in the wire payload must not yield two identical
     // buttons (duplicate React keys): the secondary row dedupes.
-    renderCard(buildDiscovery({ availableActions: ['dismiss', 'remind', 'remind'] }));
+    renderCard(buildDiscovery({ availableActions: ['dismiss', 'create_reminder', 'create_reminder'] }));
 
     expect(screen.getByTestId('card-primary-action')).toBeTruthy();
-    expect(screen.getAllByTestId('card-secondary-action-remind')).toHaveLength(1);
+    expect(screen.getAllByTestId('card-secondary-action-create_reminder')).toHaveLength(1);
     const duplicateKeyWarning = errorSpy.mock.calls.find((call) =>
       call.some((arg) => typeof arg === 'string' && arg.includes('key')),
     );
@@ -149,7 +150,7 @@ describe('DiscoveryCard', () => {
   it('renders at most 1 primary + 2 secondary actions via getDiscoveryActionKey', () => {
     renderCard(
       buildDiscovery({
-        availableActions: ['remind', 'dismiss', 'view_source', 'ask_detective'],
+        availableActions: ['create_reminder', 'dismiss', 'check_availability', 'investigate'],
       }),
     );
     const buttons = Array.from(
@@ -164,13 +165,37 @@ describe('DiscoveryCard', () => {
       expect(button.className).toContain('border-gray-200');
     });
     expect(buttons[2]!.textContent).toBe('Dismiss');
-    expect(buttons[3]!.textContent).toBe('View source email');
+    expect(buttons[3]!.textContent).toBe('Find a time');
+  });
+
+  it('excludes view_evidence from the primary/secondary slots — it would just duplicate the View button', () => {
+    renderCard(buildDiscovery({ availableActions: ['view_evidence', 'create_reminder', 'dismiss'] }));
+    const buttons = Array.from(screen.getByTestId('actions-row').querySelectorAll('button'));
+
+    expect(buttons.map((b) => b.textContent)).not.toContain('View evidence');
+    expect(buttons).toHaveLength(3); // View + create_reminder (primary) + dismiss (secondary)
+  });
+
+  it('excludes open_provider from the primary/secondary slots — it gets its own CTA row', () => {
+    renderCard(
+      buildDiscovery({
+        availableActions: ['open_provider', 'create_reminder', 'dismiss'],
+        callToActions: [{ label: 'Shop the sale', url: 'https://example.com/sale' }],
+      }),
+    );
+    const buttons = Array.from(
+      screen.getByTestId('actions-row').querySelectorAll('button'),
+    );
+    // View + create_reminder (primary) + dismiss (secondary) — open_provider
+    // never occupies a primary/secondary slot, so both real actions fit.
+    expect(buttons).toHaveLength(3);
+    expect(buttons.map((b) => b.textContent)).not.toContain('Open in provider');
   });
 
   it('invokes onAction with the clicked action', async () => {
     const onAction = vi.fn();
     renderCard(
-      buildDiscovery({ availableActions: ['remind', 'dismiss'] }),
+      buildDiscovery({ availableActions: ['create_reminder', 'dismiss'] }),
       onAction,
     );
     await userEvent.click(screen.getByRole('button', { name: 'Dismiss' }));
@@ -178,7 +203,36 @@ describe('DiscoveryCard', () => {
     expect(onAction).toHaveBeenCalledWith('dismiss');
     await userEvent.click(screen.getByRole('button', { name: 'Remind me' }));
     expect(onAction).toHaveBeenCalledTimes(2);
-    expect(onAction).toHaveBeenLastCalledWith('remind');
+    expect(onAction).toHaveBeenLastCalledWith('create_reminder');
+  });
+
+  describe('call-to-action links', () => {
+    it('renders nothing when callToActions is null', () => {
+      renderCard(buildDiscovery({ callToActions: null }));
+      expect(screen.queryByTestId('cta-row')).toBeNull();
+    });
+
+    it('renders one link per entry, as real external links, label rendered as-is', () => {
+      renderCard(
+        buildDiscovery({
+          availableActions: ['open_provider', 'dismiss'],
+          callToActions: [
+            { label: 'Shop comfort', url: 'https://ctrk.klclick.com/l/01M34PCNRHE8S463RD9QXHHEKY_7' },
+            { label: 'Redeem your points', url: 'https://example.com/rewards' },
+          ],
+        }),
+      );
+
+      const links = screen.getAllByTestId('cta-link') as HTMLAnchorElement[];
+      expect(links).toHaveLength(2);
+      expect(links[0]!.textContent).toContain('Shop comfort');
+      expect(links[0]!.getAttribute('href')).toBe(
+        'https://ctrk.klclick.com/l/01M34PCNRHE8S463RD9QXHHEKY_7',
+      );
+      expect(links[0]!.getAttribute('target')).toBe('_blank');
+      expect(links[0]!.getAttribute('rel')).toContain('noopener');
+      expect(links[1]!.textContent).toContain('Redeem your points');
+    });
   });
 
   it('renders the compact variant without crashing', () => {

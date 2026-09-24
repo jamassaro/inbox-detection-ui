@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { Inbox } from 'lucide-react';
 import DiscoveryCard from '../../components/DiscoveryCard';
 import DiscoveryListItem from '../../components/DiscoveryListItem';
@@ -9,7 +10,6 @@ import LockedDiscoveryCard from '../../components/LockedDiscoveryCard';
 import ReminderModal from '../../components/ReminderModal';
 import SkeletonCard from '../../components/SkeletonCard';
 import StatCard from '../../components/StatCard';
-import { useToast } from '../../hooks/useToast';
 import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import {
   useDiscoveries,
@@ -53,7 +53,7 @@ const FILTER_LABEL_KEYS: Record<DiscoveryFilter, string> = {
  */
 const DiscoveriesPage = () => {
   const { t } = useTranslation('discoveries');
-  const toast = useToast();
+  const navigate = useNavigate();
 
   const { data, isPending, isError, refetch } = useDiscoveries();
   const dismissDiscovery = useDismissDiscovery();
@@ -96,20 +96,24 @@ const DiscoveriesPage = () => {
       case 'dismiss':
         dismissDiscovery.mutate(discovery.id);
         break;
-      case 'remind':
+      case 'create_reminder':
         // FE-020: ReminderModal handles both plans — Free sees the Pro
         // paywall inline in the modal (with the post-upgrade resumption
         // context), Pro creates reminders directly.
         setReminderDiscovery(discovery);
         break;
-      case 'view_source':
-        // EmailDrawer is FE-014 and is not built yet — no clickable no-op.
-        toast.info(t('page.sourceUnavailable.body'));
-        // TODO(FE-014): open EmailDrawer with the discovery's evidence.
+      case 'check_availability':
+        // The meeting flow is fulfilled on the detail page — no separate
+        // list-level treatment.
+        navigate(`/app/discoveries/${discovery.id}`);
         break;
       default:
-        // Remaining actions (open_provider, investigate, …) route through
-        // their own tickets; surfacing them as clickable no-ops would lie.
+        // investigate has no shipped flow yet; open_provider/view_evidence/
+        // upgrade never reach here (DiscoveryCard/DiscoveryListItem exclude
+        // the first two from onAction — view_evidence would just navigate to
+        // the same place the always-present View button already goes — and
+        // locked rows never render through these components) — surfacing
+        // them as clickable no-ops would lie.
         break;
     }
   };

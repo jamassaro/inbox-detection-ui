@@ -34,7 +34,7 @@ const detailWire = (overrides: Partial<DiscoveryWire> = {}): DiscoveryWire => ({
   priority: 'high',
   status: 'active',
   isLocked: false,
-  availableActions: ['remind', 'dismiss', 'view_source', 'ask_detective'],
+  availableActions: ['create_reminder', 'dismiss', 'view_evidence'],
   confidence: 0.9,
   createdAt: '2026-09-17T11:00:00.000Z',
   ...overrides,
@@ -152,13 +152,15 @@ describe('DiscoveryDetailPage', () => {
     renderPage();
 
     expect(await screen.findByTestId('detail-actions')).toBeTruthy();
-    expect(screen.getByTestId('detail-action-remind')).toBeTruthy();
+    expect(screen.getByTestId('detail-action-create_reminder')).toBeTruthy();
     expect(screen.getByTestId('detail-action-dismiss')).toBeTruthy();
-    expect(screen.getByTestId('detail-action-view_source')).toBeTruthy();
-    expect(screen.getByTestId('detail-action-ask_detective')).toBeTruthy();
+    // view_evidence is excluded here — the evidence section below is always
+    // visible on this page, so a button that only scrolls to it would be a
+    // dead click (it's meaningful only from the list pages).
+    expect(screen.queryByTestId('detail-action-view_evidence')).toBeNull();
     // Labels resolve through the namespace-prefixed key (nsSeparator: '.') —
     // a regression here renders the raw 'discoveries.actions.*' key.
-    expect(screen.getByTestId('detail-action-remind').textContent).toBe('Remind me');
+    expect(screen.getByTestId('detail-action-create_reminder').textContent).toBe('Remind me');
     expect(screen.getByTestId('detail-action-dismiss').textContent).toBe('Dismiss');
   });
 
@@ -216,15 +218,7 @@ describe('DiscoveryDetailPage', () => {
     expect(await screen.findByText('probe:discoveries-list')).toBeTruthy();
   });
 
-  it('routes ask_detective to the chat page with the discovery id', async () => {
-    mockApiFetch.mockResolvedValue(detailWire());
-    renderPage();
-
-    await userEvent.click(await screen.findByTestId('detail-action-ask_detective'));
-    expect(await screen.findByText('probe:chat?discoveryId=disc-1')).toBeTruthy();
-  });
-
-  it('opens the EmailDrawer from view_source, which lazily fetches the evidence', async () => {
+  it('fetches and renders the source-email evidence inline, with no drawer/modal', async () => {
     mockApiFetch.mockImplementation((path: string) => {
       if (path === '/discoveries/disc-1') return Promise.resolve(detailWire());
       if (path === '/discoveries/disc-1/evidence') return Promise.resolve(evidenceResponse());
@@ -232,17 +226,11 @@ describe('DiscoveryDetailPage', () => {
     });
     renderPage();
 
-    // No evidence fetch before the drawer opens.
-    expect(
-      mockApiFetch.mock.calls.some(([path]) => String(path) === '/discoveries/disc-1/evidence'),
-    ).toBe(false);
-
-    await userEvent.click(await screen.findByTestId('view-source-button'));
-    expect(await screen.findByTestId('email-drawer-panel')).toBeTruthy();
-    await screen.findByTestId('email-drawer-content');
+    await screen.findByTestId('evidence-content');
     expect(
       mockApiFetch.mock.calls.some(([path]) => String(path) === '/discoveries/disc-1/evidence'),
     ).toBe(true);
+    expect(screen.queryByRole('dialog')).toBeNull();
   });
 
   it('feedback: clicking Useful PATCHes /feedback and shows the thanks state', async () => {
@@ -270,7 +258,7 @@ describe('DiscoveryDetailPage', () => {
     });
     renderPage({ plan: 'free' });
 
-    await userEvent.click(await screen.findByTestId('detail-action-remind'));
+    await userEvent.click(await screen.findByTestId('detail-action-create_reminder'));
     // FE-020: the modal itself owns the Free paywall — the inline upgrade
     // prompt renders inside the reminder dialog, carrying the resumption
     // context for the post-upgrade return trip.
@@ -306,5 +294,29 @@ describe('DiscoveryDetailPage', () => {
 
     expect(await screen.findByTestId('discovery-detail-page')).toBeTruthy();
     expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('scrolls to the evidence section on arrival with ?scrollTo=evidence, and clears the param', async () => {
+    // Unlike the click-triggered scroll test above, this fires from an
+    // effect the instant the section mounts — there is no user action to
+    // assign a per-instance mock after, so the prototype is patched before
+    // render instead (restored at the end of the test).
+    const scrollIntoView = vi.fn();
+    const original = window.HTMLElement.prototype.scrollIntoView;
+    window.HTMLElement.prototype.scrollIntoView = scrollIntoView;
+
+    mockApiFetch.mockImplementation((path: string) => {
+      if (path === '/discoveries/disc-1') return Promise.resolve(detailWire());
+      if (path === '/discoveries/disc-1/evidence') return Promise.resolve(evidenceResponse());
+      return Promise.reject(new Error(`unexpected fetch: ${path}`));
+    });
+    renderPage({ initialEntry: '/app/discoveries/disc-1?scrollTo=evidence' });
+
+    await waitFor(() => expect(scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' }));
+    await waitFor(() =>
+      expect(screen.getByTestId('location').getAttribute('data-search')).toBe(''),
+    );
+
+    window.HTMLElement.prototype.scrollIntoView = original;
   });
 });

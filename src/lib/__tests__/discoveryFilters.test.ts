@@ -25,6 +25,7 @@ const discovery = (overrides: Partial<Discovery> = {}): Discovery => ({
   status: 'new',
   locked: false,
   availableActions: ['dismiss'],
+  callToActions: null,
   ...overrides,
 });
 
