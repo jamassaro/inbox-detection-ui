@@ -22,6 +22,7 @@ const CONTEXTUAL_SOURCES = [
   'reminder',
   'calendar',
   'chat_limit',
+  'chat_history',
   'investigation_results',
 ] as const;
 

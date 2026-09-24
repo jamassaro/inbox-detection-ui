@@ -1,13 +1,13 @@
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
-import { useChat, isLimitReachedError } from '../useChat';
+import { useChat, useConversations, useLoadConversation, isLimitReachedError } from '../useChat';
 import { ApiError } from '../../lib/apiError';
 import { apiFetch } from '../../lib/apiClient';
 import { AuthProvider } from '../../contexts/AuthProvider';
 import { EntitlementProvider } from '../../contexts/EntitlementProvider';
 import { ENTITLEMENTS_QUERY_KEY } from '../../contexts/entitlementContext';
-import type { ChatAnswerWire } from '../useChat';
+import type { ChatAnswerWire, ConversationDetailWire, ConversationsListWire } from '../useChat';
 import type { BillingStatusWire, Entitlements, User } from '../../types';
 import { makeTestUser } from '../../test-utils';
 
@@ -21,8 +21,10 @@ vi.mock('../../lib/apiClient', () => ({
 const mockApiFetch = vi.mocked(apiFetch);
 
 const wireAnswer = (overrides: Partial<ChatAnswerWire> = {}): ChatAnswerWire => ({
+  conversationId: 'conv-1',
   response: 'You have 3 active subscriptions.',
   sources: [{ id: 'disc-1', title: 'Netflix renews at $15.49', type: 'subscription' }],
+  artifacts: [],
   ...overrides,
 });
 
@@ -157,6 +159,279 @@ describe('useChat', () => {
 
     expect(mockApiFetch).not.toHaveBeenCalled();
     expect(result.current.messages).toHaveLength(0);
+  });
+});
+
+describe('useChat — conversationId threading', () => {
+  beforeEach(() => {
+    mockApiFetch.mockReset();
+  });
+
+  it('omits conversationId on the first message, then echoes back what the backend returned', async () => {
+    mockApiFetch.mockResolvedValueOnce(wireAnswer({ conversationId: 'conv-abc' }));
+    const { result } = renderUseChat();
+
+    expect(result.current.conversationId).toBeUndefined();
+    act(() => {
+      result.current.send('What offers did I get from Everlane?');
+    });
+    await waitFor(() => expect(result.current.messages).toHaveLength(2));
+
+    expect(mockApiFetch).toHaveBeenCalledWith('/chat', {
+      method: 'POST',
+      body: JSON.stringify({ message: 'What offers did I get from Everlane?' }),
+    });
+    expect(result.current.conversationId).toBe('conv-abc');
+
+    mockApiFetch.mockResolvedValueOnce(wireAnswer({ conversationId: 'conv-abc' }));
+    act(() => {
+      result.current.send('Any others?');
+    });
+    await waitFor(() => expect(result.current.messages).toHaveLength(4));
+
+    // Free and Pro alike — the frontend never decides whether this is honored.
+    expect(mockApiFetch).toHaveBeenLastCalledWith('/chat', {
+      method: 'POST',
+      body: JSON.stringify({ message: 'Any others?', conversationId: 'conv-abc' }),
+    });
+  });
+
+  it('carries artifacts through onto the rendered message', async () => {
+    const artifacts: ChatAnswerWire['artifacts'] = [
+      {
+        type: 'offer',
+        data: {
+          discoveryId: 'disc-1',
+          companyEntityId: 'co-1',
+          company: 'Everlane',
+          value: 70,
+          unit: 'percent',
+          expiresAt: '2026-09-23T00:00:00.000Z',
+          historicalBest: true,
+        },
+      },
+    ];
+    mockApiFetch.mockResolvedValueOnce(wireAnswer({ artifacts }));
+    const { result } = renderUseChat();
+
+    act(() => {
+      result.current.send('What offers did I get from Everlane?');
+    });
+    await waitFor(() => expect(result.current.messages).toHaveLength(2));
+
+    expect(result.current.messages[1]?.artifacts).toEqual(artifacts);
+  });
+
+  it('startNewConversation resets messages, conversationId, and error', async () => {
+    mockApiFetch.mockResolvedValueOnce(wireAnswer({ conversationId: 'conv-abc' }));
+    const { result } = renderUseChat();
+
+    act(() => {
+      result.current.send('Hello');
+    });
+    await waitFor(() => expect(result.current.conversationId).toBe('conv-abc'));
+
+    act(() => {
+      result.current.startNewConversation();
+    });
+
+    expect(result.current.messages).toHaveLength(0);
+    expect(result.current.conversationId).toBeUndefined();
+    expect(result.current.error).toBeNull();
+
+    // The reset conversationId is honored — the next send omits it again.
+    mockApiFetch.mockResolvedValueOnce(wireAnswer({ conversationId: 'conv-new' }));
+    act(() => {
+      result.current.send('Fresh start');
+    });
+    await waitFor(() => expect(result.current.messages).toHaveLength(2));
+    expect(mockApiFetch).toHaveBeenLastCalledWith('/chat', {
+      method: 'POST',
+      body: JSON.stringify({ message: 'Fresh start' }),
+    });
+  });
+
+  it('loadConversation hydrates the transcript from a fetched conversation', () => {
+    const detail: ConversationDetailWire = {
+      id: 'conv-old',
+      title: 'Everlane offers',
+      createdAt: '2026-09-01T10:00:00.000Z',
+      updatedAt: '2026-09-01T10:05:00.000Z',
+      messages: [
+        {
+          id: 'm1',
+          role: 'user',
+          content: 'What offers did I get from Everlane?',
+          sources: [],
+          artifacts: [],
+          createdAt: '2026-09-01T10:00:00.000Z',
+        },
+        {
+          id: 'm2',
+          role: 'assistant',
+          content: 'A 70% off offer, expiring soon.',
+          sources: [{ id: 'disc-1', title: 'Everlane sale', type: 'money' }],
+          artifacts: [],
+          createdAt: '2026-09-01T10:05:00.000Z',
+        },
+      ],
+    };
+    const { result } = renderUseChat();
+
+    act(() => {
+      result.current.loadConversation(detail);
+    });
+
+    expect(result.current.conversationId).toBe('conv-old');
+    expect(result.current.messages).toEqual([
+      {
+        id: 'm1',
+        role: 'user',
+        content: 'What offers did I get from Everlane?',
+        sources: [],
+        artifacts: [],
+        timestamp: '2026-09-01T10:00:00.000Z',
+      },
+      {
+        id: 'm2',
+        role: 'detective',
+        content: 'A 70% off offer, expiring soon.',
+        sources: [{ id: 'disc-1', title: 'Everlane sale', type: 'money' }],
+        artifacts: [],
+        timestamp: '2026-09-01T10:05:00.000Z',
+      },
+    ]);
+  });
+
+  it('invalidates the conversations list cache after an accepted turn', async () => {
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+    });
+    mockApiFetch.mockResolvedValueOnce({
+      conversations: [{ id: 'conv-abc', title: 'Old title', updatedAt: '2026-09-01T00:00:00.000Z', messageCount: 1 }],
+      total: 1,
+      pagination: { limit: 20, offset: 0 },
+    } satisfies ConversationsListWire);
+
+    const { result } = renderHook(
+      () => ({ chat: useChat(), list: useConversations(true) }),
+      { wrapper: ({ children }) => <QueryClientProvider client={queryClient}>{children}</QueryClientProvider> },
+    );
+    await waitFor(() => expect(result.current.list.isSuccess).toBe(true));
+    const callsBeforeSend = mockApiFetch.mock.calls.length;
+
+    mockApiFetch.mockResolvedValueOnce(wireAnswer({ conversationId: 'conv-abc' }));
+    mockApiFetch.mockResolvedValueOnce({
+      conversations: [{ id: 'conv-abc', title: 'Updated title', updatedAt: '2026-09-24T00:00:00.000Z', messageCount: 2 }],
+      total: 1,
+      pagination: { limit: 20, offset: 0 },
+    } satisfies ConversationsListWire);
+
+    act(() => {
+      result.current.chat.send('Hello again');
+    });
+    await waitFor(() => expect(result.current.chat.messages).toHaveLength(2));
+
+    // The list refetched (invalidate), not just the POST — 2 more calls than before.
+    await waitFor(() => expect(mockApiFetch.mock.calls.length).toBe(callsBeforeSend + 2));
+    await waitFor(() => expect(result.current.list.data?.conversations[0]?.title).toBe('Updated title'));
+  });
+});
+
+describe('useConversations', () => {
+  beforeEach(() => {
+    mockApiFetch.mockReset();
+  });
+
+  afterEach(cleanup);
+
+  const renderQuery = <T,>(hook: () => T) => {
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    return renderHook(hook, {
+      wrapper: ({ children }) => <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>,
+    });
+  };
+
+  it('fetches the first page with no pagination UI (v1 scope)', async () => {
+    const wire: ConversationsListWire = {
+      conversations: [{ id: 'conv-1', title: 'Netflix', updatedAt: '2026-09-01T00:00:00.000Z', messageCount: 4 }],
+      total: 1,
+      pagination: { limit: 20, offset: 0 },
+    };
+    mockApiFetch.mockResolvedValue(wire);
+
+    const { result } = renderQuery(() => useConversations(true));
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(mockApiFetch).toHaveBeenCalledWith('/chat/conversations?limit=20&offset=0');
+    expect(result.current.data).toEqual(wire);
+  });
+
+  it('never fires when disabled (Free — the endpoint would 402 anyway)', () => {
+    renderQuery(() => useConversations(false));
+    expect(mockApiFetch).not.toHaveBeenCalled();
+  });
+
+  it('surfaces the 402 pro_required error without retrying', async () => {
+    mockApiFetch.mockRejectedValue(new ApiError(402, 'pro_required', 'Pro required'));
+
+    const { result } = renderQuery(() => useConversations(true));
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(mockApiFetch).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('useLoadConversation', () => {
+  beforeEach(() => {
+    mockApiFetch.mockReset();
+  });
+
+  afterEach(cleanup);
+
+  const renderMutation = <T,>(hook: () => T) => {
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+    });
+    return renderHook(hook, {
+      wrapper: ({ children }) => <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>,
+    });
+  };
+
+  it('fetches one conversation by id on demand', async () => {
+    const wire: ConversationDetailWire = {
+      id: 'conv-1',
+      title: 'Netflix',
+      createdAt: '2026-09-01T00:00:00.000Z',
+      updatedAt: '2026-09-01T00:05:00.000Z',
+      messages: [],
+    };
+    mockApiFetch.mockResolvedValueOnce(wire);
+
+    const { result } = renderMutation(() => useLoadConversation());
+    act(() => {
+      result.current.mutate('conv-1');
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(mockApiFetch).toHaveBeenCalledWith('/chat/conversations/conv-1');
+    expect(result.current.data).toEqual(wire);
+  });
+
+  it('never fires until mutate is called', () => {
+    renderMutation(() => useLoadConversation());
+    expect(mockApiFetch).not.toHaveBeenCalled();
+  });
+
+  it('surfaces a failed load as a mutation error', async () => {
+    mockApiFetch.mockRejectedValueOnce(new ApiError(404, 'not_found', 'not yours'));
+
+    const { result } = renderMutation(() => useLoadConversation());
+    act(() => {
+      result.current.mutate('conv-not-mine');
+    });
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
   });
 });
 

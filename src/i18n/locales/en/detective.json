@@ -15,8 +15,24 @@
     "limitReached": "You've used all your free Detective questions for today.",
     "upgrade": "Upgrade to Pro",
     "sources": "Sources",
-    "sourceUnavailable": "Source details coming soon",
-    "error": "The Detective couldn't answer right now."
+    "error": "The Detective couldn't answer right now.",
+    "newChat": "New chat",
+    "history": {
+      "title": "History",
+      "empty": "No past conversations yet.",
+      "loadError": "Couldn't load that conversation.",
+      "upgradeCta": "Upgrade to keep and revisit past conversations."
+    },
+    "artifacts": {
+      "offerCount_one": "{{count}} offer on file",
+      "offerCount_other": "{{count}} offers on file",
+      "bestOffer": "Best offer: {{value}}",
+      "lastSeen": "Last seen {{time}}",
+      "historicalBest": "Best ever",
+      "expiresOn": "Expires {{date}}",
+      "percentOff": "{{value}}% off",
+      "pointsValue": "{{value}} points"
+    }
   },
   "agentStates": {
     "thinking": "Detective is thinking…",

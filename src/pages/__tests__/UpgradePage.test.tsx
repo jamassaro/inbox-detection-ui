@@ -114,6 +114,7 @@ describe('UpgradePage', () => {
     ['reminder', 'Set reminders so you never miss a deadline.'],
     ['calendar', 'Unlock Calendar actions.'],
     ['chat_limit', 'Get unlimited Detective access.'],
+    ['chat_history', 'Pick up past conversations with your Detective.'],
     ['investigation_results', 'See everything your investigation found.'],
   ])('shows the contextual headline for ?from=%s', async (from, expected) => {
     renderPage(`/upgrade?from=${from}`);

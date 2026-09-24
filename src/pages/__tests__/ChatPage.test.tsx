@@ -11,6 +11,7 @@ import { ApiError } from '../../lib/apiError';
 import { apiFetch } from '../../lib/apiClient';
 import type { ChatAnswerWire } from '../../hooks/useChat';
 import { LocaleProvider } from '../../contexts/LocaleProvider';
+import { ToastProvider } from '../../contexts/ToastProvider';
 import i18n from '../../i18n';
 
 vi.mock('../../lib/apiClient', () => ({
@@ -57,10 +58,20 @@ const entitlementsResult = (chatQuestionsRemaining: number | null): UseEntitleme
 };
 
 const wireAnswer = (overrides: Partial<ChatAnswerWire> = {}): ChatAnswerWire => ({
+  conversationId: 'conv-1',
   response: 'You have 3 active subscriptions totalling $47.97 per month.',
   sources: [{ id: 'disc-1', title: 'Netflix renews at $15.49', type: 'subscription' }],
+  artifacts: [],
   ...overrides,
 });
+
+/**
+ * Pro users' history column fetches GET /chat/conversations on mount,
+ * before any user interaction — queued ahead of a test's own POST /chat
+ * mock so the two never compete for the same "once" slot (mockApiFetch
+ * isn't path-aware in this file; ordering is what keeps them apart).
+ */
+const emptyConversationsWire = () => ({ conversations: [], total: 0, pagination: { limit: 20, offset: 0 } });
 
 const renderPage = () => {
   const queryClient = new QueryClient({
@@ -68,16 +79,18 @@ const renderPage = () => {
   });
   return render(
     <I18nextProvider i18n={i18n}>
-      <LocaleProvider>
-        <QueryClientProvider client={queryClient}>
-          <MemoryRouter initialEntries={['/app/chat']}>
-            <Routes>
-              <Route path="/app/chat" element={<ChatPage />} />
-              <Route path="/upgrade" element={<div>probe:/upgrade</div>} />
-            </Routes>
-          </MemoryRouter>
-        </QueryClientProvider>
-      </LocaleProvider>
+      <ToastProvider>
+        <LocaleProvider>
+          <QueryClientProvider client={queryClient}>
+            <MemoryRouter initialEntries={['/app/chat']}>
+              <Routes>
+                <Route path="/app/chat" element={<ChatPage />} />
+                <Route path="/upgrade" element={<div>probe:/upgrade</div>} />
+              </Routes>
+            </MemoryRouter>
+          </QueryClientProvider>
+        </LocaleProvider>
+      </ToastProvider>
     </I18nextProvider>,
   );
 };
@@ -114,7 +127,9 @@ describe('ChatPage — empty state', () => {
     expect((screen.getByTestId('chat-input') as HTMLInputElement).value).toBe(
       'Which subscriptions am I paying for?',
     );
-    expect(mockApiFetch).not.toHaveBeenCalled();
+    // Pro's history column does fetch on mount — this only asserts no
+    // question was sent (no POST /chat).
+    expect(mockApiFetch).not.toHaveBeenCalledWith('/chat', expect.anything());
   });
 
   it('renders suggestions in Spanish after switching locale', async () => {
@@ -129,6 +144,7 @@ describe('ChatPage — empty state', () => {
 
 describe('ChatPage — send flow', () => {
   it('shows the user bubble, then the detective response rendered as-is with source chips', async () => {
+    mockApiFetch.mockResolvedValueOnce(emptyConversationsWire());
     mockApiFetch.mockResolvedValueOnce(wireAnswer());
     renderPage();
 
@@ -159,6 +175,7 @@ describe('ChatPage — send flow', () => {
   });
 
   it('renders an inline error with retry, and the retry recovers', async () => {
+    mockApiFetch.mockResolvedValueOnce(emptyConversationsWire());
     mockApiFetch.mockRejectedValueOnce(new ApiError(502, 'chat_unavailable', 'chat unavailable'));
     renderPage();
 
@@ -213,6 +230,183 @@ describe('ChatPage — entitlements', () => {
     expect((screen.getByTestId('chat-input') as HTMLInputElement).disabled).toBe(true);
     // The rejected optimistic turn was rolled back.
     expect(screen.queryByTestId('chat-message-user')).toBeNull();
+  });
+
+  it('navigates to the upgrade page with the chat_limit context when the limit CTA is clicked', async () => {
+    mockUseEntitlements.mockReturnValue(entitlementsResult(0));
+    mockApiFetch.mockResolvedValueOnce(emptyConversationsWire());
+    renderPage();
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Upgrade to Pro' }));
+
+    expect(await screen.findByText('probe:/upgrade')).toBeTruthy();
+  });
+});
+
+describe('ChatPage — conversation history (Pro)', () => {
+  /** Path-aware routing — history involves several distinct endpoints in one test. */
+  const stubApi = ({
+    conversations = [],
+    onSelect,
+  }: {
+    conversations?: { id: string; title: string; updatedAt: string; messageCount: number }[];
+    onSelect?: (id: string) => unknown;
+  } = {}) => {
+    mockApiFetch.mockImplementation(async (path: string, options?: RequestInit) => {
+      if (path === '/chat/conversations?limit=20&offset=0') {
+        return { conversations, total: conversations.length, pagination: { limit: 20, offset: 0 } };
+      }
+      if (path.startsWith('/chat/conversations/')) {
+        if (!onSelect) throw new Error(`unexpected fetch: ${path}`);
+        return onSelect(path.split('/')[3]!);
+      }
+      if (path === '/chat' && options?.method === 'POST') return wireAnswer();
+      throw new Error(`unexpected apiFetch: ${path} ${options?.method ?? 'GET'}`);
+    });
+  };
+
+  it('shows the history column with past conversations for Pro users', async () => {
+    stubApi({
+      conversations: [
+        { id: 'conv-1', title: 'Netflix pricing', updatedAt: '2026-09-20T00:00:00.000Z', messageCount: 4 },
+      ],
+    });
+    renderPage();
+
+    const item = await screen.findByTestId('chat-history-item');
+    expect(item.textContent).toContain('Netflix pricing');
+  });
+
+  it('shows the empty state when there are no past conversations', async () => {
+    stubApi({ conversations: [] });
+    renderPage();
+
+    expect(await screen.findByText('No past conversations yet.')).toBeTruthy();
+  });
+
+  it('loads a selected conversation into the transcript', async () => {
+    stubApi({
+      conversations: [
+        { id: 'conv-1', title: 'Netflix pricing', updatedAt: '2026-09-20T00:00:00.000Z', messageCount: 2 },
+      ],
+      onSelect: () => ({
+        id: 'conv-1',
+        title: 'Netflix pricing',
+        createdAt: '2026-09-20T00:00:00.000Z',
+        updatedAt: '2026-09-20T00:00:00.000Z',
+        messages: [
+          {
+            id: 'm1',
+            role: 'user',
+            content: 'Why did Netflix go up?',
+            sources: [],
+            artifacts: [],
+            createdAt: '2026-09-20T00:00:00.000Z',
+          },
+          {
+            id: 'm2',
+            role: 'assistant',
+            content: 'Netflix raised prices in September.',
+            sources: [],
+            artifacts: [],
+            createdAt: '2026-09-20T00:00:01.000Z',
+          },
+        ],
+      }),
+    });
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.click(await screen.findByTestId('chat-history-item'));
+
+    expect(await screen.findByText('Why did Netflix go up?')).toBeTruthy();
+    expect(screen.getByText('Netflix raised prices in September.')).toBeTruthy();
+  });
+
+  it('shows a toast and leaves the transcript untouched when loading a conversation fails', async () => {
+    stubApi({
+      conversations: [
+        { id: 'conv-1', title: 'Netflix pricing', updatedAt: '2026-09-20T00:00:00.000Z', messageCount: 2 },
+      ],
+      onSelect: () => {
+        throw new Error('not found');
+      },
+    });
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.click(await screen.findByTestId('chat-history-item'));
+
+    expect(await screen.findByText("Couldn't load that conversation.")).toBeTruthy();
+    expect(screen.queryByTestId('chat-message-detective')).toBeNull();
+  });
+
+  it('resets the transcript when New chat is clicked', async () => {
+    stubApi();
+    const user = userEvent.setup();
+    renderPage();
+
+    await typeAndSend('Which subscriptions am I paying for?');
+    await screen.findByTestId('chat-message-detective');
+
+    await user.click(screen.getByTestId('chat-new'));
+
+    expect(screen.queryByTestId('chat-message-user')).toBeNull();
+    expect(screen.queryByTestId('chat-message-detective')).toBeNull();
+    expect(screen.getByText('Ask me anything about your inbox')).toBeTruthy();
+  });
+
+  it('does not show the history column or fetch conversations for Free users', () => {
+    mockUseEntitlements.mockReturnValue(entitlementsResult(2));
+    renderPage();
+
+    expect(screen.queryByTestId('chat-history-column')).toBeNull();
+    expect(mockApiFetch).not.toHaveBeenCalledWith('/chat/conversations?limit=20&offset=0');
+  });
+
+  it('redirects Free users straight to the upgrade page when History is clicked, with no request fired', async () => {
+    mockUseEntitlements.mockReturnValue(entitlementsResult(2));
+    renderPage();
+    const user = userEvent.setup();
+
+    await user.click(screen.getByTestId('chat-history-upgrade'));
+
+    expect(await screen.findByText('probe:/upgrade')).toBeTruthy();
+    expect(mockApiFetch).not.toHaveBeenCalledWith('/chat/conversations?limit=20&offset=0');
+  });
+});
+
+describe('ChatPage — artifacts', () => {
+  it('renders artifacts under the detective message, and links a source chip to its discovery', async () => {
+    mockApiFetch.mockResolvedValueOnce(emptyConversationsWire());
+    mockApiFetch.mockResolvedValueOnce(
+      wireAnswer({
+        response: 'You have a 70% off offer from Everlane.',
+        artifacts: [
+          {
+            type: 'offer',
+            data: {
+              discoveryId: 'disc-1',
+              companyEntityId: 'co-1',
+              company: 'Everlane',
+              value: 70,
+              unit: 'percent',
+              historicalBest: true,
+            },
+          },
+        ],
+      }),
+    );
+    renderPage();
+
+    await typeAndSend('What offers did I get from Everlane?');
+
+    expect(await screen.findByTestId('artifact-offer')).toBeTruthy();
+    expect(screen.getByTestId('artifact-offer').textContent).toContain('70% off');
+
+    const sourceLink = screen.getByTestId('chat-source-chip') as HTMLAnchorElement;
+    expect(sourceLink.getAttribute('href')).toBe('/app/discoveries/disc-1');
   });
 });
 

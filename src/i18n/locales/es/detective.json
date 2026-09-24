@@ -15,8 +15,24 @@
     "limitReached": "Ya usaste todas tus preguntas gratis del Detective por hoy.",
     "upgrade": "Mejora a Pro",
     "sources": "Fuentes",
-    "sourceUnavailable": "Detalles de la fuente próximamente",
-    "error": "El Detective no pudo responder en este momento."
+    "error": "El Detective no pudo responder en este momento.",
+    "newChat": "Nueva conversación",
+    "history": {
+      "title": "Historial",
+      "empty": "Todavía no hay conversaciones anteriores.",
+      "loadError": "No se pudo cargar esa conversación.",
+      "upgradeCta": "Mejora a Pro para conservar y retomar conversaciones anteriores."
+    },
+    "artifacts": {
+      "offerCount_one": "{{count}} oferta registrada",
+      "offerCount_other": "{{count}} ofertas registradas",
+      "bestOffer": "Mejor oferta: {{value}}",
+      "lastSeen": "Visto por última vez {{time}}",
+      "historicalBest": "La mejor hasta ahora",
+      "expiresOn": "Vence {{date}}",
+      "percentOff": "{{value}}% de descuento",
+      "pointsValue": "{{value}} puntos"
+    }
   },
   "agentStates": {
     "thinking": "El Detective está pensando…",
