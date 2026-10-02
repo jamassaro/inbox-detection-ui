@@ -117,5 +117,28 @@
   "demo": {
     "banner": "Estás viendo datos de ejemplo en modo demo.",
     "exit": "Salir de la demo"
+  },
+  "extension": {
+    "launcher": "Abrir Inbox Detective",
+    "panelLabel": "Inbox Detective",
+    "title": "Descubrimientos recientes",
+    "subtitle": "Lo que Detective encontró en tu bandeja de entrada.",
+    "dashboard": "Panel",
+    "dashboardTooltip": "Abrir el panel en una pestaña nueva",
+    "viewAll": "Ver todos los descubrimientos",
+    "close": "Cerrar",
+    "signIn": {
+      "description": "Descubre lo importante que se esconde en tu bandeja de entrada.",
+      "cta": "Iniciar sesión con Google"
+    },
+    "empty": {
+      "title": "Nada nuevo por ahora",
+      "description": "Detective está vigilando tu bandeja de entrada. Las nuevas facturas, ofertas y cambios importantes aparecerán aquí.",
+      "cta": "Abrir el panel"
+    },
+    "error": {
+      "title": "No se pudieron cargar los descubrimientos."
+    },
+    "openDiscovery": "Abrir descubrimiento de {{company}}"
   }
 }

@@ -117,5 +117,28 @@
   "demo": {
     "banner": "You're viewing sample data in demo mode.",
     "exit": "Exit demo"
+  },
+  "extension": {
+    "launcher": "Open Inbox Detective",
+    "panelLabel": "Inbox Detective",
+    "title": "Recent Discoveries",
+    "subtitle": "Things Detective found in your inbox.",
+    "dashboard": "Dashboard",
+    "dashboardTooltip": "Open dashboard in a new tab",
+    "viewAll": "View all discoveries",
+    "close": "Close",
+    "signIn": {
+      "description": "See the important things hiding in your inbox.",
+      "cta": "Sign in with Google"
+    },
+    "empty": {
+      "title": "Nothing new yet",
+      "description": "Detective is watching your inbox. New bills, offers and important changes will appear here.",
+      "cta": "Open Dashboard"
+    },
+    "error": {
+      "title": "Couldn't load discoveries."
+    },
+    "openDiscovery": "Open {{company}} discovery"
   }
 }

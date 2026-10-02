@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "build:extension": "tsc -b && vite build --config vite.config.extension.ts",
+    "build:extension:local": "VITE_EXTENSION_WEB_ORIGIN=http://localhost:5173 VITE_EXTENSION_API_ORIGIN=http://localhost:8080 npm run build:extension",
+    "build:extension": "tsc -b && vite build --config vite.config.extension.ts --mode content && vite build --config vite.config.extension.ts --mode background",
     "lint": "oxlint",
     "preview": "vite preview",
     "test": "vitest run",

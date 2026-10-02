@@ -37,3 +37,6 @@ jobs:
 
       - name: Build (vite)
         run: npm run build
+
+      - name: Build Chrome extension
+        run: npm run build:extension
