@@ -25,21 +25,29 @@ const mockResponse: SubscriptionListResponse = {
     {
       id: 'sub-1',
       company: 'Netflix',
-      companyInitials: 'NF',
+      plan: 'Premium',
       currentAmount: 15.49,
       currency: 'USD',
-      frequency: 'monthly',
-      nextRenewal: '2026-10-01T00:00:00.000Z',
+      billingCycle: 'monthly',
+      nextBillingDate: '2026-10-01T00:00:00.000Z',
+      monthlyEquivalent: 15.49,
+      annualCost: 185.88,
+      status: 'active',
     },
     {
       id: 'sub-2',
       company: 'Adobe',
-      companyInitials: 'AD',
+      plan: null,
       currentAmount: 599.88,
       currency: 'USD',
-      frequency: 'annual',
+      billingCycle: 'yearly',
+      nextBillingDate: null,
+      monthlyEquivalent: 49.99,
+      annualCost: 599.88,
+      status: 'active',
     },
   ],
+  summary: { total: 2, monthlyTotal: 65.48, annualTotal: 785.76 },
 };
 
 afterEach(cleanup);
@@ -60,7 +68,7 @@ describe('useSubscriptions', () => {
     const { result } = renderHook(() => useSubscriptions(), { wrapper: makeWrapper() });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(mockApiFetch).toHaveBeenCalledWith('/subscriptions');
+    expect(mockApiFetch).toHaveBeenCalledWith('/subscriptions/records');
     expect(result.current.data?.subscriptions).toHaveLength(2);
     expect(result.current.data?.subscriptions[0].company).toBe('Netflix');
   });

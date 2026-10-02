@@ -71,6 +71,12 @@ export interface Discovery {
   summary: string;
   /** Merchant or sender company name. Proper noun — never translate. */
   company: string;
+  /**
+   * Product tier the user is subscribed to at `company` (e.g. "Premium"),
+   * only ever set for `subscription` Discoveries. Unrelated to the user's own
+   * Free/Pro account plan. AI-extracted — render as-is, never through t().
+   */
+  plan?: string;
   /** Initials derived from `company` (see getInitials in discoveryHelpers). */
   companyInitials: string;
   /** Monetary amount attached to the Discovery, when known. */
@@ -234,27 +240,47 @@ export interface User {
   createdAt: string;
 }
 
-/** Billing cadence of a detected subscription. */
-export type SubscriptionFrequency = 'monthly' | 'annual' | 'weekly';
+/**
+ * Billing cadence of a detected subscription — the values `GET
+ * /subscriptions/records` can emit for `billingCycle`. Map through
+ * `billing.frequency.*` (see getBillingCycleKey).
+ */
+export type SubscriptionBillingCycle = 'weekly' | 'monthly' | 'quarterly' | 'bi-annual' | 'yearly';
 
-/** A recurring charge detected in the user's inbox (FE-025). */
+/** A recurring charge detected in the user's inbox (FE-025), from `GET /subscriptions/records`. */
 export interface Subscription {
   id: string;
+  /** Brand name. Proper noun — never translate. */
   company: string;
-  companyInitials: string;
-  product?: string;
-  currentAmount: number;
-  currency: string;
-  frequency: SubscriptionFrequency;
-  nextRenewal?: string;
-  previousAmount?: number;
-  priceChangedAt?: string;
-  discoveryId?: string;
+  domain?: string | null;
+  /**
+   * Pack/tier the user is subscribed to at `company` (e.g. "Premium").
+   * Unrelated to the user's own Free/Pro account plan. AI-extracted — render
+   * as-is. Null for rows detected before the backend started extracting it.
+   */
+  plan: string | null;
+  currentAmount: number | null;
+  currency: string | null;
+  /** Free-form on the wire; unknown values fall back to no cadence label. */
+  billingCycle: string | null;
+  nextBillingDate: string | null;
+  /** Server-computed cost per month / per year, null when amount or cycle is unknown. */
+  monthlyEquivalent: number | null;
+  annualCost: number | null;
+  /** `active | cancelled | unknown` on the wire; unknown values show no status label. */
+  status: string;
+  /** ISO timestamp of the last email that confirmed this subscription. */
+  lastDetectedAt?: string | null;
 }
 
-/** Response shape for `GET /subscriptions`. */
+/** Response shape for `GET /subscriptions/records`. */
 export interface SubscriptionListResponse {
   subscriptions: Subscription[];
+  summary: {
+    total: number;
+    monthlyTotal: number;
+    annualTotal: number;
+  };
 }
 
 /**

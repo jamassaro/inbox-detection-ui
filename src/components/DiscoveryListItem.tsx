@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { getDiscoveryActionKey, getDiscoveryMeta } from '../lib/discoveryHelpers';
+import { getDiscoveryActionKey, getDiscoveryMeta, shouldShowPlan } from '../lib/discoveryHelpers';
 import { formatCurrency, formatDate } from '../lib/formatting';
 import type { Discovery, DiscoveryAction } from '../types';
 
@@ -66,7 +66,16 @@ const DiscoveryListItem = ({ discovery, onAction }: DiscoveryListItemProps) => {
 
       {/* Center: company, AI title (as-is), amount + date metadata */}
       <div className="flex-1 min-w-0">
-        <div className="text-sm font-medium text-gray-900">{discovery.company}</div>
+        <div className="text-sm font-medium text-gray-900">
+          {discovery.company}
+          {/* AI-extracted plan/tier name — rendered as-is; omitted when the title already names it */}
+          {shouldShowPlan(discovery) && (
+            <span className="font-normal text-gray-500" data-testid="discovery-plan">
+              {' · '}
+              {discovery.plan}
+            </span>
+          )}
+        </div>
         <div className="text-sm text-gray-600 truncate">{discovery.title}</div>
         <div className="text-xs text-gray-500 mt-0.5 flex items-center gap-2" data-testid="list-item-meta">
           {amount != null && <span>{formatCurrency(amount, currency, i18n.language)}{frequency ? ` / ${t(`card.frequency.${frequency}`, { defaultValue: '' })}` : ''}</span>}

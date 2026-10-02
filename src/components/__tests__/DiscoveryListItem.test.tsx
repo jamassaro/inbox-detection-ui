@@ -113,4 +113,19 @@ describe('DiscoveryListItem', () => {
     await userEvent.click(screen.getByTestId('list-item-primary-action'));
     expect(onAction).toHaveBeenCalledWith('dismiss');
   });
+
+  it('shows the plan next to the company when the title does not name it', () => {
+    renderListItem(buildDiscovery({ plan: 'Premium' }));
+    expect(screen.getByTestId('discovery-plan').textContent).toBe(' · Premium');
+  });
+
+  it('omits the plan label when the title already names the plan', () => {
+    renderListItem(buildDiscovery({ plan: 'Premium', title: 'Netflix premium renews October 1' }));
+    expect(screen.queryByTestId('discovery-plan')).toBeNull();
+  });
+
+  it('omits the plan label when there is no plan', () => {
+    renderListItem(buildDiscovery());
+    expect(screen.queryByTestId('discovery-plan')).toBeNull();
+  });
 });

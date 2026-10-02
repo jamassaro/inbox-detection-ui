@@ -39,6 +39,8 @@ export interface DiscoveryWire {
   description: string | null;
   explanation?: string | null;
   company?: string | null;
+  /** Subscription tier name — populated only when `type === 'subscription'`, else null. */
+  plan?: string | null;
   amount?: number | null;
   currency?: string | null;
   eventDate?: string | null;
@@ -146,13 +148,19 @@ export function toDiscovery(wire: DiscoveryWire): Discovery {
   // title/summary already describe the value in words.
   const hasMoney = wire.amount != null && !!wire.currency && isFormattableCurrency(wire.currency);
 
+  const type = WIRE_TYPE_TO_DOMAIN[wire.type] ?? 'action_required';
+  // Locked rows keep company/amount but the paywall hides what the discovery
+  // says — the backend doesn't mask `plan`, so it's withheld here too.
+  const plan = type === 'subscription' && !wire.isLocked ? wire.plan?.trim() : undefined;
+
   return {
     id: wire.id,
-    type: WIRE_TYPE_TO_DOMAIN[wire.type] ?? 'action_required',
+    type,
     title: wire.title,
     summary: wire.description ?? '',
     company: wire.company ?? '',
     companyInitials: getInitials(wire.company ?? ''),
+    ...(plan && { plan }),
     ...(hasMoney && { amount: wire.amount!, currency: wire.currency! }),
     ...(wire.eventDate != null && { date: wire.eventDate }),
     ...(wire.createdAt != null && { createdAt: wire.createdAt }),
