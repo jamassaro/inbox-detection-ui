@@ -10,6 +10,9 @@
  * into a different tab, nor survive a browser restart.
  */
 
+import { getApiBaseUrl } from '../lib/apiBase';
+import { clearDemoFlag } from '../lib/demoMode';
+
 /** sessionStorage key for the post-auth redirect target. */
 export const RETURN_PATH_STORAGE_KEY = 'inbox-detective-auth-return-path';
 
@@ -42,8 +45,8 @@ export interface StartGoogleAuthOptions {
  */
 export function useGoogleAuth() {
   const startGoogleAuth = (options?: StartGoogleAuthOptions): boolean => {
-    const baseUrl = import.meta.env.VITE_API_BASE_URL;
-    if (!baseUrl) {
+    const baseUrl = getApiBaseUrl();
+    if (baseUrl === null) {
       console.error(
         '[useGoogleAuth] VITE_API_BASE_URL is not configured — cannot start Google OAuth. ' +
           'Set it in your environment (see .env.example).',
@@ -57,6 +60,9 @@ export function useGoogleAuth() {
       sessionStorage.setItem(RETURN_PATH_STORAGE_KEY, options.returnPath);
     }
 
+    // Real sign-in must never run under the mock API — drop any demo flag so
+    // the app reloads (after the OAuth round trip) on the live backend.
+    clearDemoFlag();
     window.location.href = `${baseUrl}/auth/google`;
     return true;
   };

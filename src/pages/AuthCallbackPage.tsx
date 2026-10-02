@@ -11,7 +11,7 @@ import type { AccountConnectionsWire, User } from '../types';
 
 /**
  * Redirect target of the backend Google OAuth flow (FE-007). The code
- * exchange happens backend-side (it sets the httpOnly session cookie); this
+ * exchange happens backend-side (it sets the httpOnly session cookie and redirects here with no params); this
  * page only resolves the session with `GET /account/me` (the backend has no
  * `/auth/me` — account.routes.ts is the session surface, verified
  * 2026-09-17) and routes: returnPath (sessionStorage) → else Gmail
@@ -28,13 +28,13 @@ const DASHBOARD_PATH = '/app/dashboard';
 const ONBOARDING_PATH = '/onboarding';
 
 /**
- * A callback URL is only valid when the backend redirected here with a
- * `code` (success leg) — anything else (missing param, `?error=…` from the
- * backend's OAuth failure leg) is a failure before any session check.
+ * The backend redirects to `/auth/callback` with NO query params on success
+ * (the session cookie is already set — there is nothing to parse), and with
+ * `?error=…` on its OAuth failure leg. Only the latter fails before the
+ * session check; a bare arrival is validated by `GET /account/me`.
  */
 function isFailedCallback(): boolean {
-  const params = new URLSearchParams(window.location.search);
-  return params.has('error') || !params.get('code');
+  return new URLSearchParams(window.location.search).has('error');
 }
 
 /** Visible "Signing you in…" state shown while the session resolves. */

@@ -88,8 +88,7 @@ describe('AuthCallbackPage', () => {
   });
 
   it('shows the translated loading state while the session resolves', () => {
-    window.location.search = '?code=abc';
-    mockApiFetch.mockImplementation(() => new Promise<User>(() => {})); // never settles
+        mockApiFetch.mockImplementation(() => new Promise<User>(() => {})); // never settles
     renderPage();
 
     // Exactly one status landmark (the spinner) + the visible translated copy.
@@ -98,8 +97,7 @@ describe('AuthCallbackPage', () => {
   });
 
   it('lands on /onboarding when Gmail is not connected — one session check, one connections check', async () => {
-    window.location.search = '?code=abc';
-    mockSession(false);
+        mockSession(false);
     renderPage();
 
     await waitFor(() => expect(screen.getByText('probe:/onboarding')).toBeTruthy());
@@ -112,16 +110,14 @@ describe('AuthCallbackPage', () => {
   });
 
   it('lands on /app/dashboard when Gmail is already connected', async () => {
-    window.location.search = '?code=abc';
-    mockSession(true);
+        mockSession(true);
     renderPage();
 
     await waitFor(() => expect(screen.getByText('probe:/app/dashboard')).toBeTruthy());
   });
 
   it('honors the sessionStorage returnPath over the Gmail-based destination and consumes it', async () => {
-    window.location.search = '?code=abc';
-    sessionStorage.setItem(RETURN_PATH_STORAGE_KEY, '/app/discoveries/d1');
+        sessionStorage.setItem(RETURN_PATH_STORAGE_KEY, '/app/discoveries/d1');
     mockSession(true);
     renderPage();
 
@@ -130,8 +126,7 @@ describe('AuthCallbackPage', () => {
   });
 
   it('ignores an off-site returnPath and falls back to the Gmail-based destination', async () => {
-    window.location.search = '?code=abc';
-    sessionStorage.setItem(RETURN_PATH_STORAGE_KEY, 'https://evil.example');
+        sessionStorage.setItem(RETURN_PATH_STORAGE_KEY, 'https://evil.example');
     mockSession(true);
     renderPage();
 
@@ -139,8 +134,7 @@ describe('AuthCallbackPage', () => {
   });
 
   it('resolves the session via the page Query when AuthProvider missed it', async () => {
-    window.location.search = '?code=abc';
-    mockApiFetch.mockImplementation((path: string) => {
+        mockApiFetch.mockImplementation((path: string) => {
       if (path === '/account/connections') {
         return Promise.resolve(connectionsWire(true)) as ReturnType<typeof apiFetch>;
       }
@@ -160,8 +154,7 @@ describe('AuthCallbackPage', () => {
   });
 
   it('shows the error state with a retry CTA when the session check fails — history untouched', async () => {
-    window.location.search = '?code=abc';
-    mockApiFetch.mockRejectedValue(new ApiError(401, 'UNAUTHORIZED', 'no session'));
+        mockApiFetch.mockRejectedValue(new ApiError(401, 'UNAUTHORIZED', 'no session'));
     renderPage();
 
     const alert = await screen.findByRole('alert');
@@ -173,16 +166,6 @@ describe('AuthCallbackPage', () => {
     const retry = screen.getByRole('button', { name: 'Try again' });
     await userEvent.click(retry);
     await waitFor(() => expect(screen.getByText('probe:/')).toBeTruthy());
-  });
-
-  it('fails fast on a missing code param without a session check', async () => {
-    // stub default: window.location.search === ''
-    mockSession(true); // only AuthProvider's own check fires
-    renderPage();
-
-    const alert = await screen.findByRole('alert');
-    expect(alert.textContent).toContain("We couldn't complete sign-in. Please try again.");
-    expect(screen.getByRole('button', { name: 'Try again' })).toBeTruthy();
   });
 
   it('fails fast when the backend redirected back with an error param', async () => {
@@ -197,16 +180,15 @@ describe('AuthCallbackPage', () => {
     await i18n.changeLanguage('es');
 
     // Loading state (session never resolves).
-    window.location.search = '?code=abc';
-    mockApiFetch.mockImplementation(() => new Promise<User>(() => {}));
+        mockApiFetch.mockImplementation(() => new Promise<User>(() => {}));
     const loading = renderPage();
     expect(screen.getByRole('status')).toBeTruthy();
     expect(screen.getByText('Iniciando sesión…')).toBeTruthy();
     loading.unmount();
 
-    // Error state (no code param).
+    // Error state (backend failure leg).
     mockApiFetch.mockReset();
-    window.location.search = '';
+    window.location.search = '?error=access_denied';
     renderPage();
     const alert = await screen.findByRole('alert');
     expect(alert.textContent).toContain('No pudimos completar el inicio de sesión. Inténtalo de nuevo.');

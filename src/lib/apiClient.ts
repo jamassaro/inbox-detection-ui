@@ -1,4 +1,5 @@
 import { ApiError } from './apiError'
+import { getApiBaseUrl } from './apiBase'
 
 /** Window event dispatched when the backend responds 401 (consumed by AuthContext, FE-003). */
 export const AUTH_EXPIRED_EVENT = 'auth:expired'
@@ -16,8 +17,8 @@ function getAcceptLanguage(): string {
 
 /** Resolves the API base URL from the environment — never hardcoded. */
 function resolveBaseUrl(): string {
-  const baseUrl = import.meta.env.VITE_API_BASE_URL
-  if (!baseUrl) {
+  const baseUrl = getApiBaseUrl()
+  if (baseUrl === null) {
     throw new Error(
       'VITE_API_BASE_URL is not configured. Set it in your environment (see .env.example).',
     )

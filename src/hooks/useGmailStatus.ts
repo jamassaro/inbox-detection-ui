@@ -1,5 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { apiFetch } from '../lib/apiClient';
+import { getApiBaseUrl } from '../lib/apiBase';
+import { isDemoMode } from '../lib/demoMode';
 import type { AccountConnectionsWire } from '../types';
 
 /** Gmail connection status for the signed-in user. */
@@ -85,8 +87,11 @@ export function useGmailStatus() {
  * URL is unconfigured (nothing was navigated).
  */
 export function startGmailConnect(): boolean {
-  const baseUrl = import.meta.env.VITE_API_BASE_URL;
-  if (!baseUrl) {
+  // Demo data has no real mailbox to connect — never start live OAuth from it.
+  if (isDemoMode()) return false;
+
+  const baseUrl = getApiBaseUrl();
+  if (baseUrl === null) {
     console.error(
       '[startGmailConnect] VITE_API_BASE_URL is not configured — cannot start Gmail OAuth. ' +
         'Set it in your environment (see .env.example).',

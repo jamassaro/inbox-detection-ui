@@ -41,3 +41,32 @@ export function isCalendarNotConnected(error: unknown): boolean {
     (error.body as { error?: unknown }).error === 'calendar_not_connected'
   );
 }
+
+/** Parsed `402 pro_required` body: `{ error, upgradeContext, message, checkoutUrl }`. */
+export interface ProRequiredInfo {
+  /** Backend paywall trigger (e.g. which feature was hit) — drives the upgrade headline. */
+  upgradeContext?: string;
+  /** Backend-authored explanation; localized by `Accept-Language`. */
+  message?: string;
+  /** Relative backend path to start checkout (e.g. '/billing/checkout'). */
+  checkoutUrl?: string;
+}
+
+/**
+ * Returns the `pro_required` details when `error` is the backend's generic
+ * Pro-gate answer (402 with `{ error: 'pro_required', … }`), else `null`.
+ * Use it wherever a Pro route is called instead of re-checking `status === 402`
+ * — a 402 with a different body (e.g. a locked Discovery) is not this shape.
+ */
+export function getProRequired(error: unknown): ProRequiredInfo | null {
+  if (!(error instanceof ApiError) || error.status !== 402) return null;
+  const body = error.body;
+  if (typeof body !== 'object' || body === null) return null;
+  const { error: kind, upgradeContext, message, checkoutUrl } = body as Record<string, unknown>;
+  if (kind !== 'pro_required') return null;
+  return {
+    ...(typeof upgradeContext === 'string' && { upgradeContext }),
+    ...(typeof message === 'string' && { message }),
+    ...(typeof checkoutUrl === 'string' && { checkoutUrl }),
+  };
+}
