@@ -19,6 +19,13 @@
         }
       },
       {
+        "source": "/account",
+        "run": {
+          "serviceId": "inbox-api",
+          "region": "us-central1"
+        }
+      },
+      {
         "source": "/account/**",
         "run": {
           "serviceId": "inbox-api",
@@ -47,7 +54,21 @@
         }
       },
       {
+        "source": "/scan",
+        "run": {
+          "serviceId": "inbox-api",
+          "region": "us-central1"
+        }
+      },
+      {
         "source": "/scan/**",
+        "run": {
+          "serviceId": "inbox-api",
+          "region": "us-central1"
+        }
+      },
+      {
+        "source": "/events",
         "run": {
           "serviceId": "inbox-api",
           "region": "us-central1"
@@ -61,6 +82,13 @@
         }
       },
       {
+        "source": "/stats",
+        "run": {
+          "serviceId": "inbox-api",
+          "region": "us-central1"
+        }
+      },
+      {
         "source": "/stats/**",
         "run": {
           "serviceId": "inbox-api",
@@ -68,7 +96,21 @@
         }
       },
       {
+        "source": "/preferences",
+        "run": {
+          "serviceId": "inbox-api",
+          "region": "us-central1"
+        }
+      },
+      {
         "source": "/preferences/**",
+        "run": {
+          "serviceId": "inbox-api",
+          "region": "us-central1"
+        }
+      },
+      {
+        "source": "/jobs",
         "run": {
           "serviceId": "inbox-api",
           "region": "us-central1"
@@ -89,6 +131,13 @@
         }
       },
       {
+        "source": "/subscriptions",
+        "run": {
+          "serviceId": "inbox-api",
+          "region": "us-central1"
+        }
+      },
+      {
         "source": "/subscriptions/**",
         "run": {
           "serviceId": "inbox-api",
@@ -96,7 +145,21 @@
         }
       },
       {
+        "source": "/discoveries",
+        "run": {
+          "serviceId": "inbox-api",
+          "region": "us-central1"
+        }
+      },
+      {
         "source": "/discoveries/**",
+        "run": {
+          "serviceId": "inbox-api",
+          "region": "us-central1"
+        }
+      },
+      {
+        "source": "/chat",
         "run": {
           "serviceId": "inbox-api",
           "region": "us-central1"
@@ -117,6 +180,13 @@
         }
       },
       {
+        "source": "/reminders",
+        "run": {
+          "serviceId": "inbox-api",
+          "region": "us-central1"
+        }
+      },
+      {
         "source": "/reminders/**",
         "run": {
           "serviceId": "inbox-api",
@@ -124,7 +194,21 @@
         }
       },
       {
+        "source": "/actions",
+        "run": {
+          "serviceId": "inbox-api",
+          "region": "us-central1"
+        }
+      },
+      {
         "source": "/actions/**",
+        "run": {
+          "serviceId": "inbox-api",
+          "region": "us-central1"
+        }
+      },
+      {
+        "source": "/investigation",
         "run": {
           "serviceId": "inbox-api",
           "region": "us-central1"
