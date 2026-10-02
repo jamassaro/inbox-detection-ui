@@ -1,0 +1,63 @@
+name: CD
+
+# Separate from CI (ci.yml) on purpose: a distinct pipeline that only ever
+# runs after CI has fully passed on main, triggered via workflow_run rather
+# than its own push trigger. That also means it checks out
+# github.event.workflow_run.head_sha below, not the ref that fired this
+# event (workflow_run always starts from the default branch otherwise).
+#
+# Deploys to Firebase Hosting (project "inbox-detection"). One-time setup:
+#   1. firebase login
+#   2. firebase init hosting:github
+#      (run from repo root; answer "N" to overwriting existing hosting
+#      config/workflows — it only needs to create the service account and
+#      the GitHub secret). This creates a service account scoped to
+#      Firebase Hosting for this project and stores its key as the
+#      FIREBASE_SERVICE_ACCOUNT_INBOX_DETECTION repo secret.
+#   If you'd rather not run the interactive CLI, create the service
+#   account manually (role: Firebase Hosting Admin, on the
+#   "inbox-detection" GCP project), generate a JSON key, and add it as
+#   that same secret under Settings -> Secrets and variables -> Actions.
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+
+# Deploys queue rather than overlap — never cancel one mid-flight.
+concurrency:
+  group: cd-main
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to Firebase Hosting
+    if: github.event.workflow_run.event == 'push' && github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build (production env)
+        run: npm run build
+
+      - name: Deploy to Firebase Hosting (live channel)
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_INBOX_DETECTION }}
+          projectId: inbox-detection
+          channelId: live

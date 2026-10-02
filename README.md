@@ -42,6 +42,24 @@ npm run build
 npm run preview
 ```
 
+## Deployment
+
+Hosted on Firebase Hosting (project `inbox-detection`), fronting the
+`inbox-api` Cloud Run service via `firebase.json` rewrites (same-origin API
+calls, so the session cookie stays first-party). CI and CD are separate
+GitHub Actions workflows: `.github/workflows/ci.yml` (lint/typecheck/test/
+build, every PR and push) and `.github/workflows/cd.yml` (deploy), which
+triggers via `workflow_run` once CI finishes successfully on `main` — so a
+push to `main` is only deployed after CI has actually passed. See the
+comment at the top of `cd.yml` for one-time setup (`firebase init
+hosting:github`, or a manually created service account).
+
+Manual deploy, if needed:
+```bash
+npm run build
+npx firebase-tools deploy --only hosting --project inbox-detection
+```
+
 ## 🐳 Docker Setup
 
 ### Development Mode
