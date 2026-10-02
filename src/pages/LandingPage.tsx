@@ -132,7 +132,7 @@ const NavSection = () => {
     <header className="sticky top-0 z-10 border-b border-gray-200 bg-white">
       <nav className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
         <Link to="/" className="flex items-center gap-2 text-base font-semibold text-gray-900">
-          <Search className="h-5 w-5" aria-hidden="true" />
+          <img src="/logo.svg" alt="" aria-hidden="true" className="h-6 w-6" />
           {t('landing.nav.brand')}
         </Link>
         <div className="flex items-center gap-2 sm:gap-4">
