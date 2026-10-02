@@ -21,6 +21,7 @@ import {
   getDiscoveryMeta,
   getDiscoveryTypeKey,
   getFrequencyLabelKey,
+  shouldShowPlan,
 } from '../../lib/discoveryHelpers';
 import { formatCurrency, formatDate } from '../../lib/formatting';
 import { ApiError } from '../../lib/apiError';
@@ -270,6 +271,13 @@ const DiscoveryDetailPage = () => {
           <div className="min-w-0">
             <p className="text-sm text-gray-500" data-testid="detail-company">
               {discovery.company}
+              {/* AI-extracted plan/tier name — rendered as-is; omitted when the title already names it */}
+              {shouldShowPlan(discovery) && (
+                <span data-testid="detail-plan">
+                  {' · '}
+                  {discovery.plan}
+                </span>
+              )}
             </p>
             <div className="mt-1 flex flex-wrap items-center gap-2">
               <span

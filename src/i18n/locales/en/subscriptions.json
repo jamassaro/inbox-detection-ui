@@ -5,8 +5,7 @@
     "annualTotal": "{{amount}} / year"
   },
   "list": {
-    "renewsOn": "Renews {{date}}",
-    "priceChanged": "Price changed"
+    "renewsOn": "Renews {{date}}"
   },
   "empty": {
     "title": "No subscriptions detected yet",
@@ -18,6 +17,21 @@
   },
   "detail": {
     "renewalDate": "Renews on {{date}}",
-    "annualizedCost": "{{amount}} per year"
+    "annualizedCost": "{{amount}} per year",
+    "show": "Show details for {{company}}",
+    "hide": "Hide details for {{company}}",
+    "plan": "Plan",
+    "amount": "Price",
+    "monthlyCost": "Monthly cost",
+    "annualCost": "Annual cost",
+    "nextBilling": "Next billing",
+    "status": "Status",
+    "lastDetected": "Last seen in your inbox",
+    "website": "Website",
+    "statuses": {
+      "active": "Active",
+      "cancelled": "Cancelled",
+      "unknown": "Unknown"
+    }
   }
 }

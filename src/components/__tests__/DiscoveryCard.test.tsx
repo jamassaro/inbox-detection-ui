@@ -245,4 +245,19 @@ describe('DiscoveryCard', () => {
     renderCard(buildDiscovery({ type: 'price_change' }));
     expect(screen.getByTestId('type-badge').textContent).toBe('Cambio de precio');
   });
+
+  it('shows the plan next to the company when the title does not name it', () => {
+    renderCard(buildDiscovery({ plan: 'Premium' }));
+    expect(screen.getByTestId('discovery-plan').textContent).toBe(' · Premium');
+  });
+
+  it('omits the plan label when the title already names the plan', () => {
+    renderCard(buildDiscovery({ plan: 'Premium', title: 'Netflix premium renews October 1' }));
+    expect(screen.queryByTestId('discovery-plan')).toBeNull();
+  });
+
+  it('omits the plan label when there is no plan', () => {
+    renderCard(buildDiscovery());
+    expect(screen.queryByTestId('discovery-plan')).toBeNull();
+  });
 });

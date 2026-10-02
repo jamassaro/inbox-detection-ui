@@ -6,6 +6,7 @@ import {
   getDiscoveryMeta,
   getDiscoveryTypeKey,
   getFrequencyLabelKey,
+  shouldShowPlan,
 } from '../lib/discoveryHelpers';
 import { formatCurrency, formatDate } from '../lib/formatting';
 import type { Discovery, DiscoveryAction, DiscoveryImportance } from '../types';
@@ -105,7 +106,16 @@ const DiscoveryCard = ({ discovery, onAction, compact = false }: DiscoveryCardPr
           >
             {discovery.companyInitials}
           </div>
-          <h3 className="font-semibold text-gray-900 truncate">{discovery.company}</h3>
+          <h3 className="font-semibold text-gray-900 truncate">
+            {discovery.company}
+            {/* AI-extracted plan/tier name — rendered as-is; omitted when the title already names it */}
+            {shouldShowPlan(discovery) && (
+              <span className="font-normal text-gray-500" data-testid="discovery-plan">
+                {' · '}
+                {discovery.plan}
+              </span>
+            )}
+          </h3>
         </div>
         <span
           className={`${meta.colorClass} text-xs font-semibold px-2.5 py-1 rounded-md shrink-0`}

@@ -82,6 +82,34 @@ export function getInitials(company: string): string {
 }
 
 /**
+ * Whether a Discovery's plan/tier name deserves its own label. False when
+ * there is no plan, or when the AI-generated title already names it
+ * ("Netflix Premium renews…") — repeating it would be noise.
+ */
+export function shouldShowPlan(discovery: Pick<Discovery, 'plan' | 'title'>): boolean {
+  const { plan, title } = discovery;
+  return !!plan && !title.toLowerCase().includes(plan.toLowerCase());
+}
+
+const BILLING_CYCLE_TO_KEY: Record<string, string> = {
+  weekly: 'weekly',
+  monthly: 'monthly',
+  quarterly: 'quarterly',
+  'bi-annual': 'biAnnual',
+  yearly: 'annual',
+};
+
+/**
+ * Maps a `SubscriptionRecord.billingCycle` wire value to its
+ * `billing.frequency.*` key (namespace-relative), or null when the cycle is
+ * missing or unrecognised — callers then omit the cadence label.
+ */
+export function getBillingCycleKey(cycle: string | null): string | null {
+  const slug = cycle ? BILLING_CYCLE_TO_KEY[cycle] : undefined;
+  return slug ? `frequency.${slug}` : null;
+}
+
+/**
  * Exhaustive slug maps: a missing enum member is a compile error, and an
  * unknown key cannot be constructed, so keys stay in sync with the backend.
  */

@@ -6,7 +6,9 @@
   "frequency": {
     "monthly": "month",
     "annual": "year",
-    "weekly": "week"
+    "weekly": "week",
+    "quarterly": "quarter",
+    "biAnnual": "6 months"
   },
   "requiresPro": {
     "message": "{{feature}} requires Pro.",

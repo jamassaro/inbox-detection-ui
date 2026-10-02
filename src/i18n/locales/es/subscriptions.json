@@ -5,8 +5,7 @@
     "annualTotal": "{{amount}} / año"
   },
   "list": {
-    "renewsOn": "Se renueva el {{date}}",
-    "priceChanged": "Precio cambiado"
+    "renewsOn": "Se renueva el {{date}}"
   },
   "empty": {
     "title": "No se detectaron suscripciones todavía",
@@ -18,6 +17,21 @@
   },
   "detail": {
     "renewalDate": "Se renueva el {{date}}",
-    "annualizedCost": "{{amount}} al año"
+    "annualizedCost": "{{amount}} al año",
+    "show": "Mostrar detalles de {{company}}",
+    "hide": "Ocultar detalles de {{company}}",
+    "plan": "Plan",
+    "amount": "Precio",
+    "monthlyCost": "Costo mensual",
+    "annualCost": "Costo anual",
+    "nextBilling": "Próximo cobro",
+    "status": "Estado",
+    "lastDetected": "Última vez en tu bandeja",
+    "website": "Sitio web",
+    "statuses": {
+      "active": "Activa",
+      "cancelled": "Cancelada",
+      "unknown": "Desconocido"
+    }
   }
 }

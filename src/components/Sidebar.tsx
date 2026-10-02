@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { LayoutDashboard, Sparkles, CreditCard, MessageCircle, Settings, Mail } from 'lucide-react';
+import { LayoutDashboard, Sparkles, CreditCard, MessageCircle, Settings } from 'lucide-react';
 import LanguageSelector from './LanguageSelector';
 import AgentStatusBadge from './AgentStatusBadge';
 import RemindersWidget from './RemindersWidget';
@@ -45,9 +45,7 @@ const Sidebar = () => {
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center justify-between gap-2 mb-2">
           <div className="flex items-center gap-2 min-w-0">
-            <div className="w-8 h-8 bg-gray-800 rounded-lg flex items-center justify-center shrink-0">
-              <Mail className="w-5 h-5 text-white" />
-            </div>
+            <img src="/logo.svg" alt="" aria-hidden="true" className="w-8 h-8 shrink-0" />
             <h1 className="font-semibold text-sm leading-tight">{t('app.name')}</h1>
           </div>
           <RemindersWidget />
