@@ -1,5 +1,6 @@
 import { renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { DEMO_STORAGE_KEY } from '../../lib/demoMode';
 import { RETURN_PATH_STORAGE_KEY, useGoogleAuth } from '../useGoogleAuth';
 import { stubWindowLocation } from '../../test-utils';
 
@@ -43,7 +44,7 @@ describe('useGoogleAuth', () => {
   });
 
   it('logs a clear error, navigates nowhere, and stores nothing when VITE_API_BASE_URL is unset', () => {
-    vi.stubEnv('VITE_API_BASE_URL', '');
+    vi.stubEnv('VITE_API_BASE_URL', undefined);
     const { result } = renderHook(() => useGoogleAuth());
 
     const started = result.current.startGoogleAuth({ returnPath: '/app/dashboard' });
@@ -68,5 +69,22 @@ describe('useGoogleAuth', () => {
     // is the security boundary that rejects off-site values.
     expect(sessionStorage.getItem(RETURN_PATH_STORAGE_KEY)).toBe('https://evil.example');
     expect(location.href).toBe('https://api.example.test/auth/google');
+  });
+
+  it('drops the demo flag so real sign-in never runs under mocks', () => {
+    vi.stubEnv('VITE_API_BASE_URL', 'https://api.example.test');
+    sessionStorage.setItem(DEMO_STORAGE_KEY, 'true');
+    const { result } = renderHook(() => useGoogleAuth());
+
+    result.current.startGoogleAuth();
+    expect(sessionStorage.getItem(DEMO_STORAGE_KEY)).toBeNull();
+  });
+
+  it('supports a same-origin (empty) API base URL', () => {
+    vi.stubEnv('VITE_API_BASE_URL', '');
+    const { result } = renderHook(() => useGoogleAuth());
+
+    expect(result.current.startGoogleAuth()).toBe(true);
+    expect(location.href).toBe('/auth/google');
   });
 });

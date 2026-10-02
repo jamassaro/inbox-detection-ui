@@ -35,7 +35,7 @@
   },
   "agentStatus": {
     "active": "Activo",
-  "activeWithScan": "Activo — Último escaneo: {{time}}",
+    "activeWithScan": "Activo — Último escaneo: {{time}}",
     "investigating": "Investigando...",
     "needsAttention_one": "Necesita atención ({{count}} nueva)",
     "needsAttention_other": "Necesita atención ({{count}} nuevas)",
@@ -113,5 +113,9 @@
       "dontMiss": "No te pierdas estas",
       "allOffers": "Todas las ofertas"
     }
+  },
+  "demo": {
+    "banner": "Estás viendo datos de ejemplo en modo demo.",
+    "exit": "Salir de la demo"
   }
 }

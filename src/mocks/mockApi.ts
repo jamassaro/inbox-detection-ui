@@ -19,6 +19,8 @@
  * (Free) states are verified against a real seeded backend instead.
  */
 
+import { clearDemoFlag } from '../lib/demoMode';
+
 /** Wire row of GET /discoveries — mirrors lib/discoveryWire.ts's DiscoveryWire. */
 interface MockDiscoveryWire {
   id: string;
@@ -97,6 +99,32 @@ interface MockState {
 
 const hoursAgo = (hours: number): string => new Date(Date.now() - hours * 3_600_000).toISOString();
 const daysFromNow = (days: number): string => new Date(Date.now() + days * 86_400_000).toISOString();
+
+const MOCK_SUBSCRIPTION_RECORDS = {
+  subscriptions: [
+    {
+      id: 'sub_rec_001', company: 'Adobe', domain: 'adobe.com', plan: 'Creative Cloud All Apps',
+      currentAmount: 599.88, currency: 'USD', billingCycle: 'yearly', nextBillingDate: daysFromNow(48),
+      monthlyEquivalent: 49.99, annualCost: 599.88, status: 'active', lastDetectedAt: hoursAgo(30),
+    },
+    {
+      id: 'sub_rec_002', company: 'Netflix', domain: 'netflix.com', plan: 'Premium',
+      currentAmount: 22.99, currency: 'USD', billingCycle: 'monthly', nextBillingDate: daysFromNow(9),
+      monthlyEquivalent: 22.99, annualCost: 275.88, status: 'active', lastDetectedAt: hoursAgo(3),
+    },
+    {
+      id: 'sub_rec_003', company: 'Spotify', domain: 'spotify.com', plan: 'Duo',
+      currentAmount: 16.99, currency: 'USD', billingCycle: 'monthly', nextBillingDate: daysFromNow(12),
+      monthlyEquivalent: 16.99, annualCost: 203.88, status: 'active', lastDetectedAt: hoursAgo(26),
+    },
+    {
+      id: 'sub_rec_004', company: 'Dropbox', domain: 'dropbox.com', plan: null,
+      currentAmount: 11.99, currency: 'USD', billingCycle: 'monthly', nextBillingDate: null,
+      monthlyEquivalent: 11.99, annualCost: 143.88, status: 'active', lastDetectedAt: hoursAgo(200),
+    },
+  ],
+  summary: { total: 4, monthlyTotal: 101.96, annualTotal: 1223.52 },
+};
 
 /** Initial state — rebuilt by resetMockState so tests start deterministic. */
 function initialState(): MockState {
@@ -472,6 +500,10 @@ async function handle(method: string, pathname: string, url: URL, body: string |
   const API_PREFIXES = [
     '/account', '/auth', '/stats', '/discoveries', '/investigation', '/billing',
     '/reminders', '/calendar', '/gmail', '/actions', '/chat', '/preferences',
+    // Every other backend mount: demo mode fails these closed with a 404
+    // instead of letting them reach the real API with the user's cookies.
+    '/scan', '/events', '/jobs', '/insights', '/subscriptions', '/briefing',
+    '/promo-codes', '/admin',
   ];
   if (!API_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
     return null;
@@ -492,7 +524,11 @@ async function handle(method: string, pathname: string, url: URL, body: string |
     state.calendarConnected = false;
     return json({ success: true });
   }
-  if (method === 'POST' && pathname === '/auth/logout') return json({ success: true });
+  if (method === 'POST' && pathname === '/auth/logout') {
+    clearDemoFlag(); // logging out of the demo leaves it
+    return json({ success: true });
+  }
+  if (method === 'GET' && pathname === '/subscriptions/records') return json(MOCK_SUBSCRIPTION_RECORDS);
 
   // --- Stats (BE-045; real source of the badge's lastSync) ---
   if (method === 'GET' && pathname === '/stats') {

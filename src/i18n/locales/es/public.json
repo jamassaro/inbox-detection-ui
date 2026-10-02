@@ -118,12 +118,36 @@
       "colFree": "Gratis",
       "colPro": "Pro",
       "rows": {
-        "r1": { "feature": "Investigación de bandeja", "free": "1 investigación gratuita", "pro": "Ilimitadas" },
-        "r2": { "feature": "Feed de descubrimientos con evidencia", "free": "Incluido", "pro": "Incluido" },
-        "r3": { "feature": "Monitoreo continuo", "free": "—", "pro": "Incluido" },
-        "r4": { "feature": "Recordatorios y seguimientos", "free": "—", "pro": "Incluido" },
-        "r5": { "feature": "Acciones de calendario", "free": "—", "pro": "Incluido" },
-        "r6": { "feature": "Chat con el agente", "free": "—", "pro": "Incluido" }
+        "r1": {
+          "feature": "Investigación de bandeja",
+          "free": "1 investigación gratuita",
+          "pro": "Ilimitadas"
+        },
+        "r2": {
+          "feature": "Feed de descubrimientos con evidencia",
+          "free": "Incluido",
+          "pro": "Incluido"
+        },
+        "r3": {
+          "feature": "Monitoreo continuo",
+          "free": "—",
+          "pro": "Incluido"
+        },
+        "r4": {
+          "feature": "Recordatorios y seguimientos",
+          "free": "—",
+          "pro": "Incluido"
+        },
+        "r5": {
+          "feature": "Acciones de calendario",
+          "free": "—",
+          "pro": "Incluido"
+        },
+        "r6": {
+          "feature": "Chat con el agente",
+          "free": "—",
+          "pro": "Incluido"
+        }
       }
     },
     "pricing": {
@@ -190,7 +214,8 @@
       "privacy": "Política de Privacidad",
       "terms": "Términos",
       "copyright": "© {{year}} Inbox Detective. Todos los derechos reservados."
-    }
+    },
+    "demoCta": "Probar la demo"
   },
   "legal": {
     "back": "Volver al inicio",

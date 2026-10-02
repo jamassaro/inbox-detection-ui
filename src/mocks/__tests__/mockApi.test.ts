@@ -268,3 +268,26 @@ describe('mock plan override (localStorage mock:plan)', () => {
     expect(body.lockedCount).toBeGreaterThan(0);
   });
 });
+
+describe('demo mode isolation', () => {
+  it('serves subscription records with plan, cycle and server totals', async () => {
+    const res = await get('/subscriptions/records');
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.subscriptions[0]).toMatchObject({
+      company: expect.any(String),
+      billingCycle: expect.any(String),
+      monthlyEquivalent: expect.any(Number),
+    });
+    expect(body.subscriptions.some((s: { plan: string | null }) => s.plan === null)).toBe(true);
+    expect(body.summary.total).toBe(body.subscriptions.length);
+  });
+
+  it.each(['/scan/status', '/events', '/jobs/x', '/insights', '/briefing', '/promo-codes/redeem'])(
+    'fails %s closed with a 404 instead of reaching the real backend',
+    async (path) => {
+      const res = await get(path);
+      expect(res.status).toBe(404);
+    },
+  );
+});

@@ -1,8 +1,149 @@
 {
   "hosting": {
     "public": "dist",
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
     "rewrites": [
+      {
+        "source": "/auth/callback",
+        "destination": "/index.html"
+      },
+      {
+        "source": "/auth/**",
+        "run": {
+          "serviceId": "inbox-api",
+          "region": "us-central1"
+        }
+      },
+      {
+        "source": "/account/**",
+        "run": {
+          "serviceId": "inbox-api",
+          "region": "us-central1"
+        }
+      },
+      {
+        "source": "/billing/**",
+        "run": {
+          "serviceId": "inbox-api",
+          "region": "us-central1"
+        }
+      },
+      {
+        "source": "/calendar/**",
+        "run": {
+          "serviceId": "inbox-api",
+          "region": "us-central1"
+        }
+      },
+      {
+        "source": "/gmail/**",
+        "run": {
+          "serviceId": "inbox-api",
+          "region": "us-central1"
+        }
+      },
+      {
+        "source": "/scan/**",
+        "run": {
+          "serviceId": "inbox-api",
+          "region": "us-central1"
+        }
+      },
+      {
+        "source": "/events/**",
+        "run": {
+          "serviceId": "inbox-api",
+          "region": "us-central1"
+        }
+      },
+      {
+        "source": "/stats/**",
+        "run": {
+          "serviceId": "inbox-api",
+          "region": "us-central1"
+        }
+      },
+      {
+        "source": "/preferences/**",
+        "run": {
+          "serviceId": "inbox-api",
+          "region": "us-central1"
+        }
+      },
+      {
+        "source": "/jobs/**",
+        "run": {
+          "serviceId": "inbox-api",
+          "region": "us-central1"
+        }
+      },
+      {
+        "source": "/insights/**",
+        "run": {
+          "serviceId": "inbox-api",
+          "region": "us-central1"
+        }
+      },
+      {
+        "source": "/subscriptions/**",
+        "run": {
+          "serviceId": "inbox-api",
+          "region": "us-central1"
+        }
+      },
+      {
+        "source": "/discoveries/**",
+        "run": {
+          "serviceId": "inbox-api",
+          "region": "us-central1"
+        }
+      },
+      {
+        "source": "/chat/**",
+        "run": {
+          "serviceId": "inbox-api",
+          "region": "us-central1"
+        }
+      },
+      {
+        "source": "/briefing/**",
+        "run": {
+          "serviceId": "inbox-api",
+          "region": "us-central1"
+        }
+      },
+      {
+        "source": "/reminders/**",
+        "run": {
+          "serviceId": "inbox-api",
+          "region": "us-central1"
+        }
+      },
+      {
+        "source": "/actions/**",
+        "run": {
+          "serviceId": "inbox-api",
+          "region": "us-central1"
+        }
+      },
+      {
+        "source": "/investigation/**",
+        "run": {
+          "serviceId": "inbox-api",
+          "region": "us-central1"
+        }
+      },
+      {
+        "source": "/promo-codes/**",
+        "run": {
+          "serviceId": "inbox-api",
+          "region": "us-central1"
+        }
+      },
       {
         "source": "**",
         "destination": "/index.html"

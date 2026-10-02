@@ -173,7 +173,7 @@ describe('ConnectGmailPage', () => {
   it('connect CTA navigates nowhere and shows the translated fallback when the API base URL is unset', async () => {
     const location = stubWindowLocation();
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
-    vi.stubEnv('VITE_API_BASE_URL', '');
+    vi.stubEnv('VITE_API_BASE_URL', undefined);
     stubGmailStatus(gmailStatus());
     renderPage();
 
