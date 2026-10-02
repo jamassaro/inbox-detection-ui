@@ -152,7 +152,7 @@ describe('apiFetch', () => {
   })
 
   it('sends no body on the refresh call — the refresh token lives only in the __session cookie', async () => {
-    const mock = vi.fn(async (url: string) => {
+    const mock = vi.fn(async (url: string, _init?: RequestInit) => {
       if (url.endsWith('/auth/refresh')) return jsonResponse(200, {})
       return jsonResponse(401, { code: 'UNAUTHORIZED' })
     })
@@ -160,11 +160,11 @@ describe('apiFetch', () => {
 
     await apiFetch('/test').catch(() => {})
 
-    const refreshCall = mock.mock.calls.find(([url]) => (url as string).endsWith('/auth/refresh'))
+    const refreshCall = mock.mock.calls.find(([url]) => url.endsWith('/auth/refresh'))
     expect(refreshCall).toBeDefined()
-    const [, init] = refreshCall as [string, RequestInit]
-    expect(init.body).toBeUndefined()
-    expect(init.credentials).toBe('include')
+    const [, init] = refreshCall!
+    expect(init?.body).toBeUndefined()
+    expect(init?.credentials).toBe('include')
   })
 
   it('dispatches auth:expired only when the refresh attempt itself fails', async () => {
