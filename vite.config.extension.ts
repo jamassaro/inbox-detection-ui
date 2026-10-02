@@ -11,13 +11,15 @@ const WEB_ORIGIN = (
   process.env.VITE_EXTENSION_WEB_ORIGIN || 'https://inbox-detection.web.app'
 ).replace(/\/+$/, '');
 
+const API_ORIGIN = (process.env.VITE_EXTENSION_API_ORIGIN || WEB_ORIGIN).replace(/\/+$/, '');
+
 const manifestPlugin = (): Plugin => ({
   name: 'emit-extension-manifest',
   generateBundle() {
     this.emitFile({
       type: 'asset',
       fileName: 'manifest.json',
-      source: JSON.stringify(buildManifest(WEB_ORIGIN), null, 2),
+      source: JSON.stringify(buildManifest(WEB_ORIGIN, API_ORIGIN), null, 2),
     });
   },
 });

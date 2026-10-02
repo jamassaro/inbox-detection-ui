@@ -1,6 +1,6 @@
 import { toDiscovery } from '../../src/lib/discoveryWire';
 import type { DiscoveriesWire } from '../../src/lib/discoveryWire';
-import { ALLOWED_PATH_PREFIXES, RECENT_LIMIT, WEB_ORIGIN } from '../config';
+import { ALLOWED_PATH_PREFIXES, API_ORIGIN, RECENT_LIMIT, WEB_ORIGIN } from '../config';
 import type {
   ExtensionRequest,
   OpenUrlResponse,
@@ -22,7 +22,7 @@ let refreshInFlight: Promise<boolean> | null = null;
  * src/lib/apiClient.ts, which can't run here because it needs `window`.
  */
 function refreshSession(fetchFn: FetchFn): Promise<boolean> {
-  refreshInFlight ??= fetchFn(`${WEB_ORIGIN}/auth/refresh`, {
+  refreshInFlight ??= fetchFn(`${API_ORIGIN}/auth/refresh`, {
     method: 'POST',
     credentials: 'include',
   })
@@ -35,7 +35,7 @@ function refreshSession(fetchFn: FetchFn): Promise<boolean> {
 }
 
 const getDiscoveries = (fetchFn: FetchFn, locale: string) =>
-  fetchFn(`${WEB_ORIGIN}/discoveries?status=active&limit=${RECENT_LIMIT}`, {
+  fetchFn(`${API_ORIGIN}/discoveries?status=active&limit=${RECENT_LIMIT}`, {
     credentials: 'include',
     headers: { Accept: 'application/json', 'Accept-Language': locale },
   });

@@ -99,7 +99,7 @@ const DetectivePanel = ({ locale, onClose }: DetectivePanelProps) => {
       tabIndex={-1}
       role="dialog"
       aria-label={t('extension.panelLabel')}
-      className="fixed bottom-6 right-16 flex w-[400px] max-w-[calc(100vw-96px)] flex-col overflow-hidden rounded-xl border border-gray-200 bg-white text-gray-900 shadow-2xl focus:outline-none"
+      className="fixed right-4 top-16 z-[2147483000] flex max-h-[calc(100vh-88px)] w-[400px] max-w-[calc(100vw-32px)] flex-col overflow-hidden rounded-xl border border-gray-200 bg-white text-gray-900 shadow-2xl focus:outline-none"
       style={{ maxHeight: 'min(600px, calc(100vh - 96px))' }}
     >
       <ExtensionHeader onOpenDashboard={openDashboard} onClose={onClose} />

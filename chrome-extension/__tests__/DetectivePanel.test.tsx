@@ -85,7 +85,7 @@ describe('DetectivePanel', () => {
 describe('ExtensionApp', () => {
   it('toggles via the launcher and closes on Escape', async () => {
     api.fetchRecentDiscoveries.mockResolvedValue([]);
-    render(<ExtensionApp />);
+    render(<ExtensionApp launcherContainer={null} />);
     const launcher = screen.getByRole('button', { name: 'Open Inbox Detective' });
     await userEvent.click(launcher);
     await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy());

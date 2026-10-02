@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { ExternalLink, Search, X } from 'lucide-react';
+import { ExternalLink, X } from 'lucide-react';
+import DetectiveLogo from './DetectiveLogo';
 
 interface ExtensionHeaderProps {
   onOpenDashboard: () => void;
@@ -15,9 +16,7 @@ const ExtensionHeader = ({ onOpenDashboard, onClose }: ExtensionHeaderProps) => 
   return (
     <header className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
       <div className="flex items-center gap-2">
-        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gray-900 text-white">
-          <Search aria-hidden="true" className="h-4 w-4" />
-        </span>
+        <DetectiveLogo className="h-8 w-8 text-gray-900" />
         <h2 className="text-sm font-semibold text-gray-900">{t('app.name')}</h2>
       </div>
       <div className="flex items-center gap-1">

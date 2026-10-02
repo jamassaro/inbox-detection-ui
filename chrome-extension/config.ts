@@ -8,6 +8,16 @@ export const WEB_ORIGIN = (
   import.meta.env.VITE_EXTENSION_WEB_ORIGIN || 'https://inbox-detection.web.app'
 ).replace(/\/+$/, '');
 
+/**
+ * Origin the service worker calls for the API. Defaults to the web origin
+ * (production proxies the API through it). Locally the app talks to the backend
+ * directly, so set VITE_EXTENSION_API_ORIGIN=http://localhost:8080.
+ */
+export const API_ORIGIN = (import.meta.env.VITE_EXTENSION_API_ORIGIN || WEB_ORIGIN).replace(
+  /\/+$/,
+  '',
+);
+
 /** Discoveries shown in the panel. */
 export const RECENT_LIMIT = 5;
 

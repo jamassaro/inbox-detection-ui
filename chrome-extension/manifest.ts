@@ -1,5 +1,5 @@
 /** MV3 manifest, generated at build time so host permissions follow the web origin. */
-export function buildManifest(webOrigin: string) {
+export function buildManifest(webOrigin: string, apiOrigin: string = webOrigin) {
   return {
     manifest_version: 3,
     name: 'Inbox Detective',
@@ -8,7 +8,7 @@ export function buildManifest(webOrigin: string) {
     icons: { '16': 'icons/icon-16.png', '48': 'icons/icon-48.png', '128': 'icons/icon-128.png' },
     // Session cookie is attached by the browser to service-worker requests to
     // this origin only; it is never readable from Gmail's page context.
-    host_permissions: [`${webOrigin}/*`],
+    host_permissions: [...new Set([`${webOrigin}/*`, `${apiOrigin}/*`])],
     background: { service_worker: 'background/service-worker.js' },
     content_scripts: [
       {
