@@ -450,13 +450,13 @@ const priceId = 'price_1234abcd'
 
 ## Chrome Extension
 
-The Chrome extension is a separate build artifact at `chrome-extension/`. It:
-- Injects a sidebar into `mail.google.com` via `content/content.ts`
-- Runs a popup at `chrome-extension/popup/`
-- Shares `src/types/index.ts` and `src/data/mockOffers.ts` with the main app
-- Builds to `dist-extension/` via `npm run build:extension`
+The Gmail extension lives in `chrome-extension/` (see its README). It:
+- Mounts a launcher + panel in `mail.google.com` inside a closed Shadow DOM (`content/`)
+- Calls the API **only from the service worker** (`background/`) using the session cookie; the content script receives display data only
+- Reuses `src/` types, mapping (`discoveryWire`), helpers, formatting and i18n JSON
+- Builds to `dist-extension/` via `npm run build:extension` (separate IIFE builds for content script and service worker)
 
-**The Chrome extension is NOT the V1 focus.** It currently uses mock data and hardcoded localhost. Do not modify extension files unless the ticket explicitly targets the extension.
+**Exception to the `apiFetch` rule:** the service worker uses `fetch` directly because `apiFetch` needs `window`. Keep it limited to `background/handlers.ts`.
 
 ---
 

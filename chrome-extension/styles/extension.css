@@ -1,0 +1,10 @@
+@config "../../tailwind.extension.config.js";
+
+/* Reset inherited Gmail properties at the shadow boundary; Tailwind base re-applies its own. */
+:host {
+  all: initial;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
