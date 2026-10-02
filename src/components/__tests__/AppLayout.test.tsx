@@ -51,7 +51,7 @@ describe('AppLayout', () => {
     expect(main?.className).toContain('overflow-auto');
     expect(screen.getByText('dash-content')).toBeTruthy();
     // The shell fills the viewport on the gray-50 canvas.
-    const shell = main?.parentElement;
+    const shell = main?.parentElement?.parentElement;
     expect(shell?.className).toContain('h-screen');
     expect(shell?.className).toContain('bg-gray-50');
   });

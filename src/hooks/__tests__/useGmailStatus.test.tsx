@@ -158,7 +158,7 @@ describe('startGmailConnect', () => {
   });
 
   it('navigates nowhere, logs a clear error, and returns false when VITE_API_BASE_URL is unset', () => {
-    vi.stubEnv('VITE_API_BASE_URL', '');
+    vi.stubEnv('VITE_API_BASE_URL', undefined);
 
     expect(startGmailConnect()).toBe(false);
     expect(location.href).toBe('');

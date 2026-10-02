@@ -21,6 +21,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useGoogleAuth } from '../hooks/useGoogleAuth';
 import { useToast } from '../hooks/useToast';
 import { getInitials } from '../lib/discoveryHelpers';
+import { enterDemo } from '../lib/demoMode';
 
 /**
  * Public marketing landing page (FE-006). One file by ticket — every section
@@ -105,6 +106,26 @@ const PrimaryCta = ({ size = 'md', inverse = false, className = '' }: PrimaryCta
   );
 };
 
+/**
+ * Secondary landing action: explore the app on sample data. Only offered to
+ * visitors who are not signed in — it never replaces the real sign-in flow.
+ */
+const DemoCta = () => {
+  const { t } = useTranslation('public');
+  const { isAuthenticated } = useAuth();
+
+  if (isAuthenticated) return null;
+  return (
+    <button
+      type="button"
+      onClick={enterDemo}
+      className="inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white px-5 py-2.5 text-base font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2"
+    >
+      {t('landing.demoCta')}
+    </button>
+  );
+};
+
 const SectionHeading = ({
   eyebrow,
   title,
@@ -173,8 +194,9 @@ const HeroSection = () => {
           {t('landing.title')}
         </h1>
         <p className="mx-auto mt-6 max-w-2xl text-lg text-gray-600">{t('landing.subtitle')}</p>
-        <div className="mt-8">
+        <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <PrimaryCta />
+          <DemoCta />
         </div>
         <p className="mt-4 text-sm text-gray-500">{t('landing.trust')}</p>
       </div>

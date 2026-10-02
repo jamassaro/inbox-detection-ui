@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { I18nextProvider } from 'react-i18next'
 import { queryClient } from './lib/queryClient'
-import { installMockApi } from './mocks/mockApi'
+import { isDemoMode } from './lib/demoMode'
 import i18n from './i18n'
 import { LocaleProvider } from './contexts/LocaleProvider'
 import { AuthProvider } from './contexts/AuthProvider'
@@ -12,10 +12,14 @@ import { ToastProvider } from './contexts/ToastProvider'
 import './index.css'
 import App from './App.tsx'
 
-// Mock mode (VITE_USE_MOCKS=true) must be installed before React mounts so
-// the first session check is already intercepted. Default (unset/false) is
-// the live API — this line is the only mock hook-up in the app.
-if (import.meta.env.VITE_USE_MOCKS === 'true') installMockApi()
+// Demo mode (the landing's "Try the demo" flag, or VITE_USE_MOCKS=true for
+// local dev) must install the mock API before React mounts so the first
+// session check is already intercepted. The mock code is loaded lazily so a
+// normal visit never downloads it; default is the live API.
+if (isDemoMode()) {
+  const { installMockApi } = await import('./mocks/mockApi')
+  installMockApi()
+}
 
 // Canonical provider order (FE-004; FE-005 inserts ToastProvider between
 // EntitlementProvider and LocaleProvider). QueryClientProvider sits inside

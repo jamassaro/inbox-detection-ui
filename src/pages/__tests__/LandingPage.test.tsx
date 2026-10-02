@@ -21,6 +21,13 @@ vi.mock('../../hooks/useGoogleAuth', () => ({
   useGoogleAuth: () => ({ startGoogleAuth: mockStartGoogleAuth }),
 }));
 
+const { mockEnterDemo } = vi.hoisted(() => ({ mockEnterDemo: vi.fn() }));
+
+vi.mock('../../lib/demoMode', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../../lib/demoMode')>()),
+  enterDemo: mockEnterDemo,
+}));
+
 // LandingPage never fetches: auth state arrives via AuthContext, so tests
 // stub the context value directly instead of mocking apiClient.
 const authValue = (overrides: Partial<AuthContextValue> = {}): AuthContextValue => ({
@@ -62,6 +69,20 @@ afterEach(async () => {
   // i18n is a singleton — restore the default language so the English
   // tests are never poisoned by a Spanish render.
   await i18n.changeLanguage('en');
+});
+
+describe('LandingPage demo entry', () => {
+  it('offers a separate demo button that enters demo mode without starting OAuth', async () => {
+    renderLanding();
+    await userEvent.click(screen.getByRole('button', { name: 'Try the demo' }));
+    expect(mockEnterDemo).toHaveBeenCalledTimes(1);
+    expect(mockStartGoogleAuth).not.toHaveBeenCalled();
+  });
+
+  it('hides the demo button for signed-in users', () => {
+    renderLanding(signedInAuth());
+    expect(screen.queryByRole('button', { name: 'Try the demo' })).toBeNull();
+  });
 });
 
 describe('LandingPage', () => {

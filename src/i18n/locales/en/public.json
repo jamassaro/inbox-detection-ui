@@ -118,12 +118,36 @@
       "colFree": "Free",
       "colPro": "Pro",
       "rows": {
-        "r1": { "feature": "Inbox investigation", "free": "1 free investigation", "pro": "Unlimited" },
-        "r2": { "feature": "Discovery feed with evidence", "free": "Included", "pro": "Included" },
-        "r3": { "feature": "Continuous monitoring", "free": "—", "pro": "Included" },
-        "r4": { "feature": "Reminders and follow-ups", "free": "—", "pro": "Included" },
-        "r5": { "feature": "Calendar actions", "free": "—", "pro": "Included" },
-        "r6": { "feature": "Agent chat", "free": "—", "pro": "Included" }
+        "r1": {
+          "feature": "Inbox investigation",
+          "free": "1 free investigation",
+          "pro": "Unlimited"
+        },
+        "r2": {
+          "feature": "Discovery feed with evidence",
+          "free": "Included",
+          "pro": "Included"
+        },
+        "r3": {
+          "feature": "Continuous monitoring",
+          "free": "—",
+          "pro": "Included"
+        },
+        "r4": {
+          "feature": "Reminders and follow-ups",
+          "free": "—",
+          "pro": "Included"
+        },
+        "r5": {
+          "feature": "Calendar actions",
+          "free": "—",
+          "pro": "Included"
+        },
+        "r6": {
+          "feature": "Agent chat",
+          "free": "—",
+          "pro": "Included"
+        }
       }
     },
     "pricing": {
@@ -190,7 +214,8 @@
       "privacy": "Privacy Policy",
       "terms": "Terms",
       "copyright": "© {{year}} Inbox Detective. All rights reserved."
-    }
+    },
+    "demoCta": "Try the demo"
   },
   "legal": {
     "back": "Back to home",

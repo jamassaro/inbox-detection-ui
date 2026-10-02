@@ -109,9 +109,17 @@ describe('apiFetch', () => {
 
   it('throws a clear error when VITE_API_BASE_URL is missing', async () => {
     const mock = mockFetchOnce(jsonResponse(200, {}))
-    vi.unstubAllEnvs()
+    vi.stubEnv('VITE_API_BASE_URL', undefined)
 
     await expect(apiFetch('/test')).rejects.toThrow(/VITE_API_BASE_URL/)
     expect(mock).not.toHaveBeenCalled()
+  })
+
+  it('treats an empty VITE_API_BASE_URL as same-origin', async () => {
+    const mock = mockFetchOnce(jsonResponse(200, { ok: true }))
+    vi.stubEnv('VITE_API_BASE_URL', '')
+
+    await apiFetch('/test')
+    expect(mock).toHaveBeenCalledWith('/test', expect.objectContaining({ credentials: 'include' }))
   })
 })

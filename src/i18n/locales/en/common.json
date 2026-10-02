@@ -35,7 +35,7 @@
   },
   "agentStatus": {
     "active": "Active",
-  "activeWithScan": "Active — Last scan: {{time}}",
+    "activeWithScan": "Active — Last scan: {{time}}",
     "investigating": "Investigating...",
     "needsAttention_one": "Needs attention ({{count}} new)",
     "needsAttention_other": "Needs attention ({{count}} new)",
@@ -113,5 +113,9 @@
       "dontMiss": "Don't miss these",
       "allOffers": "All Offers"
     }
+  },
+  "demo": {
+    "banner": "You're viewing sample data in demo mode.",
+    "exit": "Exit demo"
   }
 }
