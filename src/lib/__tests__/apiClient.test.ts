@@ -122,4 +122,84 @@ describe('apiFetch', () => {
     await apiFetch('/test')
     expect(mock).toHaveBeenCalledWith('/test', expect.objectContaining({ credentials: 'include' }))
   })
+
+  it('on 401, silently refreshes once and retries the original request', async () => {
+    const calls: string[] = []
+    const mock = vi.fn(async (url: string) => {
+      calls.push(url)
+      if (url.endsWith('/auth/refresh')) {
+        return jsonResponse(200, {})
+      }
+      const attempt = calls.filter((u) => u === url).length
+      return attempt === 1 ? jsonResponse(401, { code: 'UNAUTHORIZED' }) : jsonResponse(200, { ok: true })
+    })
+    vi.stubGlobal('fetch', mock)
+
+    const handler = vi.fn()
+    window.addEventListener(AUTH_EXPIRED_EVENT, handler)
+
+    const result = await apiFetch<{ ok: boolean }>('/test')
+
+    expect(result).toEqual({ ok: true })
+    expect(calls).toEqual([
+      `${TEST_BASE_URL}/test`,
+      `${TEST_BASE_URL}/auth/refresh`,
+      `${TEST_BASE_URL}/test`,
+    ])
+    // The retry succeeded — the session never actually expired from the caller's view.
+    expect(handler).not.toHaveBeenCalled()
+    window.removeEventListener(AUTH_EXPIRED_EVENT, handler)
+  })
+
+  it('sends no body on the refresh call — the refresh token lives only in the __session cookie', async () => {
+    const mock = vi.fn(async (url: string) => {
+      if (url.endsWith('/auth/refresh')) return jsonResponse(200, {})
+      return jsonResponse(401, { code: 'UNAUTHORIZED' })
+    })
+    vi.stubGlobal('fetch', mock)
+
+    await apiFetch('/test').catch(() => {})
+
+    const refreshCall = mock.mock.calls.find(([url]) => (url as string).endsWith('/auth/refresh'))
+    expect(refreshCall).toBeDefined()
+    const [, init] = refreshCall as [string, RequestInit]
+    expect(init.body).toBeUndefined()
+    expect(init.credentials).toBe('include')
+  })
+
+  it('dispatches auth:expired only when the refresh attempt itself fails', async () => {
+    mockFetchOnce(jsonResponse(401, { code: 'UNAUTHORIZED' }))
+
+    const handler = vi.fn()
+    window.addEventListener(AUTH_EXPIRED_EVENT, handler)
+
+    await expect(apiFetch('/test')).rejects.toBeInstanceOf(ApiError)
+
+    expect(handler).toHaveBeenCalledTimes(1)
+    window.removeEventListener(AUTH_EXPIRED_EVENT, handler)
+  })
+
+  it('dedupes concurrent refreshes: two simultaneous 401s trigger exactly one refresh call', async () => {
+    const attemptsPerPath = new Map<string, number>()
+    let refreshCalls = 0
+    const mock = vi.fn(async (url: string) => {
+      if (url.endsWith('/auth/refresh')) {
+        refreshCalls += 1
+        return jsonResponse(200, {})
+      }
+      const attempt = (attemptsPerPath.get(url) ?? 0) + 1
+      attemptsPerPath.set(url, attempt)
+      return attempt === 1 ? jsonResponse(401, { code: 'UNAUTHORIZED' }) : jsonResponse(200, { ok: true })
+    })
+    vi.stubGlobal('fetch', mock)
+
+    const [a, b] = await Promise.all([
+      apiFetch<{ ok: boolean }>('/a'),
+      apiFetch<{ ok: boolean }>('/b'),
+    ])
+
+    expect(a).toEqual({ ok: true })
+    expect(b).toEqual({ ok: true })
+    expect(refreshCalls).toBe(1)
+  })
 })

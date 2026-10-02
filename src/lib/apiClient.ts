@@ -42,13 +42,45 @@ async function parseErrorBody(response: Response): Promise<{ code?: string; mess
 /** RequestInit plus fetch-layer controls for {@link apiFetch}. */
 export interface ApiFetchOptions extends RequestInit {
   /**
-   * Emit the `auth:expired` window event on a 401 response (default true).
-   * Supplied as false by consumers whose 401 is an expected answer rather
-   * than a mid-use expiry — the bootstrap session check and the callback
-   * page's own session read. Emitting there would bounce an already-logged-
-   * out visitor into an app reload loop (each reload re-running the check).
+   * Emit the `auth:expired` window event on a 401 response that survives a
+   * refresh attempt (default true). Supplied as false by consumers whose
+   * 401 is an expected answer rather than a mid-use expiry — the bootstrap
+   * session check and the callback page's own session read. Emitting there
+   * would bounce an already-logged-out visitor into an app reload loop
+   * (each reload re-running the check). This only gates the event — the
+   * silent refresh-and-retry below still runs either way.
    */
   authExpiredEvent?: boolean
+}
+
+/**
+ * Single shared in-flight refresh. The backend's refresh token is single-use
+ * (rotates on every call), so concurrent 401s across multiple in-flight
+ * requests must share one POST /auth/refresh rather than each racing their
+ * own — a second concurrent call would present an already-rotated-away
+ * token and fail. No body is sent: the refresh token travels inside the
+ * httpOnly __session cookie, never in JS.
+ */
+let refreshPromise: Promise<boolean> | null = null
+
+function refreshSession(): Promise<boolean> {
+  if (!refreshPromise) {
+    refreshPromise = (async () => {
+      try {
+        const res = await fetch(`${resolveBaseUrl()}/auth/refresh`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+        })
+        return res.ok
+      } catch {
+        return false
+      } finally {
+        refreshPromise = null
+      }
+    })()
+  }
+  return refreshPromise
 }
 
 /**
@@ -58,9 +90,13 @@ export interface ApiFetchOptions extends RequestInit {
  * - Session cookie is sent via `credentials: 'include'` (httpOnly cookie, no token storage)
  * - `Accept-Language` is attached from the active locale so AI-generated
  *   content comes back in the user's language
- * - 401 responses dispatch the `auth:expired` window event (decoupling the API
- *   layer from AuthContext to avoid circular imports) unless suppressed via
- *   `authExpiredEvent: false`
+ * - A 401 triggers one silent `POST /auth/refresh` + one retry of the
+ *   original request before giving up — the access token is only 15
+ *   minutes, so an active session should outlive it transparently instead
+ *   of bouncing the user out
+ * - A 401 that survives the refresh attempt dispatches the `auth:expired`
+ *   window event (decoupling the API layer from AuthContext to avoid
+ *   circular imports) unless suppressed via `authExpiredEvent: false`
  * - Non-2xx responses throw a typed {@link ApiError} with `{ status, code, message }`
  */
 export async function apiFetch<T = unknown>(
@@ -77,16 +113,31 @@ export async function apiFetch<T = unknown>(
     headers.set('Accept-Language', getAcceptLanguage())
   }
 
-  let response: Response
-  try {
-    response = await fetch(url, {
+  const doFetch = (): Promise<Response> =>
+    fetch(url, {
       ...options,
       headers,
       credentials: 'include',
     })
+
+  let response: Response
+  try {
+    response = await doFetch()
   } catch (error) {
     const detail = error instanceof Error ? error.message : 'unknown network error'
     throw new ApiError(0, 'NETWORK_ERROR', `Network request failed: ${detail}`)
+  }
+
+  if (response.status === 401) {
+    const refreshed = await refreshSession()
+    if (refreshed) {
+      try {
+        response = await doFetch()
+      } catch (error) {
+        const detail = error instanceof Error ? error.message : 'unknown network error'
+        throw new ApiError(0, 'NETWORK_ERROR', `Network request failed: ${detail}`)
+      }
+    }
   }
 
   if (response.status === 401 && authExpiredEvent) {
